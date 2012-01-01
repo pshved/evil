@@ -1,0 +1,5 @@
+source "http://rubygems.org"
+gem "rails"
+gem "rmagick"
+gem "haml"
+gem "nokogiri"
