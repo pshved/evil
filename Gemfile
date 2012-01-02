@@ -7,6 +7,7 @@ gem 'rails', '3.1.3'
 
 # I"m not going to use sqlite
 # gem 'sqlite3'
+gem 'mysql'
 
 
 # JavaScript Runtimes.  Have no idea what they are
