@@ -31,6 +31,9 @@ GEM
       multi_json (~> 1.0)
     ansi (1.4.1)
     arel (2.2.1)
+    authlogic (3.1.0)
+      activerecord (>= 3.0.7)
+      activerecord (>= 3.0.7)
     builder (3.0.0)
     capistrano (2.9.0)
       highline
@@ -127,6 +130,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  authlogic
   capistrano
   coffee-rails (~> 3.1.1)
   execjs

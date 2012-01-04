@@ -7,6 +7,7 @@ gem 'rails', '3.1.3'
 
 # I"m not going to use sqlite
 # gem 'sqlite3'
+#gem 'activerecord-mysql-adapter'
 gem 'mysql'
 
 
@@ -42,3 +43,6 @@ group :test do
 end
 
 gem 'haml'
+
+# Authentication
+gem 'authlogic'
