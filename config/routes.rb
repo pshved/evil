@@ -1,6 +1,10 @@
 Zlo::Application.routes.draw do
   root :controller => 'users', :action => 'index'
 
+  match 'login' => 'user_sessions#new', :as => 'login'
+  match 'logout' => 'user_sessions#destroy', :as => 'logout'
+
+  resources :user_sessions
   resources :users
 
   # The priority is based upon order of creation:

@@ -9,7 +9,13 @@
 <body>
 
   <div id="user-nav">
-    <%= link_to "Register", new_user_path  %>
+    <% if current_user %>
+      <%= link_to "Logout", logout_path  %> |
+      <%= link_to "Edit profile", edit_user_path(:self)  %>
+    <% else %>
+      <%= link_to "Register", new_user_path  %>  |
+      <%= link_to "Login", login_path  %>
+    <% end %>
   </div>
 
 <%= yield %>
