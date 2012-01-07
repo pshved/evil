@@ -26,5 +26,6 @@ Zlo::Application.configure do
   config.assets.compress = false
 
   # Expands the lines which load the assets
-  config.assets.debug = true
+  # For now, I don't need this
+  #config.assets.debug = true
 end

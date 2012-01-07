@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  user: 
+  text_container: 
+  host: MyString
+  unreg_name: MyString
+  thread: 
+  parent: 
+  subthread_status: MyString
+
+two:
+  user: 
+  text_container: 
+  host: MyString
+  unreg_name: MyString
+  thread: 
+  parent: 
+  subthread_status: MyString

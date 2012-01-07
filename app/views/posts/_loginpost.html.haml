@@ -1,0 +1,28 @@
+= form_for @loginpost do |f|
+  = f.hidden_field :reply_to
+  - if @loginpost.saved_post && @loginpost.saved_post.errors.any?
+    %div#error_explanation
+      %h2="#{pluralize(@loginpost.saved_post.errors.count, "error")} prohibited this post from being saved:"
+      %ul
+        - @loginpost.saved_post.errors.full_messages.each do |msg|
+          %li=msg
+  - if @loginpost.errors.any?
+    %div#error_explanation
+      %h2="#{pluralize(@loginpost.errors.count, "error")} prohibited this post from being saved:"
+      %ul
+        - @loginpost.errors.full_messages.each do |msg|
+          %li=msg
+  %table{:border=>0, :cellspacing => 0, :cellpadding => 3}
+    %tr
+      %td{:colspan => 2, :align => "center"}
+        %big
+          %a{:name => 'reply'}Reply
+    %tr
+      %td
+        =f.text_field 'title'
+    %tr
+      %td
+        =f.text_field 'body'
+
+  = f.submit
+

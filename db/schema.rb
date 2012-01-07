@@ -11,7 +11,24 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120104115619) do
+ActiveRecord::Schema.define(:version => 20120104173234) do
+
+  create_table "posts", :force => true do |t|
+    t.integer  "user_id"
+    t.integer  "text_container_id"
+    t.string   "host"
+    t.string   "unreg_name"
+    t.integer  "thread_id"
+    t.integer  "parent_id"
+    t.string   "subthread_status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "posts", ["parent_id"], :name => "index_posts_on_parent_id"
+  add_index "posts", ["text_container_id"], :name => "index_posts_on_text_container_id"
+  add_index "posts", ["thread_id"], :name => "index_posts_on_thread_id"
+  add_index "posts", ["user_id"], :name => "index_posts_on_user_id"
 
   create_table "text_containers", :force => true do |t|
     t.integer  "current_revision"
@@ -32,6 +49,14 @@ ActiveRecord::Schema.define(:version => 20120104115619) do
   add_index "text_items", ["text_container_id", "revision", "number"], :name => "k_rev_i_id", :unique => true
   add_index "text_items", ["text_container_id", "revision"], :name => "k_rev_id"
   add_index "text_items", ["text_container_id"], :name => "index_text_items_on_text_container_id"
+
+  create_table "threads", :force => true do |t|
+    t.integer  "head_id"
+    t.datetime "updated_at"
+    t.datetime "created_at"
+  end
+
+  add_index "threads", ["head_id"], :name => "index_threads_on_head_id"
 
   create_table "user_sessions", :force => true do |t|
     t.string   "login"
