@@ -32,6 +32,11 @@ class Posts < ActiveRecord::Base
     text_container.body[1]
   end
 
+  # Post's body after the proper filter application
+  def filtered_body
+    text_container.filtered[1]
+  end
+
   # Attach post to the proper thread (or create a new one).  Return the object to save (either a thread or this post)
   def attach_to(reply_to)
     if reply_to.blank?

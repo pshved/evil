@@ -42,7 +42,10 @@ group :test do
   #gem 'ruby-debug19', :require => nil
 end
 
+gem 'ruby-debug19'
 gem 'haml'
 
 # Authentication
 gem 'authlogic'
+
+gem 'treetop'

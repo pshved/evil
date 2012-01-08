@@ -5,3 +5,17 @@
  *= require_self
  *= require_tree . 
 */
+span.h
+{
+  font-size: 4;
+  font-weight: bold;
+}
+span.s
+{
+  font-size: 1;
+  font-weight: bold;
+}
+span.inquote
+{
+/*TODO*/
+}

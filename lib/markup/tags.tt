@@ -1,0 +1,59 @@
+grammar BoardTags
+	rule text
+		(notag tag text        /
+     '' tag text           /
+		 notag '' ''           /
+     '' '' ''
+    )
+		{ def to_body ; elements.map{|e| e.to_body }.join(''); end }
+	end
+
+	# Text without tags inside
+	rule notag
+	  (!tag_close !tag_open .)*
+    <RegexpConvertNode>
+	end
+
+  # Used for lookaheads only
+  rule tag_open
+    '[' alnum &{|seq| seq[1].opentag?} ( ']' / '=' )
+  end
+  rule tag_close
+    '[/' alnum &{|seq| seq[1].closetag?} ']'
+  end
+
+  rule tag
+    tag_pre / tag_tex
+  end
+
+  rule tag_pre
+    '[pre]' inner:(!'[/pre]' .)+ '[/pre]'
+    {
+      def to_body
+        "<pre>#{ERB::Util::html_escape(inner.text_value)}</pre>"
+      end
+    }
+  end
+
+  rule tag_tex
+    '[tex]' inner:(!'[/tex]' .)+ '[/tex]'
+    {
+      def to_body
+        %Q(<img src="http://www.codecogs.com/gif.latex?#{inner.text_value}"/>)
+      end
+    }
+  end
+
+
+  rule alnum
+    [0-9a-zA-Z_]+
+    {
+      def opentag?
+        ['code','pre','tex'].include? text_value
+      end
+      def closetag?
+        opentag?
+      end
+    }
+  end
+end

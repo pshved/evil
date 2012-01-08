@@ -1,3 +1,4 @@
+require 'markup/boardtags'
 class TextContainer < ActiveRecord::Base
   has_many :text_items, :autosave => true
 
@@ -9,6 +10,16 @@ class TextContainer < ActiveRecord::Base
       nil
     end
     #self.text_items.order('revision DESC').first
+  end
+
+  def filtered
+    if current_revision
+      f = self.text_items.where(["revision = ?", current_revision]).order('number ASC').map(&:body)
+      f.map!{|txt| BoardtagsFilter.filter(txt)}
+      f
+    else
+      nil
+    end
   end
 
   def add_revision(*texts)
