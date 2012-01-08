@@ -1,19 +1,11 @@
 class PostsController < ApplicationController
-  # GET /posts
-  # GET /posts.json
-  def index
-    @posts = Posts.all
-
-    respond_to do |format|
-      format.html # index.html.erb
-      format.json { render json: @posts }
-    end
-  end
+  before_filter :find_post, :only => [:edit, :update, :show, :destroy]
+  before_filter :find_thread, :only => [:edit, :update, :show]
+  before_filter :init_loginpost, :only => [:edit, :update, :show]
 
   # GET /posts/1
   # GET /posts/1.json
   def show
-    @post = Posts.find(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb
@@ -34,7 +26,6 @@ class PostsController < ApplicationController
 
   # GET /posts/1/edit
   def edit
-    @post = Posts.find(params[:id])
   end
 
   # POST /posts
@@ -56,7 +47,6 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
-    @post = Post.find(params[:id])
 
     respond_to do |format|
       if @post.update_attributes(params[:post])
@@ -72,12 +62,23 @@ class PostsController < ApplicationController
   # DELETE /posts/1
   # DELETE /posts/1.json
   def destroy
-    @post = Posts.find(params[:id])
     @post.destroy
 
     respond_to do |format|
       format.html { redirect_to posts_url }
       format.json { head :ok }
     end
+  end
+
+  protected
+  def find_post
+    @post = Posts.find(params[:id])
+  end
+  def find_thread
+    @thread = @post.thread
+  end
+  def init_loginpost
+    @loginpost = Loginpost.new
+    @loginpost.reply_to = @post.to_param
   end
 end

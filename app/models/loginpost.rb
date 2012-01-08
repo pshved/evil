@@ -80,20 +80,9 @@ class Loginpost
     if valid?
       # since we're trying to save our post, we update the cached item, so that the form can read its errors
       @saved_post = post
-      # Check if we're creating a new thread
-      if reply_to.blank?
-        # A new thread
-        thr = Threads.create
-        thr.head = @saved_post
-        @saved_post.thread = thr
-        # Thread will automatically save and validate the post
-        thr.save && @saved_post
-      else
-        rp = Posts.find(reply_to)
-        @saved_post.thread = rp.thread
-        @saved_post.parent = rp
-        @saved_post.save
-      end
+      # Object to save (thread/post)
+      to_save = @saved_post.attach_to(reply_to)
+      to_save.save
     else
       false
     end

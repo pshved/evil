@@ -1,0 +1,16 @@
+- if root_post
+  - if @post && (root_post.id == @post.id)
+    %span.this-post-oneline
+      = root_post.title
+  - else
+    %span.post-oneline
+      = link_to root_post.title, post_path(root_post)
+  created at
+  %span.post-timestamp
+    = root_post.created_at
+  - if children = root_post.thread.build_subtree[root_post.id]
+    %div.post-children
+      %ul
+        - children.each do |child|
+          %li= render :partial => 'posts/subtree', :locals => {:root_post => child}
+

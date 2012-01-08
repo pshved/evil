@@ -1,5 +1,4 @@
 %ul
   - @threads.each do |t|
-    %li
-      ="Title: #{t.head.title}, test: #{t.updated_at}"
+    %li= render :partial => 'posts/subtree', :locals => {:root_post => t.head}
 

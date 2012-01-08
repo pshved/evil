@@ -32,11 +32,22 @@ class Posts < ActiveRecord::Base
     text_container.body[1]
   end
 
-#  class MyValidator < ActiveModel::Validator
-#    def validate(record)
-#      if some_complex_logic
-#        record.errors[:base] = "This record is invalid"
-#      end
-#    end
-#  end
+  # Attach post to the proper thread (or create a new one).  Return the object to save (either a thread or this post)
+  def attach_to(reply_to)
+    if reply_to.blank?
+      # A new thread
+      thr = Threads.create
+      thr.head = self
+      self.thread = thr
+      # Thread will automatically save and validate the post, so return it
+      thr
+    else
+      logger.info "RPLTO >>> Replying to #{reply_to}"
+      rp = Posts.find(reply_to)
+      self.thread = rp.thread
+      self.parent = rp
+      self
+    end
+  end
+
 end
