@@ -10,7 +10,7 @@ class Loginpost
   def persisted? ; false ; end
 
   # Input attrs
-  attr_accessor :login, :password, :autologin, :title, :body
+  attr_accessor :session, :autologin, :title, :body
 
   # reply_to attr is a hidden field that contains the ID of the post you reply to to track this across validation failures
   # If it's nil then you're creating a new thread
@@ -20,13 +20,27 @@ class Loginpost
   extend PostValidators
   validates_post_attrs
 
+
+  # Login validation re-uses session class with nested attributes
+  def session_attributes=(atts)
+    # Check the password to see if it's an unreg posting
+    @unreg_posting = atts[:password].blank?
+    # Create the session
+    @session = UserSession.new(atts)
+  end
   validate :valid_login
 
   # Check if the username and password are valid.  These are either valid credentials for a registred user, or a password-less
   def valid_login
-    # TODO: stub!
-    # This should set up @user or @unreg_name
-    true
+    # If a passowrd is blank, then we're posting as an unreg
+    if @unreg_posting
+      if User.find_by_login(session.login)
+        session.errors[:password] = "can not be blank, because #{session.login} is already registered"
+        errors.add(:base, "Enter password!")
+      end
+    else
+      errors.add(:base, "Invalid credentials") unless @session && @session.valid?
+    end
   end
 
   # Returns the newly created post.  You should fill it with more information
@@ -47,6 +61,7 @@ class Loginpost
 		ats.each do |k,v|
 			send("#{k}=",v)
 		end
+    @session ||= UserSession.new
 	end
 
   # This is a method that works like a regular save method, saving a post and checking if it is valid

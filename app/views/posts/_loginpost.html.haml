@@ -1,11 +1,20 @@
 = form_for @loginpost do |f|
   = f.hidden_field :reply_to
+  -# Error messages for the validated post
   - if @loginpost.saved_post && @loginpost.saved_post.errors.any?
     %div#error_explanation
       %h2="#{pluralize(@loginpost.saved_post.errors.count, "error")} prohibited this post from being saved:"
       %ul
         - @loginpost.saved_post.errors.full_messages.each do |msg|
           %li=msg
+  -# Error messages for the login form
+  - if @loginpost.session && @loginpost.session.errors.any?
+    %div#error_explanation
+      %h2="#{pluralize(@loginpost.session.errors.count, "error")} prohibited this post from being saved:"
+      %ul
+        - @loginpost.session.errors.full_messages.each do |msg|
+          %li=msg
+  -# Other error messages (are there any?)
   - if @loginpost.errors.any?
     %div#error_explanation
       %h2="#{pluralize(@loginpost.errors.count, "error")} prohibited this post from being saved:"
@@ -18,11 +27,26 @@
         %big
           %a{:name => 'reply'}Reply
     %tr
-      %td
-        =f.text_field 'title'
+      %td{:colspan => 2}
+        %hr{:align => 'center', :width => '80%', :noshade => true}
     %tr
+      = f.fields_for :session do |sf|
+        %td{:align => 'center'}
+          %b Name:
+        %td{:align => 'left'}
+          =sf.text_field 'login', :size => 22
+          %b Password:
+          =sf.text_field 'password', :size => 22
+          %b Autologin:
+          -# Note that this is not "remember me" session attribute.  It's whether we log in or just use the credentials for one-time posting.  Note the f instead of sf!
+          =f.check_box 'autologin'
+    %tr
+      %td{:align => 'center'}Topic:
       %td
-        =f.text_field 'body'
+        =f.text_field 'title', :size => 88
+    %tr
+      %td{:colspan => 2, :align => :center}
+        =f.text_area 'body', :cols => 75, :rows => 12
 
   = f.submit
 
