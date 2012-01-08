@@ -25,7 +25,6 @@ class Posts < ActiveRecord::Base
   ST_CLOSED = 'closed'
 
   def title
-    logger.info "TEC >>>>>>>>>>>> #{text_container.inspect}"
     text_container.body[0]
   end
 

@@ -11,6 +11,10 @@ class Loginpost
 
   # Input attrs
   attr_accessor :session, :autologin, :title, :body
+  # Autologin reader: it's a stupid checkbox
+  def autologin
+    not (@autologin.blank? || @autologin == '0')
+  end
 
   # reply_to attr is a hidden field that contains the ID of the post you reply to to track this across validation failures
   # If it's nil then you're creating a new thread
@@ -43,6 +47,13 @@ class Loginpost
     end
   end
 
+  # Log the user in if necessary (session is already validated)
+  def log_in_if_necessary
+    if !@unreg_posting && autologin
+      session.save!
+    end
+  end
+
   # Returns the newly created post.  You should fill it with more information
   def post
     p = Posts.new
@@ -57,12 +68,12 @@ class Loginpost
   # Saved post, for validation errors
   attr_accessor :saved_post
 
-	def initialize(ats = {})
-		ats.each do |k,v|
-			send("#{k}=",v)
-		end
+  def initialize(ats = {})
+    ats.each do |k,v|
+      send("#{k}=",v)
+    end
     @session ||= UserSession.new
-	end
+  end
 
   # This is a method that works like a regular save method, saving a post and checking if it is valid
   def save
