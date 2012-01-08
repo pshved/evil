@@ -78,7 +78,6 @@ class PostsController < ApplicationController
     @thread = @post.thread
   end
   def init_loginpost
-    @loginpost = Loginpost.new
-    @loginpost.reply_to = @post.to_param
+    @loginpost = Loginpost.new(:reply_to => @post.to_param, :user => current_user)
   end
 end

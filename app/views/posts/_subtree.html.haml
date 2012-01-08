@@ -5,7 +5,13 @@
   - else
     %span.post-oneline
       = link_to root_post.title, post_path(root_post)
-  created at
+  &nbsp;
+  -# TODO: insert (url)/(pic)
+  \-
+  - if root_post.user
+    %span.post-user= link_to root_post.user.login, user_path(root_post.user)
+  - else
+    %span.post-unreg= (root_post.unreg_name || "NIL")
   %span.post-timestamp
     = root_post.created_at
   - if children = root_post.thread.build_subtree[root_post.id]

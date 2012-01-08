@@ -30,16 +30,21 @@
       %td{:colspan => 2}
         %hr{:align => 'center', :width => '80%', :noshade => true}
     %tr
-      = f.fields_for :session do |sf|
-        %td{:align => 'center'}
-          %b Name:
+      %td{:align => 'center'}
+        %b Name:
+      - if current_user
         %td{:align => 'left'}
-          =sf.text_field 'login', :size => 22
-          %b Password:
-          =sf.text_field 'password', :size => 22
-          %b Autologin:
-          -# Note that this is not "remember me" session attribute.  It's whether we log in or just use the credentials for one-time posting.  Note the f instead of sf!
-          =f.check_box 'autologin'
+          %span.postform-login= current_user.login
+          %span.postform-logout=link_to 'Log out', logout_path
+      - else
+        = f.fields_for :session do |sf|
+          %td{:align => 'left'}
+            =sf.text_field 'login', :size => 22
+            %b Password:
+            =sf.text_field 'password', :size => 22
+            %b Autologin:
+            -# Note that this is not "remember me" session attribute.  It's whether we log in or just use the credentials for one-time posting.  Note the f instead of sf!
+            =f.check_box 'autologin'
     %tr
       %td{:align => 'center'}Topic:
       %td

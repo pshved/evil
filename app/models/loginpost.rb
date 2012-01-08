@@ -10,7 +10,7 @@ class Loginpost
   def persisted? ; false ; end
 
   # Input attrs
-  attr_accessor :session, :autologin, :title, :body
+  attr_accessor :session, :autologin, :title, :body, :user
   # Autologin reader: it's a stupid checkbox
   def autologin
     not (@autologin.blank? || @autologin == '0')
@@ -36,6 +36,9 @@ class Loginpost
 
   # Check if the username and password are valid.  These are either valid credentials for a registred user, or a password-less
   def valid_login
+    # If a user is already supplied, it's valid then
+    return true if @user
+    # Otherwise, read user's credentials from the form
     # If a passowrd is blank, then we're posting as an unreg
     if @unreg_posting
       if User.find_by_login(session.login)
@@ -43,7 +46,11 @@ class Loginpost
         errors.add(:base, "Enter password!")
       end
     else
-      errors.add(:base, "Invalid credentials") unless @session && @session.valid?
+      if @session && @session.valid?
+        @user = User.find_by_login(session.login)
+      else
+        errors.add(:base, "Invalid credentials")
+      end
     end
   end
 
@@ -57,10 +64,10 @@ class Loginpost
   # Returns the newly created post.  You should fill it with more information
   def post
     p = Posts.new
-    if @user
-      p.user = @user
+    if @unreg_posting
+      p.unreg_name = session.login
     else
-      p.unreg_name = @unreg_name
+      p.user = @user
     end
     p.text_container = TextContainer.make(title,body)
     p

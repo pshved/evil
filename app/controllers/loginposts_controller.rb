@@ -1,11 +1,11 @@
 class LoginpostsController < ApplicationController
   def new
-    @loginpost = Loginpost.new
+    @loginpost = Loginpost.new(:user => current_user)
   end
 
   # POST /loginposts
   def create
-    @loginpost = Loginpost.new(params[:loginpost])
+    @loginpost = Loginpost.new(params[:loginpost].merge(:user => current_user))
 
     respond_to do |format|
       if @loginpost.save
