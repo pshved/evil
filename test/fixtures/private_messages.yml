@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  sender_user: 
+  recipient_user: 
+  text_container: 
+
+two:
+  sender_user: 
+  recipient_user: 
+  text_container: 

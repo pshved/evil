@@ -1,0 +1,17 @@
+= form_for @private_message do |f|
+  =f.hidden_field :reply_to_stamp
+  - if @private_message.errors.any?
+    %div#error_explanation
+      %h2="#{pluralize(@private_message.errors.count, "error")} prohibited this post from being saved:"
+      %ul
+        - @private_message.errors.full_messages.each do |msg|
+          %li=msg
+  %div.field
+    =f.label :recipient_user_login
+    =f.text_field :recipient_user_login
+  %div.field
+    =f.label :msg_body
+    =f.text_area :msg_body, :cols => 60, :rows => 5
+  %div.actions
+    = f.submit
+
