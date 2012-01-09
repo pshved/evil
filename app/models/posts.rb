@@ -1,5 +1,6 @@
-# TODO: why doesn't it work?
+# TODO: why doesn't it autoload??
 require 'autoload/post_validations'
+require 'markup/boardtags'
 
 class Posts < ActiveRecord::Base
   belongs_to :user
@@ -23,6 +24,26 @@ class Posts < ActiveRecord::Base
   # String statuses for enum/str db crunching
   ST_OPEN = 'open'
   ST_CLOSED = 'closed'
+
+  # Post's marks
+  # They are stored as a serialized array
+  serialize :marks
+  # However, if they are unset, we should show the user an array
+  def marks
+    read_attribute(:marks) || []
+  end
+  # a hook that updates marks (after the post has been edited or created)
+  before_save :renew_marks
+  class PostParseContext < DefaultParseContext
+  end
+  def renew_marks
+    context = PostParseContext.new
+    # Call the parser
+    debugger
+    text_container.filtered(context)[1]
+    # Read the context and update marks
+    self.marks = context.sign.keys.map(&:to_s).sort
+  end
 
   def title
     text_container.body[0]

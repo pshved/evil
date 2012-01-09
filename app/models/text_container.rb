@@ -12,11 +12,16 @@ class TextContainer < ActiveRecord::Base
     #self.text_items.order('revision DESC').first
   end
 
-  def filtered
+  def filtered(context = nil)
     if current_revision
       f = self.text_items.where(["revision = ?", current_revision]).order('number ASC').map(&:body)
-      f.map!{|txt| BoardtagsFilter.filter(txt)}
-      f
+      f.map do |txt|
+        if context
+          BoardtagsFilter.filter(txt,:to_body,context)
+        else
+          BoardtagsFilter.filter(txt,:to_body)
+        end
+      end
     else
       nil
     end

@@ -1,4 +1,5 @@
 - if root_post
+  -# Post title (link or plain, depending on whether it's the current post)
   - if @post && (root_post.id == @post.id)
     %span.this-post-oneline
       = root_post.title
@@ -6,7 +7,9 @@
     %span.post-oneline
       = link_to root_post.title, post_path(root_post)
   &nbsp;
-  -# TODO: insert (url)/(pic)
+  -# (url)/(pic) marks
+  - root_post.marks.each do |mark|
+    %span.post-mark="(#{mark}) "
   \-
   - if root_post.user
     %span.post-user= link_to root_post.user.login, user_path(root_post.user)

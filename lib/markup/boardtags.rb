@@ -1,36 +1,45 @@
 require 'treetop'
 require 'erb'
 
-# Tags
+# The actual value does not matter now, it will be reset at filter() call
+# NOTE that this is a global variable, so we can't parse concurrently...
+$c = nil
+
+# Tag conversions.  Use $c.sign hash to add "marks" to the posts.
 TagConversions = [
-  ['b',        lambda {|inner| "<b>#{inner}</b>"}],
-  ['i',        lambda {|inner| "<i>#{inner}</i>"}],
-  ['u',        lambda {|inner| "<u>#{inner}</u>"}],
-  ['h',        lambda {|inner| %Q(<span class="h">#{inner}</span>)}],
-  ['s',        lambda {|inner| %Q(<span class="s">#{inner}</span>)}],
-  ['red',      lambda {|inner| %Q(<span style="color:red">#{inner}</span>)}],
-  ['color',    lambda {|inner,color| %Q(<span style="color:#{color}">#{inner}</span>)}],
-  ['url',      lambda {|inner,url| %Q(<a href="#{url}" target=_blank>#{inner}</a>)}],
-  ['pic',      lambda {|inner| %Q(<img class="imgtag">#{inner}</pic>)}],
-  ['hr',       lambda {|| %Q(<hr/>)}],
-  ['q',        lambda {|inner| %Q(<blockquote><span class="inquote">[q]</span><b>Quote:</b><br/>#{inner}<span class="inquote">[/q]</span></blockquote>)}],
-  ['center',   lambda {|inner| %Q(<center>#{inner}</center>)}],
+  ['b',        proc {|inner| "<b>#{inner}</b>"}],
+  ['i',        proc {|inner| "<i>#{inner}</i>"}],
+  ['u',        proc {|inner| "<u>#{inner}</u>"}],
+  ['h',        proc {|inner| %Q(<span class="h">#{inner}</span>)}],
+  ['s',        proc {|inner| %Q(<span class="s">#{inner}</span>)}],
+  ['red',      proc {|inner| %Q(<span style="color:red">#{inner}</span>)}],
+  ['color',    proc {|inner,color| %Q(<span style="color:#{color}">#{inner}</span>)}],
+  ['url',      proc {|inner,url| $c.sign[:url] = true;  %Q(<a href="#{url}" target=_blank>#{inner}</a>)}],
+  ['pic',      proc {|inner| $c.sign[:pic] = true;  %Q(<img class="imgtag" src="#{inner}"/>)}],
+  ['hr',       proc {|| %Q(<hr/>)}],
+  ['q',        proc {|inner| %Q(<blockquote><span class="inquote">[q]</span><b>Quote:</b><br/>#{inner}<span class="inquote">[/q]</span></blockquote>)}],
+  ['center',   proc {|inner| %Q(<center>#{inner}</center>)}],
   # [pre] is handled in the parser
-  ['strike',   lambda {|inner| %Q(<strike>#{inner}</strike>)}],
-  ['sub',   lambda {|inner| %Q(<sub>#{inner}</sub>)}],
-  ['sup',   lambda {|inner| %Q(<sup>#{inner}</sup>)}],
+  ['strike',   proc {|inner| %Q(<strike>#{inner}</strike>)}],
+  ['sub',      proc {|inner| %Q(<sub>#{inner}</sub>)}],
+  ['sup',      proc {|inner| %Q(<sup>#{inner}</sup>)}],
   # [tex] is handled in the parser
-  ['tub',   lambda {|inner| %Q(<iframe class="youtube-player" type="text/html" width="640" height="390" src="http://www.youtube.com/embed/#{inner}"?iv_load_policy=3&rel=0&fs=1" frameborder="0"></iframe>)}],
-  ['spoiler', lambda{|inner| %Q(<span style="spoiler">#{inner}</span>)}],
+  ['tub',      proc {|inner| $c.sign[:vid] = true;  %Q(<iframe class="youtube-player" type="text/html" width="640" height="390" src="http://www.youtube.com/embed/#{inner}?iv_load_policy=3&rel=0&fs=1" frameborder="0"></iframe>)}],
+  ['spoiler',  proc{|inner| %Q(<span style="spoiler">#{inner}</span>)}],
 ]
 
+# NOTE: the lambdas created in TagConversions will be evaluated in a special context, which is supplied by the caller, and is read by it as well.
+
+# TODO : move this to app.config
 def make_smiley(smn)
   "/pic/#{smn}"
 end
 
 Replacements = [
-  # Replace newline with HTML tag
-  ["\n",        '<br/>'                         ],
+  # Replace newlines with HTML tag (but save the line breaks for a nicer view)
+  ["\r\n",      "<br/>\n"                       ],
+  # the next matches only after the previous one is exhausted
+  ["\n",        "<br/>\n"                       ],
   # The rest is smileys
   [":))",       make_smiley("bigsmile.gif")     ],
   [":)",        make_smiley("smile.gif")        ],
@@ -93,6 +102,16 @@ module ProxyNode
   end
 end
 
+class DefaultParseContext
+  attr_accessor :sign
+  def initialize
+    @sign = {}
+  end
+  def get_binding
+    return binding
+  end
+end
+
 module RegexpConvertNode
   def to_body
     t = ERB::Util::html_escape(text_value)
@@ -150,7 +169,9 @@ end
 module BoardtagsFilter
   @@parser = BoardTagsParser.new
 
-  def self.filter(text, method = :to_body)
+  def self.filter(text, method = :to_body, context = DefaultParseContext.new)
+    # Update parsing context
+    $c = context
     # Re-parse grammar
     #p @@parser.parse(text)
     tree = @@parser.parse text

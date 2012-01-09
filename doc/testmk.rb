@@ -2,6 +2,13 @@
 
 require './lib/markup/boardtags'
 
+# Mixin to make it compatible with rails
+class String
+  def html_safe
+    self
+  end
+end
+
 x = []
 x << 'aaaa[b]nnn[/b]aaaa'
 x << '[b]e[/b]'

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120104173234) do
+ActiveRecord::Schema.define(:version => 20120109133629) do
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
@@ -23,6 +23,7 @@ ActiveRecord::Schema.define(:version => 20120104173234) do
     t.string   "subthread_status"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "marks"
   end
 
   add_index "posts", ["parent_id"], :name => "index_posts_on_parent_id"
