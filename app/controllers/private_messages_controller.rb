@@ -1,5 +1,10 @@
 class PrivateMessagesController < ApplicationController
+  before_filter :new_private_message_from_params, :only => [:create]
+  before_filter :new_private_message, :only => [:new]
   before_filter :find_private_message, :only => [:destroy,:update,:edit,:show]
+
+  filter_access_to :create, :new, :show, :attribute_check => true
+  filter_access_to :index, :attribute_check => false
 
   # GET /private_messages
   # GET /private_messages.json
@@ -24,8 +29,6 @@ class PrivateMessagesController < ApplicationController
   # GET /private_messages/new
   # GET /private_messages/new.json
   def new
-    @private_message = PrivateMessage.new(:current_user => current_user, :recipient_user_login => params[:to], :reply_to_stamp => params[:replyto])
-
     respond_to do |format|
       format.html # new.html.erb
       format.json { render json: @private_message }
@@ -39,8 +42,6 @@ class PrivateMessagesController < ApplicationController
   # POST /private_messages
   # POST /private_messages.json
   def create
-    @private_message = PrivateMessage.new(params[:private_message].merge(:current_user => current_user))
-
     respond_to do |format|
       if @private_message.save
         format.html { redirect_to private_messages_path, notice: 'Private message was successfully created.' }
@@ -55,5 +56,14 @@ class PrivateMessagesController < ApplicationController
   private
   def find_private_message
     @private_message = PrivateMessage.find_by_stamp(params[:id])
+  end
+
+  def new_private_message_from_params
+    @private_message = PrivateMessage.new(params[:private_message].merge(:current_user => current_user))
+  end
+
+  def new_private_message
+    debugger
+    @private_message = PrivateMessage.new(:current_user => current_user, :recipient_user_login => params[:to], :reply_to_stamp => params[:replyto])
   end
 end

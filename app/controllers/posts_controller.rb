@@ -3,6 +3,8 @@ class PostsController < ApplicationController
   before_filter :find_thread, :only => [:edit, :update, :show]
   before_filter :init_loginpost, :only => [:edit, :update, :show]
 
+  filter_access_to :all, :attribute_check => true, :model => Posts
+
   # GET /posts/1
   # GET /posts/1.json
   def show

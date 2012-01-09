@@ -61,10 +61,13 @@ class PrivateMessage < ActiveRecord::Base
     text_container ? text_container.filtered[0] : ''
   end
 
-#  def initialize(ats = {})
-#    ats.each do |k,v|
-#      send("#{k}=",v)
-#    end
-#  end
+  # Returns a list of users (IDs of them) that may view the message this one replies to.  If it's not a reply, return current user.  If a message to be replied to is not found, then someone's tampering with replies, and we return nobody.
+  def viewable_by
+    # TODO : DRY!
+    is_a_reply = self.reply_to || !reply_to_stamp.blank?
+    return [current_user] unless is_a_reply
+    rt = self.reply_to || (reply_to_stamp.blank?? nil : PrivateMessage.find_by_stamp(reply_to_stamp))
+    rt ? [rt.sender_user, rt.recipient_user] : []
+  end
 
 end
