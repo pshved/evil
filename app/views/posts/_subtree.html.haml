@@ -1,25 +1,26 @@
-- if root_post
+- if post
   -# Post title (link or plain, depending on whether it's the current post)
-  - if @post && (root_post.id == @post.id)
+  - if @post && (post.id == @post.id)
     %span.this-post-oneline
-      = root_post.title
+      = post.title
   - else
     %span.post-oneline
-      = link_to root_post.title, post_path(root_post)
+      = link_to post.title, post_path(post)
   &nbsp;
   -# (url)/(pic) marks
-  - root_post.marks.each do |mark|
+  - post.marks.each do |mark|
     %span.post-mark="(#{mark}) "
   \-
-  - if root_post.user
-    %span.post-user= link_to root_post.user.login, user_path(root_post.user)
+  - if post.user
+    %span.post-user= link_to post.user.login, user_path(post.user)
   - else
-    %span.post-unreg= (root_post.unreg_name || "NIL")
+    %span.post-unreg= (post.unreg_name || "NIL")
   %span.post-timestamp
-    = root_post.created_at
-  - if children = root_post.thread.build_subtree[root_post.id]
+    = post.created_at
+  - subtree = post.thread.build_subtree unless defined?(subtree) && subtree
+  - if children = subtree[post.id]
     %div.post-children
       %ul
         - children.each do |child|
-          %li= render :partial => 'posts/subtree', :locals => {:root_post => child}
+          %li= render :partial => 'posts/subtree', :locals => {:post => child, :subtree => subtree}
 

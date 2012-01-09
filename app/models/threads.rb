@@ -4,10 +4,13 @@ class Threads < ActiveRecord::Base
 
   # Builds a hash of post id => children
   def build_subtree
+    # As this model does not persist across requests, we may safely cache it
+    return @cached_subtree if @cached_subtree
+    # Build if not cached
     ordered = posts.group_by {|p| p.parent.nil?? nil : p.parent.id }
     ordered.each do |parent_id,children|
       children.sort_by!(&:created_at).reverse!
     end
-    ordered
+    @cached_subtree = ordered
   end
 end
