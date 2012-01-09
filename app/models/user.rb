@@ -12,4 +12,15 @@ class User < ActiveRecord::Base
   def name
     login
   end
+
+  # Roles
+  has_and_belongs_to_many :roles
+  # required by auth plugin
+  def role_symbols
+    (roles || []).map {|r| r.name.to_sym}
+  end
+
+  before_save do
+    roles << Role.find_or_create_by_name('user') if roles.count == 0
+  end
 end

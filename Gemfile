@@ -49,3 +49,5 @@ gem 'haml'
 gem 'authlogic'
 
 gem 'treetop'
+
+gem 'declarative_authorization'

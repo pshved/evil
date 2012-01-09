@@ -1,12 +1,9 @@
 class LoginpostsController < ApplicationController
-  def new
-    @loginpost = Loginpost.new(:user => current_user)
-  end
+  before_filter :new_loginpost_from_params, :only => [:create]
+  filter_access_to :create, :attribute_check => true
 
   # POST /loginposts
   def create
-    @loginpost = Loginpost.new(params[:loginpost].merge(:user => current_user))
-
     respond_to do |format|
       if @loginpost.save
         @loginpost.log_in_if_necessary
@@ -15,6 +12,10 @@ class LoginpostsController < ApplicationController
         format.html { render action: "new" }
       end
     end
+  end
+
+  def new_loginpost_from_params
+    @loginpost = Loginpost.new(params[:loginpost].merge(:user => current_user))
   end
 
 end

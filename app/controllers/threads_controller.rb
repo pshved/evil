@@ -1,10 +1,8 @@
 class ThreadsController < ApplicationController
+  filter_access_to :new
   def new
     @thread = Threads.new
     @loginpost = Loginpost.new(:user => current_user)
-  end
-
-  def create
   end
 
   def index
