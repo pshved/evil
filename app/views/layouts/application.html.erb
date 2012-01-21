@@ -11,7 +11,7 @@
   <div id="user-nav">
     <% if current_user %>
       <%= link_to "Logout", logout_path  %> |
-      <%= link_to "Edit profile", edit_user_path(:self)  %>
+      <%= link_to "Edit profile", edit_user_path(current_user.to_param)  %>
     <% else %>
       <%= link_to "Register", new_user_path  %>  |
       <%= link_to "Login", login_path  %>

@@ -1,5 +1,8 @@
 class UsersController < ApplicationController
   before_filter :find_user, :only => [:show, :update, :edit, :destroy]
+
+  filter_access_to :all, :attribute_check => true
+
   # GET /users
   # GET /users.json
   def index
@@ -14,7 +17,6 @@ class UsersController < ApplicationController
   # GET /users/1
   # GET /users/1.json
   def show
-
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @user }
@@ -61,6 +63,7 @@ class UsersController < ApplicationController
         format.html { redirect_to @user, notice: 'User was successfully updated.' }
         format.json { head :ok }
       else
+        @user.current_password = nil
         format.html { render action: "edit" }
         format.json { render json: @user.errors, status: :unprocessable_entity }
       end
@@ -80,6 +83,7 @@ class UsersController < ApplicationController
 
   protected
   def find_user
-    @user = (params[:id] == 'self') ? current_user : User.find(params[:id])
+    # We do not use 'self' to avoid problems with declarative auth
+    @user = User.find(params[:id])
   end
 end

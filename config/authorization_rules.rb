@@ -25,6 +25,11 @@ authorization do
     has_permission_on :private_messages, :to => :create do
       if_attribute :viewable_by => contains { user }
     end
+
+    # User may edit his own profile
+    has_permission_on :users, :to => :edit do
+      if_attribute :id => is { user.id }
+    end
   end
 
   role :user do
@@ -52,6 +57,7 @@ authorization do
   role :admin do
     includes :moderator
     has_permission_on :threads, :to => :manage
+    has_permission_on :users, :to => :manage
   end
 end
 
