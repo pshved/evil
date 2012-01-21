@@ -14,7 +14,7 @@ class User < ActiveRecord::Base
   validates_each :current_password do |record, attr, value|
     # Do not try to validate "current_password" if the user's being created
     if record.persisted?
-      record.errors.add attr, 'is_invalid' unless UserSession.new(:login => record.login, :password => record.current_password).valid?
+      record.errors.add attr, I18n.t('is_invalid') unless UserSession.new(:login => record.login, :password => record.current_password).valid?
     end
   end
 
