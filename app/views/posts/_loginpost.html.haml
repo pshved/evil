@@ -41,7 +41,7 @@
           %td{:align => 'left'}
             =sf.text_field 'login', :size => 22
             %b Password:
-            =sf.text_field 'password', :size => 22
+            =sf.password_field 'password', :size => 22
             %b Autologin:
             -# Note that this is not "remember me" session attribute.  It's whether we log in or just use the credentials for one-time posting.  Note the f instead of sf!
             =f.check_box 'autologin'
