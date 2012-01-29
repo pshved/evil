@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   before_filter :find_user, :only => [:show, :update, :edit, :destroy]
 
-  filter_access_to :all, :attribute_check => true
+  filter_resource_access
 
   # GET /users
   # GET /users.json

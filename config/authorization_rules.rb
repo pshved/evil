@@ -12,6 +12,8 @@ authorization do
     has_permission_on :loginposts, :to => :create do
       if_attribute :user => is { nil }
     end
+    # May register
+    has_permission_on :users, :to => :create
   end
 
   role :banned do
@@ -27,7 +29,7 @@ authorization do
     end
 
     # User may edit his own profile
-    has_permission_on :users, :to => :edit do
+    has_permission_on :users, :to => :update do
       if_attribute :id => is { user.id }
     end
   end
@@ -38,7 +40,7 @@ authorization do
     has_permission_on :threads, :to => :create
 
     # User may edit his own posts
-    has_permission_on :posts, :to => :edit do
+    has_permission_on :posts, :to => :update do
       if_attribute :user => is { user }
     end
 

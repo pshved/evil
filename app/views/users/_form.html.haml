@@ -5,10 +5,10 @@
       %ul
         -@user.errors.full_messages.each do |msg|
           %li= msg 
-
-  %div.field
-    = f.label :current_password
-    = f.password_field :current_password
+  -if @user.persisted?
+    %div.field
+      = f.label :current_password
+      = f.password_field :current_password
   %div.field
     = f.label :password
     = f.password_field :password
