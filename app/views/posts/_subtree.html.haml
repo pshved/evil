@@ -15,6 +15,7 @@
     %span.post-user= link_to post.user.login, user_path(post.user)
   - else
     %span.post-unreg= (post.unreg_name || "NIL")
+  ="(#{post.host}) "
   %span.post-timestamp
     = post.created_at
   - subtree = post.thread.build_subtree unless defined?(subtree) && subtree

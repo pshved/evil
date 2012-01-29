@@ -18,3 +18,8 @@ def generate_random_string(n, alphabet = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPAS
 	str
 end
 
+# Get host by IP address
+def gethostbyaddr(ip_addr_str)
+  Socket.gethostbyaddr(ip_addr_str.split('.').map(&:to_i).pack("CCCC"))[0]
+end
+
