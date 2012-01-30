@@ -8,7 +8,7 @@ Zlo::Application.routes.draw do
 
   resources :user_sessions
   resources :users
-  resources :posts
+  resources :posts, :path => 'p'
   resources :private_messages, :path => 'persmsg'
 
   resources :loginposts, :only => [:create]
