@@ -169,7 +169,9 @@ end
 module BoardtagsFilter
   @@parser = BoardTagsParser.new
 
-  def self.filter(text, method = :to_body, context = DefaultParseContext.new)
+  def self.filter(text, method = :to_body, context = nil)
+    # If the context is unspecified, create the default
+    context ||= DefaultParseContext.new
     # Update parsing context
     $c = context
     # Re-parse grammar

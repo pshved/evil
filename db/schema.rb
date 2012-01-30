@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120129203943) do
+ActiveRecord::Schema.define(:version => 20120130214240) do
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
@@ -62,9 +62,10 @@ ActiveRecord::Schema.define(:version => 20120129203943) do
 
   create_table "text_containers", :force => true do |t|
     t.integer  "current_revision"
-    t.integer  "arity",            :default => 1
+    t.integer  "arity",                                       :default => 1
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.enum     "filter",           :limit => [:board, :html], :default => :board
   end
 
   create_table "text_items", :force => true do |t|

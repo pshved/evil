@@ -2,6 +2,9 @@ require 'markup/boardtags'
 class TextContainer < ActiveRecord::Base
   has_many :text_items, :autosave => true
 
+  # This is an enum column handled by plugin.
+  validates_columns :filter
+
   # Returns the body for the last revision
   def body
     if current_revision
@@ -12,15 +15,22 @@ class TextContainer < ActiveRecord::Base
     #self.text_items.order('revision DESC').first
   end
 
+  # Filters the string given the context and this container's filtering setting
+  def filter_item(txt,context = nil)
+    debugger
+    case filter
+    when :board
+      BoardtagsFilter.filter(txt,:to_body,context)
+    when :html
+      txt
+    end
+  end
+
   def filtered(context = nil)
     if current_revision
       f = self.text_items.where(["revision = ?", current_revision]).order('number ASC').map(&:body)
       f.map do |txt|
-        if context
-          BoardtagsFilter.filter(txt,:to_body,context)
-        else
-          BoardtagsFilter.filter(txt,:to_body)
-        end
+        filter_item(txt,context)
       end
     else
       nil

@@ -51,3 +51,5 @@ gem 'authlogic'
 gem 'treetop'
 
 gem 'declarative_authorization'
+
+gem 'enum_column3'
