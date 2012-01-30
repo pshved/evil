@@ -17,6 +17,9 @@ class Posts < ActiveRecord::Base
   # Just checking...
   validates_presence_of :text_container
 
+  # Check that there's no two imported posts with the same ID
+  validates_uniqueness_of :back, :unless => proc {|p| p.back.blank?}
+
   # Other validations
   extend PostValidators
   validates_post_attrs

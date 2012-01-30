@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120109172015) do
+ActiveRecord::Schema.define(:version => 20120129203943) do
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
@@ -24,8 +24,10 @@ ActiveRecord::Schema.define(:version => 20120109172015) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "marks"
+    t.string   "back"
   end
 
+  add_index "posts", ["back"], :name => "index_posts_on_back"
   add_index "posts", ["parent_id"], :name => "index_posts_on_parent_id"
   add_index "posts", ["text_container_id"], :name => "index_posts_on_text_container_id"
   add_index "posts", ["thread_id"], :name => "index_posts_on_thread_id"

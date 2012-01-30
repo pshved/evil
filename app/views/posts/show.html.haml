@@ -1,0 +1,13 @@
+%p Showing post
+%div#mainpost
+  %center
+    %div.post-title
+      = @post.title
+  %div.post-body
+    != @post.filtered_body
+%div.thread-tree
+  = render :partial => 'subtree', :locals => {:post => @thread.head}
+%div
+  = render :partial => 'loginpost'
+
+

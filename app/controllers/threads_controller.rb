@@ -6,10 +6,7 @@ class ThreadsController < ApplicationController
   end
 
   def index
-    # TODO: stub
-    @threads = Threads.all
-    # We do not set up parent, so the login post is new.
-    @loginpost = Loginpost.new(:user => current_user)
+    prepare_threads
   end
 
 end

@@ -1,7 +1,7 @@
 Zlo::Application.routes.draw do
   get "threads/new"
 
-  root :controller => 'threads', :action => 'index'
+  root :controller => 'backwards', :action => 'index'
 
   match 'login' => 'user_sessions#new', :as => 'login'
   match 'logout' => 'user_sessions#destroy', :as => 'logout'
