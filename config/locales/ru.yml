@@ -1,3 +1,10 @@
 ru:
   hello: "Preved!"
   is_invalid: "неверен"
+  views:
+    pagination:
+      previous: "&lt; Раньше"
+      next: "Позже &gt;"
+      first: "Начало"
+      last: "Конец"
+      truncate: "+++"

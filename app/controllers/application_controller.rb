@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
   # TODO: account for user's settings and paginationn
   def prepare_threads
     # TODO: stub
-    @threads = Threads.all
+    @threads = Threads.order("created_at DESC").page(params[:page]).per(2)
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end

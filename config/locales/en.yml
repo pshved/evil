@@ -4,3 +4,10 @@
 en:
   hello: "Hello world"
   is_invalid: "is invalid"
+  views:
+    pagination:
+      previous: "&lt; Previous"
+      next: "Next &gt;"
+      first: "First"
+      last: "Last"
+      truncate: "+++"
