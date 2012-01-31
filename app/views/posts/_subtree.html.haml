@@ -1,12 +1,17 @@
 - if post
   -# Post title (link or plain, depending on whether it's the current post)
+  -# We strip whitespace from the post's title
+  - post_title = post.title.strip
   - if @post && (post.id == @post.id)
     %span.this-post-oneline
-      = post.title
+      = post_title
   - else
     %span.post-oneline
-      = link_to post.title, post_path(post)
-  &nbsp;
+      = link_to post_title, post_path(post)
+  - if post.body.strip.blank?
+    (-)
+  - else
+    (+)
   -# (url)/(pic) marks
   - post.marks.each do |mark|
     %span.post-mark="(#{mark}) "

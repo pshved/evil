@@ -4,7 +4,8 @@
     %div.post-title
       = @post.title
   %div.post-body
-    != @post.filtered_body
+    -# Note that we do not strip the post in DB, but rather do it in the view
+    != @post.filtered_body.strip
 %div.thread-tree
   = render :partial => 'subtree', :locals => {:post => @thread.head}
 %div
