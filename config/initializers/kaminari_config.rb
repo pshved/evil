@@ -1,5 +1,6 @@
 Kaminari.configure do |config|
-  # config.default_per_page = 25
+  # For pagination testing and demo.  Should be less!
+  config.default_per_page = 3
   config.window = 2
   # config.outer_window = 0
   config.left = 2

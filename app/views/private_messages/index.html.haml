@@ -17,4 +17,4 @@
           = link_to pm.sender_user.name, pm.sender_user
           = link_to '[Reply]', new_private_message_path(:to => pm.recipient_user.login, :replyto => pm.stamp)
           %div.msgfrom=pm.filtered_body
-
+= paginate @private_messages

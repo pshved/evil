@@ -9,7 +9,7 @@ class PrivateMessagesController < ApplicationController
   # GET /private_messages
   # GET /private_messages.json
   def index
-    @private_messages = PrivateMessage.all_for(current_user)
+    @private_messages = PrivateMessage.all_for(current_user).page(params[:page])
 
     respond_to do |format|
       format.html # index.html.erb
