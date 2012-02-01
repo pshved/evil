@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120130214240) do
+ActiveRecord::Schema.define(:version => 20120201175247) do
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
@@ -32,6 +32,15 @@ ActiveRecord::Schema.define(:version => 20120130214240) do
   add_index "posts", ["text_container_id"], :name => "index_posts_on_text_container_id"
   add_index "posts", ["thread_id"], :name => "index_posts_on_thread_id"
   add_index "posts", ["user_id"], :name => "index_posts_on_user_id"
+
+  create_table "presentations", :force => true do |t|
+    t.integer  "threadpage_size"
+    t.integer  "user_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "presentations", ["user_id"], :name => "index_presentations_on_user_id"
 
   create_table "private_messages", :force => true do |t|
     t.integer  "sender_user_id"

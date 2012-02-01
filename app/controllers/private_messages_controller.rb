@@ -63,7 +63,6 @@ class PrivateMessagesController < ApplicationController
   end
 
   def new_private_message
-    debugger
     @private_message = PrivateMessage.new(:current_user => current_user, :recipient_user_login => params[:to], :reply_to_stamp => params[:replyto])
   end
 end

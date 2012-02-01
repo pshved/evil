@@ -13,6 +13,9 @@ Zlo::Application.routes.draw do
 
   resources :loginposts, :only => [:create]
 
+  # User's view settings
+  resources :presentations
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

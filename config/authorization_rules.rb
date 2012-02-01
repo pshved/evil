@@ -32,6 +32,13 @@ authorization do
     has_permission_on :users, :to => :update do
       if_attribute :id => is { user.id }
     end
+
+    # Presentations are aready tied to the current_user as an owner, so there's no need to check attributes
+    has_permission_on :presentations, :to => :index
+    # However, user can't reply to others' messages
+    has_permission_on :presentations, :to => :create do
+      if_attribute :user => is { user }
+    end
   end
 
   role :user do

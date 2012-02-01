@@ -17,7 +17,10 @@ class ApplicationController < ActionController::Base
   # TODO: account for user's settings and paginationn
   def prepare_threads
     # TODO: stub
-    @threads = Threads.order("created_at DESC").page(params[:page]).per(2)
+    @threads = Threads.order("created_at DESC").page(params[:page])
+    if current_user
+      @threads = @threads.per(current_user.current_presentation.threadpage_size || Kaminari.config.default_page_size)
+    end
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end

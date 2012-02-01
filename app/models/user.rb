@@ -33,4 +33,12 @@ class User < ActiveRecord::Base
   before_save do
     roles << Role.find_or_create_by_name('user') if roles.count == 0
   end
+
+
+  # Presentations
+  has_many :presentations
+  # TODO: users should have several presentations, one of which should be recorded in cookies as the current one.
+  def current_presentation
+    presentations[0] or raise "Can't find current presentation for user #{self.login}"
+  end
 end
