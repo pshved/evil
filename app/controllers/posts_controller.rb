@@ -8,6 +8,8 @@ class PostsController < ApplicationController
   # GET /posts/1
   # GET /posts/1.json
   def show
+    # To ignore show/hide settings and always show.
+    @show_all_posts = true
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @post }

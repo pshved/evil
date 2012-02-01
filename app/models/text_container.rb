@@ -17,7 +17,6 @@ class TextContainer < ActiveRecord::Base
 
   # Filters the string given the context and this container's filtering setting
   def filter_item(txt,context = nil)
-    debugger
     case filter
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)

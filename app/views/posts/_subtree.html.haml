@@ -29,13 +29,14 @@
       =link_to t("Show subtree"), toggle_showhide_post_path(post)
     - else
       =link_to t("Hide subtree"), toggle_showhide_post_path(post)
-  - if post.hidden_by?(current_user)
+  -#We only hide posts in the index, hence @show_all_posts condition!
+  - if post.hidden_by?(current_user) && !@show_all_posts
     %span.modifier=t("hidden")
   - else
     -# Only build subtree if it's not hidden
     - subtree = post.thread.build_subtree unless defined?(subtree) && subtree
-    -#We only hide posts in the index, hence @threads condition!
-    - if (!@threads || !post.hidden_by?(current_user)) && (children = subtree[post.id])
+    - children = subtree[post.id] || []
+    - unless children.empty?
       %div.post-children
         %ul
           - children.each do |child|

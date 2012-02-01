@@ -42,7 +42,6 @@ class Posts < ActiveRecord::Base
   def renew_marks
     context = PostParseContext.new
     # Call the parser
-    debugger
     text_container.filtered(context)[1]
     # Read the context and update marks
     self.marks = context.sign.keys.map(&:to_s).sort
