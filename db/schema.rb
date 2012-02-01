@@ -11,7 +11,12 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120201175247) do
+ActiveRecord::Schema.define(:version => 20120201192913) do
+
+  create_table "hidden_posts_users", :id => false, :force => true do |t|
+    t.integer "user_id"
+    t.integer "posts_id"
+  end
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"

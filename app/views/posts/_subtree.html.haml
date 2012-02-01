@@ -23,10 +23,21 @@
   ="(#{post.host}) "
   %span.post-timestamp
     = post.created_at
-  - subtree = post.thread.build_subtree unless defined?(subtree) && subtree
-  - if children = subtree[post.id]
-    %div.post-children
-      %ul
-        - children.each do |child|
-          %li= render :partial => 'posts/subtree', :locals => {:post => child, :subtree => subtree}
+  -# Post hidden mark and hide/show modifier
+  - if permitted_to? :toggle_showhide, :posts
+    - if post.hidden_by?(current_user)
+      =link_to t("Show subtree"), toggle_showhide_post_path(post)
+    - else
+      =link_to t("Hide subtree"), toggle_showhide_post_path(post)
+  - if post.hidden_by?(current_user)
+    %span.modifier=t("hidden")
+  - else
+    -# Only build subtree if it's not hidden
+    - subtree = post.thread.build_subtree unless defined?(subtree) && subtree
+    -#We only hide posts in the index, hence @threads condition!
+    - if (!@threads || !post.hidden_by?(current_user)) && (children = subtree[post.id])
+      %div.post-children
+        %ul
+          - children.each do |child|
+            %li= render :partial => 'posts/subtree', :locals => {:post => child, :subtree => subtree}
 

@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-  before_filter :find_post, :only => [:edit, :update, :show, :destroy]
+  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide]
   before_filter :find_thread, :only => [:edit, :update, :show]
   before_filter :init_loginpost, :only => [:edit, :update, :show]
 
@@ -69,6 +69,13 @@ class PostsController < ApplicationController
       format.html { redirect_to posts_url }
       format.json { head :ok }
     end
+  end
+
+  def toggle_showhide
+    @post.toggle_showhide(current_user)
+    @post.save
+    # TODO: add Ajax here, so that it doesn't look ridiculous
+    redirect_to @post
   end
 
   protected

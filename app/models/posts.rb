@@ -79,4 +79,21 @@ class Posts < ActiveRecord::Base
     end
   end
 
+  # Check if the post was hidden by the current user
+  def hidden_by?(user = nil)
+    # TODO: merge moderator's hiding settings here
+    hidden = false
+    if user
+      hidden ||= user.hidden_posts.exists?(self.id)
+    end
+    hidden
+  end
+  def toggle_showhide(user)
+    if hidden_by?(user)
+      user.hidden_posts.delete self
+    else
+      user.hidden_posts << self
+    end
+  end
+
 end

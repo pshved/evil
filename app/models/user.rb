@@ -41,4 +41,6 @@ class User < ActiveRecord::Base
   def current_presentation
     presentations[0] or raise "Can't find current presentation for user #{self.login}"
   end
+  #Hidden posts
+  has_and_belongs_to_many :hidden_posts, :class_name => 'Posts', :join_table => 'hidden_posts_users', :association_foreign_key => 'posts_id'
 end

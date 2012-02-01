@@ -39,6 +39,9 @@ authorization do
     has_permission_on :presentations, :to => :create do
       if_attribute :user => is { user }
     end
+
+    # Show/hide posts
+    has_permission_on :posts, :to => :toggle_showhide
   end
 
   role :user do
