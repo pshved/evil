@@ -1,11 +1,5 @@
 %p Showing post
-%div#mainpost
-  %center
-    %div.post-title
-      = @post.title
-  %div.post-body
-    -# Note that we do not strip the post in DB, but rather do it in the view
-    != @post.filtered_body.strip
+=render :partial => 'one'
 %div.thread-tree
   = render :partial => 'subtree', :locals => {:post => @thread.head}
 %div
