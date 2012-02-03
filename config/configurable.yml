@@ -20,6 +20,16 @@ site_title:
   default: Just a forum
   type: string
 
+autowrap_thread_threshold:
+  name: Subthreads will be auto-wrapped as soon as they hit this depth
+  default: 8
+  type: integer
+
+autowrap_thread_value:
+  name: Thread wrap depth
+  default: 5
+  type: integer
+
 # site_description:
 #   name: Description for Google
 #   default: Lots of Awesomeness Here

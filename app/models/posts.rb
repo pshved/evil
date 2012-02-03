@@ -79,12 +79,18 @@ class Posts < ActiveRecord::Base
   end
 
   # Check if the post was hidden by the current user
-  def hidden_by?(user = nil)
-    # TODO: merge moderator's hiding settings here
+  def hidden_by?(opts = {})
+    user = opts[:user]
+    thread_hides = opts[:thread_hides] || {}
     hidden = false
+    # User's own settings override all
     if user
       hidden ||= user.hidden_posts.exists?(self.id)
     end
+    # Now moderator's settings follow
+    # TODO
+    # Now thread's auto-folding works (site-wide threshold)
+    hidden ||= thread_hides[self.id]
     hidden
   end
   def toggle_showhide(user)
