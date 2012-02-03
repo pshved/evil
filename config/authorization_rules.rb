@@ -70,6 +70,9 @@ authorization do
     includes :moderator
     has_permission_on :threads, :to => :manage
     has_permission_on :users, :to => :manage
+
+    # Manage site-wide configuration options
+    has_permission_on :admin_configurables, :to => :manage
   end
 end
 

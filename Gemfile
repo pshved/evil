@@ -56,3 +56,6 @@ gem 'enum_column3'
 
 # Pagination
 gem 'kaminari'
+
+# To handle global config settings
+gem 'configurable_engine'
