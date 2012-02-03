@@ -6,6 +6,9 @@
       %ul
         - @private_message.errors.full_messages.each do |msg|
           %li=msg
+  -#check if it's nil, not just blank.  nil means that it's a fresh object, not a preview
+  - if @private_message.text_container
+    %div.mesgfrom!=@private_message.filtered_body
   %div.field
     =f.label :recipient_user_login
     =f.text_field :recipient_user_login
@@ -13,5 +16,6 @@
     =f.label :msg_body
     =f.text_area :msg_body, :cols => 60, :rows => 5
   %div.actions
+    = f.submit 'Preview'
     = f.submit
 

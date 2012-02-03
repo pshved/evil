@@ -27,6 +27,7 @@ class PrivateMessage < ActiveRecord::Base
     self.sender_user = self.current_user
     self.recipient_user = User.find_by_login(recipient_user_login)
     self.text_container = TextContainer.make(msg_body)
+    # No validation: will be nil if specified incorrectly (malice?)
     self.reply_to = reply_to_stamp.blank?? nil : PrivateMessage.find_by_stamp(reply_to_stamp)
     true
   end
@@ -55,10 +56,10 @@ class PrivateMessage < ActiveRecord::Base
   end
 
   def body
-    text_container ? text_container.body[0] : ''
+    text_container ? text_container.body[0] : msg_body
   end
   def filtered_body
-    text_container ? text_container.filtered[0] : ''
+    text_container ? text_container.filtered[0] : msg_body
   end
 
   # Returns a list of users (IDs of them) that may view the message this one replies to.  If it's not a reply, return current user.  If a message to be replied to is not found, then someone's tampering with replies, and we return nobody.
