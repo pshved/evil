@@ -1,5 +1,5 @@
 %p Showing post
-=render :partial => 'one'
+=render @post
 %div.thread-tree
   = render :partial => 'subtree', :locals => {:post => @thread.head}
 %div
