@@ -52,7 +52,6 @@ class Threads < ActiveRecord::Base
     hides = {}
     threshold = Configurable[:autowrap_thread_threshold]
     value = Configurable[:autowrap_thread_value]
-    debugger
     compute_hides(idtree,idtree[nil][0],hides,threshold,value)
     @cached_hides = hides
   end
