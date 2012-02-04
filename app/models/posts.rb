@@ -48,11 +48,11 @@ class Posts < ActiveRecord::Base
   end
 
   def title
-    @unsaved_title || text_container.body[0]
+    text_container.body[0]
   end
 
   def body
-    @unsaved_body || text_container.body[1]
+    text_container.body[1]
   end
 
   # Post's body after the proper filter application
@@ -107,23 +107,24 @@ class Posts < ActiveRecord::Base
   end
 
   def title=(title)
-    debugger
     @unsaved_title = title.dup
   end
 
   def body=(body)
-    debugger
     @unsaved_body = body
   end
 
-  before_save do
+  before_validation do
     if @editing
-      debugger
       text_container.add_revision(@unsaved_title,@unsaved_body)
       @editing = false
     end
-    text_container.save
     true
+  end
+
+  # TODO: I don't understand why it's needeed with :autosave...
+  before_save do
+    text_container.save
   end
 
 end

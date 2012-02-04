@@ -65,11 +65,6 @@ class TextContainer < ActiveRecord::Base
     # Proceed to save ...
   end
 
-  # Override persisted: the record needs saving if there are pending revisions
-  def persisted?
-    super && !@unsaved_texts
-  end
-
   # A transaction that saves records
   protected
   def __add_revs(need_save,*texts)
@@ -86,7 +81,6 @@ class TextContainer < ActiveRecord::Base
     end
     !need_save || r
   end
-
 
   # Override the fetching method for the unsaved records
   protected
