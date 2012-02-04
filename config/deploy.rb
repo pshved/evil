@@ -2,6 +2,7 @@ require "bundler/capistrano"
 
 set :application, "xboard"
 set :repository,  "git@coldattic.info:evil.git"
+set :branch,      "x-deploy"
 
 set :scm, :git
 # Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
