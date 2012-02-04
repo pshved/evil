@@ -30,8 +30,11 @@ class User < ActiveRecord::Base
     (roles || []).map {|r| r.name.to_sym}
   end
 
-  before_save do
+  before_create do
+    # Add default role
     roles << Role.find_or_create_by_name('user') if roles.count == 0
+    # Add default presentation
+    presentations << Presentation.create if presentations.empty?
   end
 
 
