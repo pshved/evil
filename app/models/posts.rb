@@ -94,7 +94,7 @@ class Posts < ActiveRecord::Base
     hidden
   end
   def toggle_showhide(user)
-    if hidden_by?(user)
+    if hidden_by?(:user => user)
       user.hidden_posts.delete self
     else
       user.hidden_posts << self
