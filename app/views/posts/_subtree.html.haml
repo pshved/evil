@@ -25,6 +25,9 @@
   ="(#{post.host}) "
   %span.post-timestamp
     = post.created_at
+  -# Post Editing link
+  - if permitted_to? :edit, post
+    =link_to t("Edit"), edit_post_path(post)
   -# Post hidden mark and hide/show modifier
   -hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
   - if permitted_to? :toggle_showhide, :posts

@@ -48,11 +48,11 @@ class Posts < ActiveRecord::Base
   end
 
   def title
-    text_container.body[0]
+    @unsaved_title || text_container.body[0]
   end
 
   def body
-    text_container.body[1]
+    @unsaved_body || text_container.body[1]
   end
 
   # Post's body after the proper filter application
@@ -99,6 +99,31 @@ class Posts < ActiveRecord::Base
     else
       user.hidden_posts << self
     end
+  end
+
+  # Editing posts and revisions
+  def maybe_new_revision_for_edit
+    @editing = true 
+  end
+
+  def title=(title)
+    debugger
+    @unsaved_title = title.dup
+  end
+
+  def body=(body)
+    debugger
+    @unsaved_body = body
+  end
+
+  before_save do
+    if @editing
+      debugger
+      text_container.add_revision(@unsaved_title,@unsaved_body)
+      @editing = false
+    end
+    text_container.save
+    true
   end
 
 end

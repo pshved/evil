@@ -1,0 +1,11 @@
+%h1 Editing post
+
+=render @post
+
+%div
+  = render :partial => 'form'
+
+%div.thread-tree
+  = render :partial => 'subtree', :locals => {:post => @thread.head}
+
+

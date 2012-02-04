@@ -28,7 +28,7 @@ class TextContainer < ActiveRecord::Base
   end
 
   def add_revision(*texts)
-    _add_revs(true,*texts)
+    _add_revs(false,*texts)
   end
 
   def self.make(*texts)
@@ -63,6 +63,11 @@ class TextContainer < ActiveRecord::Base
       true
     end
     # Proceed to save ...
+  end
+
+  # Override persisted: the record needs saving if there are pending revisions
+  def persisted?
+    super && !@unsaved_texts
   end
 
   # A transaction that saves records
