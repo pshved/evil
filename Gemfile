@@ -42,7 +42,11 @@ group :test do
   #gem 'ruby-debug19', :require => nil
 end
 
-gem 'ruby-debug19'
+# Only in development!
+group :development do
+  gem 'ruby-debug19'
+end
+
 gem 'haml'
 
 # Authentication
