@@ -9,11 +9,14 @@
 <body>
 
   <div id="user-nav">
+    <%= link_to_unless_current "Home", root_path  %>  |
     <% if current_user %>
       <%= link_to "Logout", logout_path  %> |
-      <%= link_to "Edit profile", edit_user_path(current_user.to_param)  %>
+      <%= link_to_unless_current "Edit profile", edit_user_path(current_user.to_param)  %> |
+      <%= link_to_unless_current "Private Msgs.", private_messages_path  %> |
+      <%= link_to_unless_current "View settings", presentations_path  %> |
     <% else %>
-      <%= link_to "Register", new_user_path  %>  |
+      <%= link_to_unless_current "Register", new_user_path  %>  |
       <%= link_to "Login", login_path  %>
     <% end %>
   </div>
