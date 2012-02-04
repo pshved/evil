@@ -10,5 +10,10 @@
   %div.field
     = f.label :threadpage_size
     = f.number_field :threadpage_size
+  %div.hiddenthreads
+    Hidden threads:
+    %ul
+      - current_user.hidden_posts.each do |p|
+        %li= link_to p.title, p
   %div.actions
     = f.submit

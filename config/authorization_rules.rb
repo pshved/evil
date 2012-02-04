@@ -14,6 +14,8 @@ authorization do
     end
     # May register
     has_permission_on :users, :to => :create
+    # May view other's profiles
+    has_permission_on :users, :to => :read
   end
 
   role :banned do
@@ -29,7 +31,7 @@ authorization do
     end
 
     # User may edit his own profile
-    has_permission_on :users, :to => :update do
+    has_permission_on :users, :to => [:update] do
       if_attribute :id => is { user.id }
     end
 

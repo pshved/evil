@@ -4,7 +4,14 @@
       %h2="#{pluralize(@user.errors.count, "error")} prohibited this user from being saved"
       %ul
         -@user.errors.full_messages.each do |msg|
-          %li= msg 
+          %li= msg
+  -if @user.persisted?
+    = "Modify user #{@user.login}"
+    %br/
+  -else
+    %div.field
+      = f.label :login
+      = f.text_field :login
   -if @user.persisted?
     %div.field
       = f.label :current_password
