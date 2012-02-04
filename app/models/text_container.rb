@@ -28,7 +28,7 @@ class TextContainer < ActiveRecord::Base
   end
 
   def add_revision(*texts)
-    _add_revs(true,*texts)
+    _add_revs(false,*texts)
   end
 
   def self.make(*texts)
@@ -81,7 +81,6 @@ class TextContainer < ActiveRecord::Base
     end
     !need_save || r
   end
-
 
   # Override the fetching method for the unsaved records
   protected

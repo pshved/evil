@@ -52,8 +52,9 @@ authorization do
     has_permission_on :threads, :to => :create
 
     # User may edit his own posts
-    has_permission_on :posts, :to => :update do
+    has_permission_on :posts, :to => :update, :join_by => :and do
       if_attribute :user => is { user }
+      if_attribute :created_at => gt { Time.now - 30.minutes }
     end
 
     # This is a functionality to create posts

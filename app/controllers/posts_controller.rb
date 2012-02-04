@@ -1,13 +1,14 @@
 class PostsController < ApplicationController
   before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide]
   before_filter :find_thread, :only => [:edit, :update, :show]
-  before_filter :init_loginpost, :only => [:edit, :update, :show]
+  before_filter :init_loginpost, :only => [:edit, :update]
 
   filter_access_to :all, :attribute_check => true, :model => Posts
 
   # GET /posts/1
   # GET /posts/1.json
   def show
+    @loginpost = Loginpost.new(:reply_to => @post.to_param, :user => current_user)
     # To ignore show/hide settings and always show.
     @show_all_posts = true
     respond_to do |format|
@@ -50,9 +51,10 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
+    @post.maybe_new_revision_for_edit
 
     respond_to do |format|
-      if @post.update_attributes(params[:post])
+      if @post.update_attributes(params[:posts])
         format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
         format.json { head :ok }
       else
@@ -88,6 +90,5 @@ class PostsController < ApplicationController
     @thread = @post.thread
   end
   def init_loginpost
-    @loginpost = Loginpost.new(:reply_to => @post.to_param, :user => current_user)
   end
 end

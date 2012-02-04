@@ -101,4 +101,30 @@ class Posts < ActiveRecord::Base
     end
   end
 
+  # Editing posts and revisions
+  def maybe_new_revision_for_edit
+    @editing = true 
+  end
+
+  def title=(title)
+    @unsaved_title = title.dup
+  end
+
+  def body=(body)
+    @unsaved_body = body
+  end
+
+  before_validation do
+    if @editing
+      text_container.add_revision(@unsaved_title,@unsaved_body)
+      @editing = false
+    end
+    true
+  end
+
+  # TODO: I don't understand why it's needeed with :autosave...
+  before_save do
+    text_container.save
+  end
+
 end
