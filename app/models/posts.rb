@@ -11,6 +11,8 @@ class Posts < ActiveRecord::Base
   belongs_to :parent, :class_name => 'Posts', :inverse_of => :children
   has_many :children, :class_name => 'Posts', :foreign_key => 'parent_id'
 
+  has_one :click, :foreign_key => 'post_id'
+
   validates_presence_of :thread
   # Each post should have a parent except for the root ones
   validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }
@@ -125,6 +127,15 @@ class Posts < ActiveRecord::Base
   # TODO: I don't understand why it's needeed with :autosave...
   before_save do
     text_container.save
+  end
+
+  def click!(user = nil, rq = '127.0.0.1')
+    build_click unless click
+    click.click!
+  end
+
+  def clicks
+    click ? (click.clicks || 0) : 0
   end
 
 end

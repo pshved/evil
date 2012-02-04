@@ -11,7 +11,14 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120203193146) do
+ActiveRecord::Schema.define(:version => 20120204193237) do
+
+  create_table "clicks", :primary_key => "post_id", :force => true do |t|
+    t.integer "clicks",     :default => 0
+    t.string  "last_click"
+  end
+
+  add_index "clicks", ["post_id"], :name => "index_clicks_on_post_id"
 
   create_table "configurables", :force => true do |t|
     t.string   "name"

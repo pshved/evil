@@ -17,6 +17,9 @@
   -# (url)/(pic) marks
   - post.marks.each do |mark|
     %span.post-mark="(#{mark}) "
+  -# post clicks
+  - if post.clicks != 0
+    %span.post-clicks="(#{post.clicks})"
   \-
   - if post.user
     %span.post-user= link_to post.user.login, user_path(post.user)
