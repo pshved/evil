@@ -4,8 +4,8 @@ class User < ActiveRecord::Base
   validates_uniqueness_of :login
   # Since login is unique anyway, redefine the activerecord's auto-generated finder
   # NOTE: we can't use "alias" here, since the method is not created before we connect to DB
-  def find_by_login(login)
-    find_first_by_login(login)
+  def self.find_by_login(login)
+    find_last_by_login(login)
   end
 
   attr_accessor :current_password
@@ -21,6 +21,13 @@ class User < ActiveRecord::Base
   # User-readable name
   def name
     login
+  end
+  # URL id
+  def to_param
+    login
+  end
+  def self.from_param(p)
+    find_by_login(p)
   end
 
   # Roles
