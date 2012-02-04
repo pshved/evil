@@ -11,6 +11,8 @@ class PostsController < ApplicationController
     @loginpost = Loginpost.new(:reply_to => @post.to_param, :user => current_user)
     # To ignore show/hide settings and always show.
     @show_all_posts = true
+    # Add click
+    @post.click! current_user, request.remote_ip
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @post }
@@ -78,8 +80,8 @@ class PostsController < ApplicationController
   def toggle_showhide
     @post.toggle_showhide(current_user)
     @post.save
-    # TODO: add Ajax here, so that it doesn't look ridiculous
-    redirect_to @post
+    # TODO: add Ajax here.  For now, redirects back.
+    redirect_to :back
   end
 
   protected
