@@ -130,8 +130,9 @@ class Posts < ActiveRecord::Base
   end
 
   def click!(user = nil, rq = '127.0.0.1')
-    build_click unless click
-    click.click!
+    # If post has not been clicked, assume that the previous clicker was the authos
+    build_click(:last_click => Click.clicker(self.user,rq)) unless click
+    click.click! user,rq
   end
 
   def clicks
