@@ -42,7 +42,7 @@ Replacements = [
   # the next matches only after the previous one is exhausted
   ["\n",        "<br/>\n"                       ],
   # indent with 9 non-breaking spaces
-  ["^\t",	"&nbsp;" * 9                          ],
+  ["^\t",       "&nbsp;" * 9                    ],
   # The rest is smileys
   [":))",       make_smiley("bigsmile.gif")     ],
   [":)",        make_smiley("smile.gif")        ],
