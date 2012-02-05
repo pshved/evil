@@ -4,8 +4,8 @@ class User < ActiveRecord::Base
   validates_uniqueness_of :login
   # Since login is unique anyway, redefine the activerecord's auto-generated finder
   # NOTE: we can't use "alias" here, since the method is not created before we connect to DB
-  def find_by_login(login)
-    find_first_by_login(login)
+  def self.find_by_login(login)
+    find_last_by_login(login)
   end
 
   attr_accessor :current_password
@@ -22,6 +22,13 @@ class User < ActiveRecord::Base
   def name
     login
   end
+  # URL id
+  def to_param
+    login
+  end
+  def self.from_param(p)
+    find_by_login(p)
+  end
 
   # Roles
   has_and_belongs_to_many :roles
@@ -30,7 +37,20 @@ class User < ActiveRecord::Base
     (roles || []).map {|r| r.name.to_sym}
   end
 
-  before_save do
+  before_create do
+    # Add default role
     roles << Role.find_or_create_by_name('user') if roles.count == 0
+    # Add default presentation
+    presentations << Presentation.create if presentations.empty?
   end
+
+
+  # Presentations
+  has_many :presentations
+  # TODO: users should have several presentations, one of which should be recorded in cookies as the current one.
+  def current_presentation
+    presentations[0] or raise "Can't find current presentation for user #{self.login}"
+  end
+  #Hidden posts
+  has_and_belongs_to_many :hidden_posts, :class_name => 'Posts', :join_table => 'hidden_posts_users', :association_foreign_key => 'posts_id'
 end

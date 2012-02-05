@@ -42,7 +42,11 @@ group :test do
   #gem 'ruby-debug19', :require => nil
 end
 
-gem 'ruby-debug19'
+# Only in development!
+group :development do
+  gem 'ruby-debug19'
+end
+
 gem 'haml'
 
 # Authentication
@@ -56,3 +60,6 @@ gem 'enum_column3'
 
 # Pagination
 gem 'kaminari'
+
+# To handle global config settings
+gem 'configurable_engine'

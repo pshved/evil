@@ -7,12 +7,24 @@ class LoginpostsController < ApplicationController
   # POST /loginposts
   def create
     @loginpost.post.host = gethostbyaddr(request.remote_ip)
-    respond_to do |format|
-      if @loginpost.save
-        @loginpost.log_in_if_necessary
-        format.html { redirect_to @loginpost.saved_post, notice: 'Post was successfully created.' }
-      else
+    if params[:commit] == 'Preview'
+      # This is a preview, validate and show it
+      @loginpost.valid?
+      @post = @loginpost.post
+      puts @post.body
+      respond_to do |format|
+        flash[:notice] = 'This is a preview only!'
         format.html { render action: "new" }
+      end
+    else
+      respond_to do |format|
+        if @loginpost.save
+          @loginpost.log_in_if_necessary
+          format.html { redirect_to @loginpost.saved_post, notice: 'Post was successfully created.' }
+        else
+          @post = @loginpost.post
+          format.html { render action: "new" }
+        end
       end
     end
   end

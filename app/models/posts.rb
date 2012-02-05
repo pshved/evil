@@ -11,6 +11,8 @@ class Posts < ActiveRecord::Base
   belongs_to :parent, :class_name => 'Posts', :inverse_of => :children
   has_many :children, :class_name => 'Posts', :foreign_key => 'parent_id'
 
+  has_one :click, :foreign_key => 'post_id'
+
   validates_presence_of :thread
   # Each post should have a parent except for the root ones
   validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }
@@ -42,7 +44,6 @@ class Posts < ActiveRecord::Base
   def renew_marks
     context = PostParseContext.new
     # Call the parser
-    debugger
     text_container.filtered(context)[1]
     # Read the context and update marks
     self.marks = context.sign.keys.map(&:to_s).sort
@@ -77,6 +78,65 @@ class Posts < ActiveRecord::Base
       self.parent = rp
       self
     end
+  end
+
+  # Check if the post was hidden by the current user
+  def hidden_by?(opts = {})
+    user = opts[:user]
+    thread_hides = opts[:thread_hides] || {}
+    hidden = false
+    # User's own settings override all
+    if user
+      hidden ||= user.hidden_posts.exists?(self.id)
+    end
+    # Now moderator's settings follow
+    # TODO
+    # Now thread's auto-folding works (site-wide threshold)
+    hidden ||= thread_hides[self.id]
+    hidden
+  end
+  def toggle_showhide(user)
+    if hidden_by?(:user => user)
+      user.hidden_posts.delete self
+    else
+      user.hidden_posts << self
+    end
+  end
+
+  # Editing posts and revisions
+  def maybe_new_revision_for_edit
+    @editing = true 
+  end
+
+  def title=(title)
+    @unsaved_title = title.dup
+  end
+
+  def body=(body)
+    @unsaved_body = body
+  end
+
+  before_validation do
+    if @editing
+      text_container.add_revision(@unsaved_title,@unsaved_body)
+      @editing = false
+    end
+    true
+  end
+
+  # TODO: I don't understand why it's needeed with :autosave...
+  before_save do
+    text_container.save
+  end
+
+  def click!(user = nil, rq = '127.0.0.1')
+    # If post has not been clicked, assume that the previous clicker was the authos
+    build_click(:last_click => Click.clicker(self.user,rq)) unless click
+    click.click! user,rq
+  end
+
+  def clicks
+    click ? (click.clicks || 0) : 0
   end
 
 end

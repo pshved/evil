@@ -14,6 +14,8 @@ authorization do
     end
     # May register
     has_permission_on :users, :to => :create
+    # May view other's profiles
+    has_permission_on :users, :to => :read
   end
 
   role :banned do
@@ -29,9 +31,19 @@ authorization do
     end
 
     # User may edit his own profile
-    has_permission_on :users, :to => :update do
+    has_permission_on :users, :to => [:update] do
       if_attribute :id => is { user.id }
     end
+
+    # Presentations are aready tied to the current_user as an owner, so there's no need to check attributes
+    has_permission_on :presentations, :to => :index
+    # However, user can't reply to others' messages
+    has_permission_on :presentations, :to => :create do
+      if_attribute :user => is { user }
+    end
+
+    # Show/hide posts
+    has_permission_on :posts, :to => :toggle_showhide
   end
 
   role :user do
@@ -40,8 +52,9 @@ authorization do
     has_permission_on :threads, :to => :create
 
     # User may edit his own posts
-    has_permission_on :posts, :to => :update do
+    has_permission_on :posts, :to => :update, :join_by => :and do
       if_attribute :user => is { user }
+      if_attribute :created_at => gt { Time.now - 30.minutes }
     end
 
     # This is a functionality to create posts
@@ -60,6 +73,9 @@ authorization do
     includes :moderator
     has_permission_on :threads, :to => :manage
     has_permission_on :users, :to => :manage
+
+    # Manage site-wide configuration options
+    has_permission_on :admin_configurables, :to => :manage
   end
 end
 

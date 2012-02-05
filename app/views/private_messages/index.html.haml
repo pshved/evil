@@ -5,16 +5,5 @@
   - @private_messages.each do |pm|
     %tr
       %td
-        = pm.created_at
-        %br/
-        - if current_user == pm.sender_user
-          To: 
-          = link_to pm.recipient_user.name, pm.recipient_user
-          = link_to '[Write]', new_private_message_path(:to => pm.recipient_user.login)
-          %div.msgto=pm.filtered_body
-        - else 
-          From: 
-          = link_to pm.sender_user.name, pm.sender_user
-          = link_to '[Reply]', new_private_message_path(:to => pm.recipient_user.login, :replyto => pm.stamp)
-          %div.msgfrom=pm.filtered_body
+        = render pm
 = paginate @private_messages

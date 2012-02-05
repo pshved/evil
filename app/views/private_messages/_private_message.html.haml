@@ -1,0 +1,18 @@
+-# just a shorthand
+- pm = private_message
+= pm.created_at
+%br/
+- if current_user == pm.sender_user
+  -# If this is a preview of a message with an incorrect user name, we should show something else
+  - if pm.recipient_user
+    To:
+    = link_to pm.recipient_user.name, pm.recipient_user
+    = link_to '[Write]', new_private_message_path(:to => pm.recipient_user.login)
+  - else
+    = t('To Somebody')
+  %div.msgto!=private_message.filtered_body
+- else
+  From:
+  = link_to pm.sender_user.name, pm.sender_user
+  = link_to '[Reply]', new_private_message_path(:to => pm.recipient_user.login, :replyto => pm.stamp)
+  %div.msgfrom!=private_message.filtered_body

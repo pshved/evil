@@ -1,17 +1,23 @@
 Zlo::Application.routes.draw do
-  get "threads/new"
-
   root :controller => 'backwards', :action => 'index'
 
   match 'login' => 'user_sessions#new', :as => 'login'
   match 'logout' => 'user_sessions#destroy', :as => 'logout'
 
+  resources :threads, :only => [:new]
   resources :user_sessions
   resources :users
-  resources :posts, :path => 'p'
+  resources :posts, :path => 'p' do
+    member do
+      get :toggle_showhide
+    end
+  end
   resources :private_messages, :path => 'persmsg'
 
   resources :loginposts, :only => [:create]
+
+  # User's view settings
+  resources :presentations
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

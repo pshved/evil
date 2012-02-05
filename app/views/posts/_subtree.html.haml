@@ -1,3 +1,5 @@
+-# To improve performance, you must supply thread to this partial
+- thr = @thread || thread
 - if post
   -# Post title (link or plain, depending on whether it's the current post)
   -# We strip whitespace from the post's title
@@ -15,6 +17,9 @@
   -# (url)/(pic) marks
   - post.marks.each do |mark|
     %span.post-mark="(#{mark}) "
+  -# post clicks
+  - if post.clicks != 0
+    %span.post-clicks="(#{post.clicks})"
   \-
   - if post.user
     %span.post-user= link_to post.user.login, user_path(post.user)
@@ -23,10 +28,26 @@
   ="(#{post.host}) "
   %span.post-timestamp
     = post.created_at
-  - subtree = post.thread.build_subtree unless defined?(subtree) && subtree
-  - if children = subtree[post.id]
-    %div.post-children
-      %ul
-        - children.each do |child|
-          %li= render :partial => 'posts/subtree', :locals => {:post => child, :subtree => subtree}
+  -# Post Editing link
+  - if permitted_to? :edit, post
+    =link_to t("Edit"), edit_post_path(post)
+  -# Post hidden mark and hide/show modifier
+  -hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
+  - if permitted_to? :toggle_showhide, :posts
+    - if hidden
+      =link_to t("Show subtree"), toggle_showhide_post_path(post)
+    - else
+      =link_to t("Hide subtree"), toggle_showhide_post_path(post)
+  -#We only hide posts in the index, hence @show_all_posts condition!
+  - if hidden && !@show_all_posts
+    %span.modifier=t("hidden")
+  - else
+    -# Only build subtree if it's not hidden
+    - subtree = thr.build_subtree unless defined?(subtree) && subtree
+    - children = subtree[post.id] || []
+    - unless children.empty?
+      %div.post-children
+        %ul
+          - children.each do |child|
+            %li= render :partial => 'posts/subtree', :locals => {:post => child, :subtree => subtree, :thread => thr}
 

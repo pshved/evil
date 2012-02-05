@@ -7,17 +7,11 @@ class TextContainer < ActiveRecord::Base
 
   # Returns the body for the last revision
   def body
-    if current_revision
-      self.text_items.where(["revision = ?", current_revision]).order('number ASC').map &:body
-    else
-      nil
-    end
-    #self.text_items.order('revision DESC').first
+    _items
   end
 
   # Filters the string given the context and this container's filtering setting
   def filter_item(txt,context = nil)
-    debugger
     case filter
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)
@@ -27,18 +21,14 @@ class TextContainer < ActiveRecord::Base
   end
 
   def filtered(context = nil)
-    if current_revision
-      f = self.text_items.where(["revision = ?", current_revision]).order('number ASC').map(&:body)
-      f.map do |txt|
-        filter_item(txt,context)
-      end
-    else
-      nil
+    f = _items
+    f.map do |txt|
+      filter_item(txt,context)
     end
   end
 
   def add_revision(*texts)
-    _add_revs(true,*texts)
+    _add_revs(false,*texts)
   end
 
   def self.make(*texts)
@@ -52,7 +42,34 @@ class TextContainer < ActiveRecord::Base
     # Check if the arity matches
     raise "Arity #{arity} doesn't match the length of the supplied array: #{texts.inspect}" if texts.length != arity
 
+    # If the new revisions are going to be saved, just do it in a concurrent manner
+    if need_save
+      __add_revs(true,*texts)
+    else
+      # If the new revisions are not going to be saved, store them locally, and flush at save
+      @unsaved_texts = texts.dup
+    end
+  end
+
+  # Flush the unsaved body, if any
+  before_save do
+    if @unsaved_texts
+      # Do not save: they'll be saved at save (this is a before_save callback!)
+      if __add_revs(false,*@unsaved_texts)
+        @unsaved_texts = nil
+        true
+      end
+    else
+      true
+    end
+    # Proceed to save ...
+  end
+
+  # A transaction that saves records
+  protected
+  def __add_revs(need_save,*texts)
     # We need a safe way in case there'll be two concurrent updates; we should get revision numbers right
+    r = false
     transaction do
       cur_rev = current_revision || 0
       new_rev = cur_rev + 1
@@ -60,7 +77,14 @@ class TextContainer < ActiveRecord::Base
       texts.each_with_index {|txt,i| text_items.new(:number => i, :body => txt, :revision => new_rev)}
       # Update revision
       self.current_revision = new_rev
-      self.save if need_save#&& !self.new?
+      r = self.save if need_save
     end
+    !need_save || r
+  end
+
+  # Override the fetching method for the unsaved records
+  protected
+  def _items
+    @unsaved_texts || text_items.where(["revision = ?", current_revision]).order('number ASC').map(&:body)
   end
 end

@@ -11,7 +11,28 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120130214240) do
+ActiveRecord::Schema.define(:version => 20120204193237) do
+
+  create_table "clicks", :primary_key => "post_id", :force => true do |t|
+    t.integer "clicks",     :default => 0
+    t.string  "last_click"
+  end
+
+  add_index "clicks", ["post_id"], :name => "index_clicks_on_post_id"
+
+  create_table "configurables", :force => true do |t|
+    t.string   "name"
+    t.string   "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "configurables", ["name"], :name => "index_configurables_on_name"
+
+  create_table "hidden_posts_users", :id => false, :force => true do |t|
+    t.integer "user_id"
+    t.integer "posts_id"
+  end
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
@@ -32,6 +53,15 @@ ActiveRecord::Schema.define(:version => 20120130214240) do
   add_index "posts", ["text_container_id"], :name => "index_posts_on_text_container_id"
   add_index "posts", ["thread_id"], :name => "index_posts_on_thread_id"
   add_index "posts", ["user_id"], :name => "index_posts_on_user_id"
+
+  create_table "presentations", :force => true do |t|
+    t.integer  "threadpage_size"
+    t.integer  "user_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "presentations", ["user_id"], :name => "index_presentations_on_user_id"
 
   create_table "private_messages", :force => true do |t|
     t.integer  "sender_user_id"

@@ -84,6 +84,8 @@ class UsersController < ApplicationController
   protected
   def find_user
     # We do not use 'self' to avoid problems with declarative auth
-    @user = User.find(params[:id])
+    @user = User.from_param(params[:id])
   end
+  # Alias for filter_resource_access: it expects "load_user" method rather than find_user.
+  alias_method :load_user, :find_user
 end

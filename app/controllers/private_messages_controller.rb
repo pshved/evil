@@ -42,13 +42,21 @@ class PrivateMessagesController < ApplicationController
   # POST /private_messages
   # POST /private_messages.json
   def create
-    respond_to do |format|
-      if @private_message.save
-        format.html { redirect_to private_messages_path, notice: 'Private message was successfully created.' }
-        format.json { render json: @private_message, status: :created, location: @private_message }
-      else
+    if params[:commit] == 'Preview'
+      @private_message.valid?
+      respond_to do |format|
+        flash[:notice] = 'This is a preview only!'
         format.html { render action: "new" }
-        format.json { render json: @private_message.errors, status: :unprocessable_entity }
+      end
+    else
+      respond_to do |format|
+        if @private_message.save
+          format.html { redirect_to private_messages_path, notice: 'Private message was successfully created.' }
+          format.json { render json: @private_message, status: :created, location: @private_message }
+        else
+          format.html { render action: "new" }
+          format.json { render json: @private_message.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
@@ -63,7 +71,6 @@ class PrivateMessagesController < ApplicationController
   end
 
   def new_private_message
-    debugger
     @private_message = PrivateMessage.new(:current_user => current_user, :recipient_user_login => params[:to], :reply_to_stamp => params[:replyto])
   end
 end
