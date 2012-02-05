@@ -17,7 +17,7 @@ TagConversions = [
   ['url',      proc {|inner,url| $c.sign[:url] = true;  %Q(<a href="#{url}" target=_blank>#{inner}</a>)}],
   ['pic',      proc {|inner| $c.sign[:pic] = true;  %Q(<img class="imgtag" src="#{inner}"/>)}],
   ['hr',       proc {|| %Q(<hr/>)}],
-  ['tab',      proc {|| %Q("&nbsp"*9)}],
+  ['tab',      proc {|| %Q(&nbsp;)*9}],
   ['q',        proc {|inner| %Q(<blockquote><span class="inquote">[q]</span><b>Quote:</b><br/>#{inner}<span class="inquote">[/q]</span></blockquote>)}],
   ['center',   proc {|inner| %Q(<center>#{inner}</center>)}],
   # [pre] is handled in the parser
@@ -42,7 +42,7 @@ Replacements = [
   # the next matches only after the previous one is exhausted
   ["\n",        "<br/>\n"                       ],
   # indent with 9 non-breaking spaces
-  ["^\t",	"&nbsp" * 9			],
+  ["^\t",	"&nbsp;" * 9                          ],
   # The rest is smileys
   [":))",       make_smiley("bigsmile.gif")     ],
   [":)",        make_smiley("smile.gif")        ],
