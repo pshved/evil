@@ -10,7 +10,7 @@
   - else
     %span.post-oneline
       = link_to post_title, post_path(post)
-  - if post.body.strip.blank?
+  - if post.empty?
     (-)
   - else
     (+)

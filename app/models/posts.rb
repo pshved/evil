@@ -39,6 +39,7 @@ class Posts < ActiveRecord::Base
   end
   # a hook that updates marks (after the post has been edited or created)
   before_save :renew_marks
+  before_save :renew_emptiness
   class PostParseContext < DefaultParseContext
   end
   def renew_marks
@@ -47,7 +48,21 @@ class Posts < ActiveRecord::Base
     text_container.filtered(context)[1]
     # Read the context and update marks
     self.marks = context.sign.keys.map(&:to_s).sort
+    true
   end
+
+  # Update whether the post is empty (needed for optimization)
+  def renew_emptiness
+    self.empty = body.strip.blank?
+    true
+  end
+
+  def empty?
+    empty
+  end
+
+
+  # Post fields accessors
 
   def title
     text_container.body[0]
