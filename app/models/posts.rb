@@ -154,4 +154,9 @@ class Posts < ActiveRecord::Base
     click ? (click.clicks || 0) : 0
   end
 
+  # Post parent helper (used as a generic interface between Post and FasterPost)
+  def parent_value
+    parent.nil?? nil : parent.id
+  end
+
 end

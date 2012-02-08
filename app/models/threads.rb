@@ -2,6 +2,16 @@ class Threads < ActiveRecord::Base
   belongs_to :head, :class_name => 'Posts', :autosave => true
   has_many :posts, :class_name => 'Posts', :foreign_key => 'thread_id'
 
+  # Index optimization
+  # Fast posts fetcher only stores titles
+  has_many :faster_posts,
+    :class_name => 'FasterPost',
+    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty, posts.parent_id
+    from posts
+    join text_containers on posts.text_container_id = text_containers.id
+    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
+    where text_items.number = 0 and thread_id = #{id}" }
+
   # Builds a hash of post id => children
   def build_subtree
     # As this model does not persist across requests, we may safely cache it
@@ -18,7 +28,7 @@ class Threads < ActiveRecord::Base
   protected
   def compute_thread
     # Build if not cached
-    ordered = posts.group_by {|p| p.parent.nil?? nil : p.parent.id }
+    ordered = faster_posts.group_by &:parent_value
     ordered.each do |parent_id,children|
       children.sort_by!(&:created_at).reverse!
     end
