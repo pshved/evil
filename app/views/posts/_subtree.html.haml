@@ -14,9 +14,9 @@
     (-)
   - else
     (+)
-  -#-# (url)/(pic) marks
-  -#- post.marks.each do |mark|
-    -#%span.post-mark="(#{mark}) "
+  -# (url)/(pic) marks
+  - post.marks.each do |mark|
+    %span.post-mark="(#{mark}) "
   -#-# post clicks
   -#- if post.clicks != 0
     -#%span.post-clicks="(#{post.clicks})"
