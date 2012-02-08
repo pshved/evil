@@ -6,10 +6,11 @@ class Threads < ActiveRecord::Base
   # Fast posts fetcher only stores titles
   has_many :faster_posts,
     :class_name => 'FasterPost',
-    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty, posts.parent_id, posts.marks
+    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login
     from posts
     join text_containers on posts.text_container_id = text_containers.id
     join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
+    left join users on posts.user_id = users.id
     where text_items.number = 0 and thread_id = #{id}" }
 
   # Builds a hash of post id => children

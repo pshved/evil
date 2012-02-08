@@ -21,10 +21,11 @@
   -#- if post.clicks != 0
     -#%span.post-clicks="(#{post.clicks})"
   -#\-
-  -#- if post.user
-    -#%span.post-user= link_to post.user.login, user_path(post.user)
-  -#- else
-    -#%span.post-unreg= (post.unreg_name || "NIL")
+  -# Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
+  - if post.user_login
+    %span.post-user= link_to post.user_login, user_path(post.user_login)
+  - else
+    %span.post-unreg= (post.unreg_name || "NIL")
   -#="(#{post.host}) "
   -#%span.post-timestamp
     -#= post.created_at

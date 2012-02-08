@@ -159,4 +159,8 @@ class Posts < ActiveRecord::Base
     parent.nil?? nil : parent.id
   end
 
+  def user_login
+    user.nil??  nil : user.login
+  end
+
 end
