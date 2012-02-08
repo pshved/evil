@@ -17,21 +17,21 @@
   -# (url)/(pic) marks
   - post.marks.each do |mark|
     %span.post-mark="(#{mark}) "
-  -#-# post clicks
-  -#- if post.clicks != 0
-    -#%span.post-clicks="(#{post.clicks})"
-  -#\-
+  -# post clicks
+  - if post.clicks != 0
+    %span.post-clicks="(#{post.clicks})"
+  \-
   -# Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
   - if post.user_login
     %span.post-user= link_to post.user_login, user_path(post.user_login)
   - else
     %span.post-unreg= (post.unreg_name || "NIL")
-  -#="(#{post.host}) "
-  -#%span.post-timestamp
-    -#= post.created_at
-  -#-# Post Editing link
-  -#- if permitted_to? :edit, post
-    -#=link_to t("Edit"), edit_post_path(post)
+  ="(#{post.host}) "
+  %span.post-timestamp
+    = post.created_at
+  -# Post Editing link
+  - if permitted_to? :edit, post
+    =link_to t("Edit"), edit_post_path(post)
   -#-# Post hidden mark and hide/show modifier
   -#-hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
   -#- if permitted_to? :toggle_showhide, :posts

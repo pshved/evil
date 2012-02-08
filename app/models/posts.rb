@@ -132,6 +132,11 @@ class Posts < ActiveRecord::Base
   end
 
   before_validation do
+    self.text_container = TextContainer.make('','') unless self.text_container
+    true
+  end
+
+  before_validation do
     if @editing
       text_container.add_revision(@unsaved_title,@unsaved_body)
       @editing = false

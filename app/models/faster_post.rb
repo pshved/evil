@@ -38,6 +38,12 @@ class FasterPost < ActiveRecord::Base
     read_attribute(:marks) || []
   end
 
+  # TODO: DRY with Posts
+  def clicks
+    raw = read_attribute(:clicks)
+    raw ? (raw || 0) : 0
+  end
+
   # Override inspect, as ActiveRecord's inspect wants fields, and we do not have them.
   def inspect
     Object.instance_method(:inspect).bind(self).call
