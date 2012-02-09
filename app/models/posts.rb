@@ -13,13 +13,13 @@ class Posts < ActiveRecord::Base
 
   has_one :click, :foreign_key => 'post_id'
 
-  validates_presence_of :thread
+  validates_presence_of :thread, :strict => true
   # Each post should have a parent except for the root ones
-  validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }
+  validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }, :strict => true
   # Just checking...
-  validates_presence_of :text_container
+  validates_presence_of :text_container, :strict => true
 
-  # Check that there's no two imported posts with the same ID
+  # Check that there's no two imported posts with the same ID (not strict because we may want to return a value to an importer)
   validates_uniqueness_of :back, :unless => proc {|p| p.back.blank?}
 
   # Other validations
