@@ -15,6 +15,7 @@ class Posts < ActiveRecord::Base
 
   validates_presence_of :thread, :strict => true
   # Each post should have a parent except for the root ones
+  # I had to rename "empty?" method and "empty" field on Posts to "empty_body", as it treated a post with an empty body as blank, and invalidated its kid
   validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }, :strict => true
   # Just checking...
   validates_presence_of :text_container, :strict => true
@@ -53,12 +54,14 @@ class Posts < ActiveRecord::Base
 
   # Update whether the post is empty (needed for optimization)
   def renew_emptiness
-    self.empty = body.strip.blank?
+    debugger
+    self.empty_body = body.strip.blank?
     true
   end
 
-  def empty?
-    empty
+  # This should NOT be called "empty?", as it interferes with validates_presence_of!
+  def empty_body?
+    empty_body
   end
 
 
