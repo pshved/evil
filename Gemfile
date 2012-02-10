@@ -9,9 +9,7 @@ gem 'rails', '3.1.3'
 # gem 'sqlite3'
 #gem 'activerecord-mysql-adapter'
 gem 'mysql'
-group :production do
-  gem 'mysql2'
-end
+gem 'mysql2'
 
 
 # JavaScript Runtimes.  Have no idea what they are
@@ -66,3 +64,8 @@ gem 'kaminari'
 
 # To handle global config settings
 gem 'configurable_engine'
+
+group :test do
+   gem 'minitest', '>1.6'
+   gem 'ruby-prof'
+end
