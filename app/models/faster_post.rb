@@ -22,9 +22,8 @@ class FasterPost < ActiveRecord::Base
     end
   end
 
-  def empty?
-    # I don't understand why MySQL backend hasn't automatically converted it
-    empty.nil? || empty.blank? || empty == '0'
+  def empty_body?
+    empty_body
   end
 
   def parent_value
