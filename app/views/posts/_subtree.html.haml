@@ -1,16 +1,7 @@
+-# coding: utf-8
 -# To improve performance, you must supply thread to this partial
 - thr = @thread || thread
 -if post
-  = render :partial => 'posts/header_line', :locals => {:post => post}
-  - if false &&  hidden && !@show_all_posts
-    %span.modifier=t("hidden")
-  - else
-    -# Only build subtree if it's not hidden
-    - subtree = thr.build_subtree unless defined?(subtree) && subtree
-    - children = subtree[post.id] || []
-    - unless children.empty?
-      %div.post-children
-        %ul
-          - children.each do |child|
-            %li= render :partial => 'posts/subtree', :locals => {:post => child, :subtree => subtree, :thread => thr}
-
+  -#= render :partial => 'posts/header_line', :locals => {:post => post}
+  - buf = ''
+  != fast_tree(buf,thr.build_subtree,post)
