@@ -1,0 +1,2 @@
+DEFAULT_TIMEZONE = 'Europe/Moscow'
+DEFAULT_TZ = TZInfo::Timezone.get(DEFAULT_TIMEZONE)

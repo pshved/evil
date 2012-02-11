@@ -69,3 +69,5 @@ group :test do
    gem 'minitest', '>1.6'
    gem 'ruby-prof'
 end
+
+gem 'tzinfo'

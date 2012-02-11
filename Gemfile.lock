@@ -176,4 +176,5 @@ DEPENDENCIES
   therubyracer
   treetop
   turn (~> 0.8.3)
+  tzinfo
   uglifier (>= 1.0.3)
