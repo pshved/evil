@@ -76,11 +76,11 @@ module PostsHelper
     end
     # (url)/(pic) marks
     post.marks.each do |mark|
-      buf << '<span class="post-mark">(' << mark << ")</span> "
+      buf << ' <span class="post-mark">(' << mark << ")</span>"
     end
     # post clicks
     if post.clicks != 0
-      buf << '<span class="post-clicks">(' << post.clicks  << ")</span>"
+      buf << ' <span class="post-clicks">(' << post.clicks  << ")</span>"
     end
     buf << ' - '
     # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users

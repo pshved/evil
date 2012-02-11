@@ -1,14 +1,5 @@
 class FasterPost < ActiveRecord::Base
-  #include ActiveModel::Validations
-
-  # Satisfy the form
-  #include ActiveModel::Conversion
-  #extend ActiveModel::Naming
-  #def persisted? ; false ; end
-
   # Fast access attrs.  Refer to Posts class to understand what they should mean.
-  #attr_accessor :title, :empty, :id, :created_at, :parent_value
-  #attr_accessor :parent_value
   @@cc = nil
   @@ch = nil
   def self.columns
