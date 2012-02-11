@@ -8,9 +8,13 @@ module PostsHelper
     pl = link_to 'TITLE_PH', post_path(magic)
 
     # We abuse that, in HTML, link address is before the text.
-    md = /^(.*)#{magic}(.*)TITLE_PH(.*)$/.match(pl) or raise "WTF!  how come a link became #{pl} ???"
+    md = /^(.*)#{magic}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
+    md1 = md[1]
+    md2 = md[2]
+    md3 = md[3]
 
-    @_post_fast_link = proc {|buf,p| buf << md[1] << p.id << md[2] << h(p.title.strip) << md[3]}
+    # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
+    @_post_fast_link = proc {|buf,p| buf << md1 << p.id.to_s << md2 << h(p.title.strip) << md3}
 
   end
 
