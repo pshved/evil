@@ -23,7 +23,7 @@ class FasterPost < ActiveRecord::Base
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
-  %w(title unreg_name user_login empty_body parent_value created_at).each {|m| send :define_method, m.to_sym do
+  %w(title unreg_name user_login empty_body parent_value created_at hidden).each {|m| send :define_method, m.to_sym do
     read_attribute_before_type_cast(m)
   end}
 
@@ -39,6 +39,11 @@ class FasterPost < ActiveRecord::Base
 
   def parent_value
     parent_id.nil?? nil : parent_id
+  end
+
+  # Compatibility with Posts
+  def hidden_by?(ignore = nil)
+    hidden
   end
 
   # Since YAML is stateless, we may cache the records we load

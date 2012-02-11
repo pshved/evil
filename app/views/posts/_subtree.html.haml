@@ -4,6 +4,8 @@
 -if post
   - if defined?(fast) && fast
     - buf = ''
+    -# Convey that we use current user as a scope to apply settings
+    - thr.settings_for = current_user
     != fast_tree(buf,thr.build_subtree_fast,post)
   -else
     = render :partial => 'posts/header_line', :locals => {:post => post, :thr => thr}

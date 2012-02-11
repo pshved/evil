@@ -36,8 +36,26 @@ module PostsHelper
 
   end
 
+  def fast_hide
+    return @_post_fast_hide if @_post_fast_hide
+    # Render a test link with placeholders
+    magic = 47382929372 # Beware! should not be equal to a post id!
+    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic)
+
+    # We abuse that, in HTML, link address is before the text.
+    md = /^(.*)#{magic}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
+    md1 = md[1]
+    md2 = md[2]
+    md3 = md[3]
+
+    # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
+    @_post_fast_hide = proc {|buf,p,title| buf << md1 << p.id.to_s << md2 << title << md3}
+
+  end
+
+
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
-  def fast_print(post, buf = '')
+  def fast_print(post, thread_hides = {}, buf = '')
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
 
     # Post title (link or plain, depending on whether it's the current post)
@@ -75,21 +93,26 @@ module PostsHelper
     end
     buf << " (#{post.host}) "
     buf << %Q(<span class="post-timestamp">) << post.created_at.to_s << %Q(</span>)
-    #-# Post hidden mark and hide/show modifier
-    #-hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
-    #- if permitted_to? :toggle_showhide, :posts
-      #- if hidden
-        #=link_to t("Show subtree"), toggle_showhide_post_path(post)
-      #- else
-        #=link_to t("Hide subtree"), toggle_showhide_post_path(post)
-    #We only hide posts in the index, hence @show_all_posts condition!
-
-    buf
+    # Post hidden mark and hide/show modifier
+    # NOTE: the attrs to hidden_by are ignored for the FasterPost, but they're left for compatibility with the usual Posts.
+    # For FasterPost, :user => current_user has already been applied in the fetching sql, so we do not specify it here
+    hidden = !@show_all_posts && (post.hidden_by?(:user => current_user) || thread_hides[post.id])
+    # Unfortunately, we can't use permissions here (until we optimize them)
+    #if permitted_to? :toggle_showhide, :posts
+    buf << ' '
+    if hidden 
+      fast_hide[buf,post,t("Show subtree")]
+    else
+      fast_hide[buf,post,t("Hide subtree")]
+    end
+    return !hidden
   end
 
-  def fast_tree(buf,tree,start)
+  def fast_tree(buf,tree,start,hides = {})
     # If start is nil, then we're printing the index, and skip the post itself.
-    fast_print(start,buf) if start
+    post_shown = fast_print(start,hides,buf) if start
+    # TODO: act on hidden posts
+    return buf unless post_shown
     kids = tree[start.id]
     return buf unless kids
     buf << %Q(<ul>\n)

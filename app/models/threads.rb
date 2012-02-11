@@ -26,13 +26,15 @@ class Threads < ActiveRecord::Base
   # Fast posts fetcher only stores titles
   has_many :faster_posts,
     :class_name => 'FasterPost',
-    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks
+    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden
     from posts
     join text_containers on posts.text_container_id = text_containers.id
     join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
     left join users on posts.user_id = users.id
     left join clicks on clicks.post_id = posts.id
-    where text_items.number = 0 and thread_id = #{id}" }
+    left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
+    where text_items.number = 0
+      and thread_id = #{id}" }
 
   # Faster subtree getters
   # Builds a hash of post id => children
@@ -46,6 +48,8 @@ class Threads < ActiveRecord::Base
     ensure_subtree_fast_cache
     @cached_hides_fast
   end
+
+  attr_accessor :settings_for
 
   # As this model does not persist across requests, we may safely cache it
   protected; def ensure_subtree_fast_cache
