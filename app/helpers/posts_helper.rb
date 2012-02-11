@@ -55,7 +55,7 @@ module PostsHelper
 
 
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
-  def fast_print(post, thread_hides = {}, buf = '')
+  def fast_print(post, buf = '')
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
 
     # Post title (link or plain, depending on whether it's the current post)
@@ -93,32 +93,41 @@ module PostsHelper
     end
     buf << " (#{post.host}) "
     buf << %Q(<span class="post-timestamp">) << post.created_at.to_s << %Q(</span>)
+  end
+
+  def fast_showhide(post,tree,thread_hides,buf = '')
     # Post hidden mark and hide/show modifier
     # NOTE: the attrs to hidden_by are ignored for the FasterPost, but they're left for compatibility with the usual Posts.
     # For FasterPost, :user => current_user has already been applied in the fetching sql, so we do not specify it here
-    hidden = !@show_all_posts && (post.hidden_by?(:user => current_user) || thread_hides[post.id])
+    hidden = post.hidden_by?(:user => current_user, :thread_hides => thread_hides, :show_all => @show_all_posts) 
     # Unfortunately, we can't use permissions here (until we optimize them)
     #if permitted_to? :toggle_showhide, :posts
     buf << ' '
-    if hidden 
-      fast_hide[buf,post,t("Show subtree")]
-    else
-      fast_hide[buf,post,t("Hide subtree")]
+    if tree[post.id] && !tree[post.id].empty?
+      if hidden 
+        fast_hide[buf,post,t("Show subtree")]
+      else
+        fast_hide[buf,post,t("Hide subtree")]
+      end
     end
     return !hidden
   end
 
   def fast_tree(buf,tree,start,hides = {})
     # If start is nil, then we're printing the index, and skip the post itself.
-    post_shown = fast_print(start,hides,buf) if start
-    # TODO: act on hidden posts
-    return buf unless post_shown
+    fast_print(start,buf) if start
+    # Show if post is hidden, and display the toggle
+    post_shown = fast_showhide(start,tree,hides,buf)
+    unless post_shown
+      buf << ' ' << t('Hidden')
+      return buf
+    end
     kids = tree[start.id]
     return buf unless kids
     buf << %Q(<ul>\n)
     kids.each do |child|
       buf << %Q(<li>)
-      fast_tree(buf,tree,child)
+      fast_tree(buf,tree,child,hides)
       buf << %Q(</li>\n)
     end
     buf << %Q(</ul>\n)

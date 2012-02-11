@@ -30,8 +30,9 @@
 - if permitted_to? :edit, post
   =link_to t("Edit"), edit_post_path(post)
 -# Post hidden mark and hide/show modifier
--hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
-- if permitted_to? :toggle_showhide, :posts
+-hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides, :show_all => @show_all_posts)
+-kids = thr.build_subtree[post.id]
+- if kids && !kids.empty? && permitted_to?(:toggle_showhide, :posts)
   - if hidden
     =link_to t("Show subtree"), toggle_showhide_post_path(post)
   - else

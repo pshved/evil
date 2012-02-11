@@ -111,7 +111,7 @@ class Posts < ActiveRecord::Base
     # Now moderator's settings follow
     # TODO
     # Now thread's auto-folding works (site-wide threshold)
-    hidden ||= thread_hides[self.id]
+    hidden ||= (!opts[:show_all] && thread_hides[self.id])
     hidden
   end
   def toggle_showhide(user)

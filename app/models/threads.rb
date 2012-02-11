@@ -90,7 +90,9 @@ class Threads < ActiveRecord::Base
       # Compute for kids (do not forget that we're to upload r here
       # NOTE the absence of short-circuit evaluation, as we do not want first children to prevent the late from being folded
       big_subtree = tree[node].inject(false) {|acc,kid| acc | compute_hides(tree,kid,r,threshold,value,current + 1)}
-      r[node] = true if current == value && big_subtree
+      if current == value && big_subtree
+        r[node] = true
+      end
       big_subtree
     end
     hides = {}

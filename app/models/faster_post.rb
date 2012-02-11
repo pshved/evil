@@ -41,9 +41,9 @@ class FasterPost < ActiveRecord::Base
     parent_id.nil?? nil : parent_id
   end
 
-  # Compatibility with Posts
-  def hidden_by?(ignore = nil)
-    hidden
+  def hidden_by?(opts = {})
+    thread_hides = opts[:thread_hides] || {}
+    hidden || (!@show_all_posts && thread_hides[id])
   end
 
   # Since YAML is stateless, we may cache the records we load

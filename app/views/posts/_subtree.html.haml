@@ -6,7 +6,7 @@
     - buf = ''
     -# Convey that we use current user as a scope to apply settings
     - thr.settings_for = current_user
-    != fast_tree(buf,thr.build_subtree_fast,post)
+    != fast_tree(buf,thr.build_subtree_fast,post,thr.hides_fast)
   -else
     = render :partial => 'posts/header_line', :locals => {:post => post, :thr => thr}
     -# TODO: this partial and heder_line compute the "hidden" two times.  This may be optimized
