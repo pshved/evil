@@ -25,7 +25,9 @@ class FasterPost < ActiveRecord::Base
   end
 
   def empty_body?
-    empty_body
+    # ActiveRecord should do this, but we're optimizing
+    raw = empty_body
+    empty_body && empty_body != 0
   end
 
   def parent_value

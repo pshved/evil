@@ -68,11 +68,10 @@ module PostsHelper
       fast_link[buf,post]
       buf << %Q(</span>)
     end
-    buf << ' '
     if post.empty_body?
-      buf << '(-)'
+      buf << ' (-)'
     else
-      buf << '(+)'
+      buf << ' (+)'
     end
     # (url)/(pic) marks
     post.marks.each do |mark|
