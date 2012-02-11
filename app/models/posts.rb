@@ -33,7 +33,8 @@ class Posts < ActiveRecord::Base
 
   # Post's marks
   # They are stored as a serialized array
-  serialize :marks
+  # NOTE: since there are millions of posts, and only a few combinations of marks, we might want to use caching for deserialized values. I'm not sure if it's documented, but we can specify a loader object here instead of the object's class name.   As a side effect, returns FROZEN records!
+  serialize :marks, FasterPost::CachingYaml.new
   # However, if they are unset, we should show the user an array
   def marks
     read_attribute(:marks) || []

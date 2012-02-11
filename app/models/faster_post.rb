@@ -41,11 +41,32 @@ class FasterPost < ActiveRecord::Base
     parent_id.nil?? nil : parent_id
   end
 
-  # TODO: DRY with Posts!
-  serialize :marks
+  # Since YAML is stateless, we may cache the records we load
+  # Returns frozen records.  Duplicate them if you want.
+  class CachingYaml
+    @@load_cache = {}
+    def load(str)
+      return str unless str.is_a?(String) && str =~ /^---/
+      if rs = @@load_cache[str]; return rs; end
+      begin
+        loc = @@load_cache[str] = YAML.load(str).freeze
+      rescue
+        loc = @@load_cache[str] = nil
+      end
+    end
+
+    # Caching for serialized values is not that important, as massive posting is not what we optimize for
+    def dump(obj)
+      YAML.dump(obj)
+    end
+  end
+
+  # I'm not sure if it's documented, but we can specify a loader object here instead of the object's class name
+  # NOTE: this setting has no effect, and is superseded by that of Posts.
+  serialize :marks, CachingYaml.new
   # However, if they are unset, we should show the user an array
   def marks
-    read_attribute(:marks) || []
+    _read_attribute(:marks) || []
   end
 
   # TODO: DRY with Posts
