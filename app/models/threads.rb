@@ -109,9 +109,10 @@ class Threads < ActiveRecord::Base
       big_subtree
     end
     hides = {}
-    threshold = Configurable[:autowrap_thread_threshold]
-    value = Configurable[:autowrap_thread_value]
-    compute_hides(idtree,idtree[nil][0],hides,threshold,value)
+    # ActiveRecord should cache these values anyway, but let's put them into a more accessible cache...
+    @@threshold ||= Configurable[:autowrap_thread_threshold]
+    @@value ||= Configurable[:autowrap_thread_value]
+    compute_hides(idtree,idtree[nil][0],hides,@@threshold,@@value)
     r_hides = hides
 
     return r_subtree, r_hides
