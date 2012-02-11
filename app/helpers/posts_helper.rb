@@ -36,6 +36,7 @@ module PostsHelper
 
   end
 
+  # We both cache links, and translations, as translating the same string thousands of times takes .05 sec.  The accompanying block should return a pair of values, iftrue and iffalse.
   def fast_hide
     return @_post_fast_hide if @_post_fast_hide
     # Render a test link with placeholders
@@ -48,8 +49,10 @@ module PostsHelper
     md2 = md[2]
     md3 = md[3]
 
+    iftrue, iffalse = yield
+
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
-    @_post_fast_hide = proc {|buf,p,title| buf << md1 << p.id.to_s << md2 << title << md3}
+    @_post_fast_hide = proc {|buf,p,should_hide| buf << md1 << p.id.to_s << md2 << (should_hide ? iftrue : iffalse) << md3}
 
   end
 
@@ -102,11 +105,12 @@ module PostsHelper
     # Unfortunately, we can't use permissions here (until we optimize them)
     #if permitted_to? :toggle_showhide, :posts
     buf << ' '
+    fast_hide_prepared = fast_hide {[t("Show subtree"), t("Hide subtree")]}
     if tree[post.id] && !tree[post.id].empty?
       if hidden 
-        fast_hide[buf,post,t("Show subtree")]
+        fast_hide_prepared[buf,post,true]
       else
-        fast_hide[buf,post,t("Hide subtree")]
+        fast_hide_prepared[buf,post,false]
       end
     end
     return !hidden
