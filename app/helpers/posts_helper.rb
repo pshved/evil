@@ -81,8 +81,8 @@ module PostsHelper
       buf << ' <span class="post-mark">(' << mark << ")</span>"
     end
     # post clicks
-    if post.clicks != 0
-      buf << ' <span class="post-clicks">(' << post.clicks  << ")</span>"
+    if post.clicks != 0 && post.clicks != '0'
+      buf << ' <span class="post-clicks">(' << post.clicks.to_s  << ")</span>"
     end
     buf << ' - '
     # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
