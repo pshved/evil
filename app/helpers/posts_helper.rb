@@ -71,10 +71,6 @@ module PostsHelper
     end
     buf << " (#{post.host}) "
     buf << %Q(<span class="post-timestamp">) << post.created_at.to_s << %Q(</span>)
-    # Post Editing link (TODO: optimize?)
-    if permitted_to? :edit, post
-      buf << link_to(t("Edit"), edit_post_path(post))
-    end
     #-# Post hidden mark and hide/show modifier
     #-hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
     #- if permitted_to? :toggle_showhide, :posts
