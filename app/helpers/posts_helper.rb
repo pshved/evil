@@ -56,9 +56,12 @@ module PostsHelper
 
   end
 
+  def time_for_header(time,tz)
+    tz.utc_to_local(time).strftime("%d.%m.%Y %H:%M")
+  end
 
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
-  def fast_print(post, buf = '')
+  def fast_print(post, tz, buf = '')
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
 
     # Post title (link or plain, depending on whether it's the current post)
@@ -94,7 +97,7 @@ module PostsHelper
       buf << %Q(<span class="post-unreg">) << (post.unreg_name || "NIL") << %Q(</span>)
     end
     buf << " (#{post.host}) "
-    buf << %Q(<span class="post-timestamp">) << post.created_at.to_s << %Q(</span>)
+    buf << %Q(<span class="post-timestamp">) << time_for_header(post.created_at,tz) << %Q(</span>)
   end
 
   def fast_showhide(post,tree,thread_hides,buf = '')
@@ -116,9 +119,9 @@ module PostsHelper
     return !hidden
   end
 
-  def fast_tree(buf,tree,start,hides = {})
+  def fast_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
     # If start is nil, then we're printing the index, and skip the post itself.
-    fast_print(start,buf) if start
+    fast_print(start,tz,buf) if start
     # Show if post is hidden, and display the toggle
     post_shown = fast_showhide(start,tree,hides,buf)
     unless post_shown
@@ -130,7 +133,7 @@ module PostsHelper
     buf << %Q(<ul>\n)
     kids.each do |child|
       buf << %Q(<li>)
-      fast_tree(buf,tree,child,hides)
+      fast_tree(buf,tree,child,hides,tz)
       buf << %Q(</li>\n)
     end
     buf << %Q(</ul>\n)

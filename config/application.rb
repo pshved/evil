@@ -9,6 +9,9 @@ if defined?(Bundler)
   # Bundler.require(:default, :assets, Rails.env)
 end
 
+ActiveRecord::Base.default_timezone = :utc # Store all times in the db in UTC
+ENV['TZ'] = 'UTC' # This makes Time.now return time in UTC
+
 module Zlo
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.

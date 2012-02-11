@@ -25,7 +25,9 @@
   %span.post-unreg= (post.unreg_name || "NIL")
 ="(#{post.host}) "
 %span.post-timestamp
-  = post.created_at
+  -# TODO: refactor_presentations
+  -tz = current_user ? current_user.current_presentation.tz : DEFAULT_TZ
+  = time_for_header(post.created_at, tz)
 -# Post Editing link
 - if permitted_to? :edit, post
   =link_to t("Edit"), edit_post_path(post)
