@@ -18,9 +18,12 @@ class ApplicationController < ActionController::Base
   def prepare_threads
     # TODO: stub
     @threads = Threads.order("created_at DESC").page(params[:page])
+    thread_page_size = nil
     if current_user
-      @threads = @threads.per(current_user.current_presentation.threadpage_size || Kaminari.config.default_per_page)
+      thread_page_size = current_user.current_presentation.threadpage_size
     end
+    thread_page_size = Configurable[:default_homepage_threads] || Kaminari.config.default_per_page
+    @threads = @threads.per(thread_page_size)
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end
