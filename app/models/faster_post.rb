@@ -67,9 +67,9 @@ class FasterPost < ActiveRecord::Base
     _read_attribute(:marks) || []
   end
 
-  # TODO: DRY with Posts
   def clicks
-    raw = read_attribute_before_type_cast(:clicks)
+    # NOTE: the attribute to read_attribute_before_type_cast should be a string, not a sym.  Otherwise they don't work as expected.
+    raw = read_attribute_before_type_cast('clicks')
     raw.blank? ? 0 : raw
   end
 
