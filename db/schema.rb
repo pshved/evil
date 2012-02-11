@@ -35,7 +35,7 @@ ActiveRecord::Schema.define(:version => 20120211130029) do
   end
 
   add_index "hidden_posts_users", ["posts_id"], :name => "index_hidden_posts_users_on_posts_id"
-  add_index "hidden_posts_users", ["user_id", "posts_id"], :name => "index_hidden_posts_users_on_user_id_and_posts_id", :unique => true
+  add_index "hidden_posts_users", ["user_id", "posts_id"], :name => "index_hidden_posts_users_on_user_id_and_posts_id"
   add_index "hidden_posts_users", ["user_id"], :name => "index_hidden_posts_users_on_user_id"
 
   create_table "posts", :force => true do |t|
