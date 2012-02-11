@@ -44,12 +44,18 @@ class Threads < ActiveRecord::Base
   end
 
   # Show what posts are auto-hidden in this thread
+  # NOTE that hides_fast creates the cache, so the thread view settings *MUST* have already been supplied!
   def hides_fast
     ensure_subtree_fast_cache
     @cached_hides_fast
   end
 
-  attr_accessor :settings_for
+  def self.settings_for=(sf)
+    @@settings_for = sf
+  end
+  def settings_for
+    @@settings_for
+  end
 
   # As this model does not persist across requests, we may safely cache it
   protected; def ensure_subtree_fast_cache
@@ -58,6 +64,13 @@ class Threads < ActiveRecord::Base
     end
   end
   public
+
+  # When displaying many threads, even showing first posts in them may be slow.  This function returns thread's head in fast form.
+  # NOTE: it fetches the whole thread into fast cache!
+  def fast_head
+    ensure_subtree_fast_cache
+    @cached_subtree_fast[nil][0]
+  end
 
   protected
   def compute_thread(posts_assoc = posts)

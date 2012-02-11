@@ -14,9 +14,9 @@ class ApplicationController < ActionController::Base
     end
 
   # Threads controller action sub.  Used to display threads on the main page
-  # TODO: account for user's settings and paginationn
   def prepare_threads
-    # TODO: stub
+    # Set up a "Global" view setting, so that the newly created threads comply to it
+    Threads.settings_for = current_user
     @threads = Threads.order("created_at DESC").page(params[:page])
     thread_page_size = nil
     if current_user
