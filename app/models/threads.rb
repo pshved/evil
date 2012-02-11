@@ -2,6 +2,26 @@ class Threads < ActiveRecord::Base
   belongs_to :head, :class_name => 'Posts', :autosave => true
   has_many :posts, :class_name => 'Posts', :foreign_key => 'thread_id'
 
+  # Builds a hash of post id => children
+  def build_subtree
+    ensure_subtree_cache
+    @cached_subtree
+  end
+
+  # Show what posts are auto-hidden in this thread
+  def hides
+    ensure_subtree_cache
+    @cached_hides
+  end
+
+  # As this model does not persist across requests, we may safely cache it
+  protected; def ensure_subtree_cache
+    unless @cached_subtree
+      @cached_subtree, @cached_hides = compute_thread(posts)
+    end
+  end
+  public
+
   # Index optimization
   # Fast posts fetcher only stores titles
   has_many :faster_posts,
@@ -14,27 +34,35 @@ class Threads < ActiveRecord::Base
     left join clicks on clicks.post_id = posts.id
     where text_items.number = 0 and thread_id = #{id}" }
 
+  # Faster subtree getters
   # Builds a hash of post id => children
-  def build_subtree
-    # As this model does not persist across requests, we may safely cache it
-    compute_thread unless @cached_subtree
-    @cached_subtree
+  def build_subtree_fast
+    ensure_subtree_fast_cache
+    @cached_subtree_fast
   end
 
   # Show what posts are auto-hidden in this thread
-  def hides
-    compute_thread unless @cached_hides
-    @cached_hides
+  def hides_fast
+    ensure_subtree_fast_cache
+    @cached_hides_fast
   end
 
+  # As this model does not persist across requests, we may safely cache it
+  protected; def ensure_subtree_fast_cache
+    unless @cached_subtree_fast
+      @cached_subtree_fast, @cached_hides_fast = compute_thread(faster_posts)
+    end
+  end
+  public
+
   protected
-  def compute_thread
+  def compute_thread(posts_assoc = posts)
     # Build if not cached
-    ordered = faster_posts.group_by &:parent_value
+    ordered = posts_assoc.group_by &:parent_value
     ordered.each do |parent_id,children|
       children.sort_by!(&:created_at).reverse!
     end
-    @cached_subtree = ordered
+    r_subtree = ordered
 
     # compute raw id tree
     idtree = ordered.inject({}) {|acc,kv| acc[kv[0]] = kv[1].map &:id ; acc}
@@ -65,6 +93,8 @@ class Threads < ActiveRecord::Base
     threshold = Configurable[:autowrap_thread_threshold]
     value = Configurable[:autowrap_thread_value]
     compute_hides(idtree,idtree[nil][0],hides,threshold,value)
-    @cached_hides = hides
+    r_hides = hides
+
+    return r_subtree, r_hides
   end
 end

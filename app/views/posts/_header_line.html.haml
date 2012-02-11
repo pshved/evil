@@ -29,12 +29,11 @@
 -# Post Editing link
 - if permitted_to? :edit, post
   =link_to t("Edit"), edit_post_path(post)
--#-# Post hidden mark and hide/show modifier
--#-hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
--#- if permitted_to? :toggle_showhide, :posts
-  -#- if hidden
-    -#=link_to t("Show subtree"), toggle_showhide_post_path(post)
-  -#- else
-    -#=link_to t("Hide subtree"), toggle_showhide_post_path(post)
--#We only hide posts in the index, hence @show_all_posts condition!
+-# Post hidden mark and hide/show modifier
+-hidden = post.hidden_by?(:user => current_user, :thread_hides => thr.hides)
+- if permitted_to? :toggle_showhide, :posts
+  - if hidden
+    =link_to t("Show subtree"), toggle_showhide_post_path(post)
+  - else
+    =link_to t("Hide subtree"), toggle_showhide_post_path(post)
 
