@@ -33,7 +33,8 @@ class Posts < ActiveRecord::Base
 
   # Post's marks
   # They are stored as a serialized array
-  serialize :marks
+  # NOTE: since there are millions of posts, and only a few combinations of marks, we might want to use caching for deserialized values. I'm not sure if it's documented, but we can specify a loader object here instead of the object's class name.   As a side effect, returns FROZEN records!
+  serialize :marks, FasterPost::CachingYaml.new
   # However, if they are unset, we should show the user an array
   def marks
     read_attribute(:marks) || []
@@ -110,7 +111,7 @@ class Posts < ActiveRecord::Base
     # Now moderator's settings follow
     # TODO
     # Now thread's auto-folding works (site-wide threshold)
-    hidden ||= thread_hides[self.id]
+    hidden ||= (!opts[:show_all] && thread_hides[self.id])
     hidden
   end
   def toggle_showhide(user)
@@ -135,6 +136,11 @@ class Posts < ActiveRecord::Base
   end
 
   before_validation do
+    self.text_container = TextContainer.make('','') unless self.text_container
+    true
+  end
+
+  before_validation do
     if @editing
       text_container.add_revision(@unsaved_title,@unsaved_body)
       @editing = false
@@ -155,6 +161,15 @@ class Posts < ActiveRecord::Base
 
   def clicks
     click ? (click.clicks || 0) : 0
+  end
+
+  # Post parent helper (used as a generic interface between Post and FasterPost)
+  def parent_value
+    parent.nil?? nil : parent.id
+  end
+
+  def user_login
+    user.nil??  nil : user.login
   end
 
 end

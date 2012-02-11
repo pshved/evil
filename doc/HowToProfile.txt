@@ -1,0 +1,1 @@
+RAILS_ENV=profile rails profiler -r 3 "get '/'" -f flat,graph_html,call_tree,call_stack

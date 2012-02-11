@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120209204234) do
+ActiveRecord::Schema.define(:version => 20120211130029) do
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -33,6 +33,10 @@ ActiveRecord::Schema.define(:version => 20120209204234) do
     t.integer "user_id"
     t.integer "posts_id"
   end
+
+  add_index "hidden_posts_users", ["posts_id"], :name => "index_hidden_posts_users_on_posts_id"
+  add_index "hidden_posts_users", ["user_id", "posts_id"], :name => "index_hidden_posts_users_on_user_id_and_posts_id", :unique => true
+  add_index "hidden_posts_users", ["user_id"], :name => "index_hidden_posts_users_on_user_id"
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"

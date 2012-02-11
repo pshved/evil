@@ -122,25 +122,26 @@ module RegexpConvertNode
     TagConversions.each do |tcd|
       tag, conv = tcd
       # Match prefix greedily, so that we only get the last matching tag.  Match contents lazily, so that we do not span across the potential tag borders.
-      # Note the regexpmultiline mode, as we want the formatted text to span across line breaks.
+      # Note the regexp multiline mode, as we want the formatted text to span across line breaks.
+      # Note also the unicode in messages
       # We use html_safe to make Rails not html-escape strings on concatenation.
       # Check how many arguments there are in the conv, and reason about tag format
       case conv.arity
       when 0
         # Regexp is (...)[tag](...)
-        rx = /^(.*)\[#{tag}\](.*)$/m
+        rx = /^(.*)\[#{tag}\](.*)$/mu
         while md = t.match(rx)
           t = md[1] + conv[].html_safe + md[2]
         end
       when 1
         # Regexp is (...)[tag](...)[/tag](...)
-        rx = /^(.*)\[#{tag}\](.*?)\[\/#{tag}\](.*)$/m
+        rx = /^(.*)\[#{tag}\](.*?)\[\/#{tag}\](.*)$/mu
         while md = t.match(rx)
           t = md[1] + conv[md[2]].html_safe + md[3]
         end
       when 2
         # Regexp is (...)[tag=(...)](...)[/tag](...)
-        rx = /^(.*)\[#{tag}=([^\]]*)\](.*?)\[\/#{tag}\](.*)$/m
+        rx = /^(.*)\[#{tag}=([^\]]*)\](.*?)\[\/#{tag}\](.*)$/mu
         while md = t.match(rx)
           t = md[1] + conv[md[3],md[2]].html_safe + md[4]
         end

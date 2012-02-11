@@ -4,25 +4,82 @@ class Threads < ActiveRecord::Base
 
   # Builds a hash of post id => children
   def build_subtree
-    # As this model does not persist across requests, we may safely cache it
-    compute_thread unless @cached_subtree
+    ensure_subtree_cache
     @cached_subtree
   end
 
   # Show what posts are auto-hidden in this thread
   def hides
-    compute_thread unless @cached_hides
+    ensure_subtree_cache
     @cached_hides
   end
 
+  # As this model does not persist across requests, we may safely cache it
+  protected; def ensure_subtree_cache
+    unless @cached_subtree
+      @cached_subtree, @cached_hides = compute_thread(posts)
+    end
+  end
+  public
+
+  # Index optimization
+  # Fast posts fetcher only stores titles
+  has_many :faster_posts,
+    :class_name => 'FasterPost',
+    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden
+    from posts
+    join text_containers on posts.text_container_id = text_containers.id
+    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
+    left join users on posts.user_id = users.id
+    left join clicks on clicks.post_id = posts.id
+    left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
+    where text_items.number = 0
+      and thread_id = #{id}" }
+
+  # Faster subtree getters
+  # Builds a hash of post id => children
+  def build_subtree_fast
+    ensure_subtree_fast_cache
+    @cached_subtree_fast
+  end
+
+  # Show what posts are auto-hidden in this thread
+  # NOTE that hides_fast creates the cache, so the thread view settings *MUST* have already been supplied!
+  def hides_fast
+    ensure_subtree_fast_cache
+    @cached_hides_fast
+  end
+
+  def self.settings_for=(sf)
+    @@settings_for = sf
+  end
+  def settings_for
+    @@settings_for
+  end
+
+  # As this model does not persist across requests, we may safely cache it
+  protected; def ensure_subtree_fast_cache
+    unless @cached_subtree_fast
+      @cached_subtree_fast, @cached_hides_fast = compute_thread(faster_posts)
+    end
+  end
+  public
+
+  # When displaying many threads, even showing first posts in them may be slow.  This function returns thread's head in fast form.
+  # NOTE: it fetches the whole thread into fast cache!
+  def fast_head
+    ensure_subtree_fast_cache
+    @cached_subtree_fast[nil][0]
+  end
+
   protected
-  def compute_thread
+  def compute_thread(posts_assoc = posts)
     # Build if not cached
-    ordered = posts.group_by {|p| p.parent.nil?? nil : p.parent.id }
+    ordered = posts_assoc.group_by &:parent_value
     ordered.each do |parent_id,children|
       children.sort_by!(&:created_at).reverse!
     end
-    @cached_subtree = ordered
+    r_subtree = ordered
 
     # compute raw id tree
     idtree = ordered.inject({}) {|acc,kv| acc[kv[0]] = kv[1].map &:id ; acc}
@@ -46,13 +103,18 @@ class Threads < ActiveRecord::Base
       # Compute for kids (do not forget that we're to upload r here
       # NOTE the absence of short-circuit evaluation, as we do not want first children to prevent the late from being folded
       big_subtree = tree[node].inject(false) {|acc,kid| acc | compute_hides(tree,kid,r,threshold,value,current + 1)}
-      r[node] = true if current == value && big_subtree
+      if current == value && big_subtree
+        r[node] = true
+      end
       big_subtree
     end
     hides = {}
-    threshold = Configurable[:autowrap_thread_threshold]
-    value = Configurable[:autowrap_thread_value]
-    compute_hides(idtree,idtree[nil][0],hides,threshold,value)
-    @cached_hides = hides
+    # ActiveRecord should cache these values anyway, but let's put them into a more accessible cache...
+    @@threshold ||= Configurable[:autowrap_thread_threshold]
+    @@value ||= Configurable[:autowrap_thread_value]
+    compute_hides(idtree,idtree[nil][0],hides,@@threshold,@@value)
+    r_hides = hides
+
+    return r_subtree, r_hides
   end
 end

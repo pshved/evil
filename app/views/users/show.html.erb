@@ -10,21 +10,15 @@
   <%= @user.email %>
 </p>
 
-<p>
-  <b>Crypted password:</b>
-  <%= @user.crypted_password %>
-</p>
-
-<p>
-  <b>Password salt:</b>
-  <%= @user.password_salt %>
-</p>
-
-<p>
-  <b>Persistence token:</b>
-  <%= @user.persistence_token %>
-</p>
+<% if permitted_to? :create, :private_messages %>
+  <p>
+    <%= link_to 'Write a PM', new_private_message_path(:to => @user) %>
+  </p>
+<% else %>
+  <p><%= link_to 'Log in', login_path %> to write a PM to the user.</p>
+<% end %>
 
 
 <%= link_to 'Edit', edit_user_path(@user) %> |
 <%= link_to 'Back', users_path %>
+

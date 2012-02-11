@@ -1,7 +1,10 @@
 %p Showing post
 =render @post
+-# Post Editing link (moved here from index to make it faster)
+- if permitted_to? :edit, @post
+  = link_to t("Edit"), edit_post_path(@post)
 %div.thread-tree
-  = render :partial => 'subtree', :locals => {:post => @thread.head}
+  = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
 %div
   = render :partial => 'loginpost'
 

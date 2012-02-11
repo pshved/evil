@@ -1,4 +1,7 @@
 %ul
   - @threads.each do |t|
-    %li= render :partial => 'posts/subtree', :locals => {:post => t.head, :thread => t}
+    - if defined?(fast) && fast
+      %li= render :partial => 'posts/subtree', :locals => {:post => t.fast_head, :thread => t, :fast => true}
+    - else
+      %li= render :partial => 'posts/subtree', :locals => {:post => t.head, :thread => t}
 =paginate @threads

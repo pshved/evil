@@ -1,0 +1,84 @@
+class FasterPost < ActiveRecord::Base
+  # Fast access attrs.  Refer to Posts class to understand what they should mean.
+  @@cc = nil
+  @@ch = nil
+  def self.columns
+    return @@cc if @@cc
+    @@cc = Posts.columns
+  end
+  def self.columns_hash
+    return @@ch if @@ch
+    @@ch = Posts.columns_hash
+  end
+
+  # Optimizations
+  # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
+  # This made the rendering 30% faster.
+  %w(title unreg_name user_login empty_body parent_id created_at hidden).each {|m| send :define_method, m.to_sym do
+    read_attribute_before_type_cast(m)
+  end}
+
+  def initialize(ats = {})
+    ats.each do |k,v|
+      send("#{k}=",v)
+    end
+  end
+
+  def empty_body?
+    # ActiveRecord should do this, but we're optimizing
+    raw = empty_body
+    empty_body && empty_body != 0
+  end
+
+  def parent_value
+    parent_id.nil?? nil : parent_id
+  end
+
+  def hidden_by?(opts = {})
+    thread_hides = opts[:thread_hides] || {}
+    hidden || (!@show_all_posts && thread_hides[id])
+  end
+
+  # Since YAML is stateless, we may cache the records we load
+  # Returns frozen records.  Duplicate them if you want.
+  class CachingYaml
+    @@load_cache = {}
+    def load(str)
+      return str unless str.is_a?(String) && str =~ /^---/
+      if rs = @@load_cache[str]; return rs; end
+      begin
+        loc = @@load_cache[str] = YAML.load(str).freeze
+      rescue
+        loc = @@load_cache[str] = nil
+      end
+    end
+
+    # Caching for serialized values is not that important, as massive posting is not what we optimize for
+    def dump(obj)
+      YAML.dump(obj)
+    end
+  end
+
+  # I'm not sure if it's documented, but we can specify a loader object here instead of the object's class name
+  # NOTE: this setting has no effect, and is superseded by that of Posts.
+  serialize :marks, CachingYaml.new
+  # However, if they are unset, we should show the user an array
+  def marks
+    _read_attribute(:marks) || []
+  end
+
+  # TODO: DRY with Posts
+  def clicks
+    raw = read_attribute_before_type_cast(:clicks)
+    raw.blank? ? 0 : raw
+  end
+
+  # Override inspect, as ActiveRecord's inspect wants fields, and we do not have them.
+  def inspect
+    Object.instance_method(:inspect).bind(self).call
+  end
+
+  # TODO: Add loading actual Post on method_missing!  It will become a fully transparent proxy object then!
+
+end
+
