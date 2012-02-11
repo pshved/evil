@@ -89,6 +89,7 @@ class PostsController < ApplicationController
     @post = Posts.find(params[:id])
   end
   def find_thread
+    Threads.settings_for = current_user
     @thread = @post.thread
   end
   def init_loginpost
