@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120211221948) do
+ActiveRecord::Schema.define(:version => 20120213185336) do
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -140,6 +140,7 @@ ActiveRecord::Schema.define(:version => 20120211221948) do
     t.string   "persistence_token"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "demo",              :default => false
   end
 
 end
