@@ -81,7 +81,11 @@ class PostsController < ApplicationController
     @post.toggle_showhide(current_user)
     @post.save
     # TODO: add Ajax here.  For now, redirects back.
-    redirect_to :back
+    begin
+      redirect_to :back
+    rescue ActionController::RedirectBackError
+      redirect_to @post
+    end
   end
 
   protected

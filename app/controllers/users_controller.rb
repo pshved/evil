@@ -59,7 +59,10 @@ class UsersController < ApplicationController
   # PUT /users/1.json
   def update
     respond_to do |format|
-      if @user.update_attributes(params[:user])
+      if @user.demo
+        format.html { redirect_to @user, notice: %Q(You can not edit a demonstration user's settings) }
+        format.json { render json: @user.errors, status: :unprocessable_entity }
+      elsif @user.update_attributes(params[:user])
         format.html { redirect_to @user, notice: 'User was successfully updated.' }
         format.json { head :ok }
       else
