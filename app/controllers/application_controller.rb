@@ -27,4 +27,11 @@ class ApplicationController < ActionController::Base
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end
+
+  public
+  # TODO: demo version of 'permission denied page'
+  def permission_denied
+    # @template is an instance of a helper
+    render :partial => 'user_sessions/perm'
+  end
 end
