@@ -71,3 +71,5 @@ group :test do
 end
 
 gem 'tzinfo'
+
+gem 'libxml-ruby'

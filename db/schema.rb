@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120213185336) do
+ActiveRecord::Schema.define(:version => 20120214191724) do
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -37,6 +37,15 @@ ActiveRecord::Schema.define(:version => 20120213185336) do
   add_index "hidden_posts_users", ["posts_id"], :name => "index_hidden_posts_users_on_posts_id"
   add_index "hidden_posts_users", ["user_id", "posts_id"], :name => "index_hidden_posts_users_on_user_id_and_posts_id"
   add_index "hidden_posts_users", ["user_id"], :name => "index_hidden_posts_users_on_user_id"
+
+  create_table "imports", :force => true do |t|
+    t.enum     "status",     :limit => [:queued, :started, :finished], :default => :queued
+    t.integer  "post_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "imports", ["post_id"], :name => "index_imports_on_post_id"
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"

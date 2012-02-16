@@ -71,6 +71,7 @@ GEM
       activesupport (>= 3.0.0)
       railties (>= 3.0.0)
     libv8 (3.3.10.4)
+    libxml-ruby (2.2.2)
     linecache19 (0.5.12)
       ruby_core_source (>= 0.1.4)
     mail (2.3.0)
@@ -166,6 +167,7 @@ DEPENDENCIES
   haml
   jquery-rails
   kaminari
+  libxml-ruby
   minitest (> 1.6)
   mysql
   mysql2

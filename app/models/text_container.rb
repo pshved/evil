@@ -16,7 +16,7 @@ class TextContainer < ActiveRecord::Base
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)
     when :html
-      txt
+      txt || ''
     end
   end
 
