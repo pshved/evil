@@ -91,7 +91,7 @@ def try_download_post(post_id)
   tahs =~ /\((.*)\) — (.*)/ or raise "Can't match regexp with '#{tahs}'"
 
   host = $1
-  timestamp = DEFAULT_TZ.utc_to_local(DateTime.strptime($2, '%d/%m/%Y %H:%M'))
+  timestamp = DEFAULT_TZ.local_to_utc(DateTime.strptime($2, '%d/%m/%Y %H:%M'))
 
   # Now compose and convert the post
   to_save, post = make_post(:parent_id => parent_node, :title => title, :body => body, :id => post_id, :login => unreg_name, :host => host)
@@ -141,7 +141,6 @@ while true
         puts "Download failure: #{e}!"
         imp.status = :queued
         imp.save
-        raise e
       end
     end
     # Sleep to not make us as flooders
