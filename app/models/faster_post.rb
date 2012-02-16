@@ -36,7 +36,7 @@ class FasterPost < ActiveRecord::Base
 
   def hidden_by?(opts = {})
     thread_hides = opts[:thread_hides] || {}
-    hidden || (!@show_all_posts && thread_hides[id])
+    hidden || (!opts[:show_all] && thread_hides[id])
   end
 
   # Since YAML is stateless, we may cache the records we load
