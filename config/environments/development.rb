@@ -28,4 +28,8 @@ Zlo::Application.configure do
   # Expands the lines which load the assets
   # For now, I don't need this
   #config.assets.debug = true
+
+  # Rails 3.2 requirement
+  config.active_record.mass_assignment_sanitizer = :strict
+  config.active_record.auto_explain_threshold_in_seconds = 0.1
 end
