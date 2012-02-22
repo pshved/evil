@@ -53,15 +53,23 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
-    @post.maybe_new_revision_for_edit
-
-    respond_to do |format|
-      if @post.update_attributes(params[:posts])
-        format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
-        format.json { head :ok }
-      else
+    if params[:commit] == 'Preview'
+      @post.assign_attributes(params[:posts])
+      # This is a preview, validate and show it
+      @post.valid?
+      respond_to do |format|
+        flash[:notice] = 'This is a preview only!'
         format.html { render action: "edit" }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
+      end
+    else
+      respond_to do |format|
+        if @post.update_attributes(params[:posts])
+          format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
+          format.json { head :ok }
+        else
+          format.html { render action: "edit" }
+          format.json { render json: @post.errors, status: :unprocessable_entity }
+        end
       end
     end
   end

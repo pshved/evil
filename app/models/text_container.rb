@@ -51,6 +51,21 @@ class TextContainer < ActiveRecord::Base
     end
   end
 
+  # A more convenient method to mutate the container
+  def []=(index,val)
+    raise "Set up TextContainer before mutation!" if arity.nil?
+    raise "Trying to mutate at #{index} when the arity is #{arity}" if arity <= index
+    if @unsaved_texts
+      # If we have already started the mutation, then we can directly alter the container
+      @unsaved_texts[index] = val
+    else
+      # Start the mutation with the altered container
+      new_items = _items.dup
+      new_items[index] = val
+      _add_revs(false,*new_items)
+    end
+  end
+
   # Flush the unsaved body, if any
   before_save do
     if @unsaved_texts
