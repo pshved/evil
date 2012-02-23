@@ -9,3 +9,8 @@ ru:
       last: "Конец"
       truncate: "+++"
   To Somebody: "Кому-то"
+  recaptcha:
+    prompt: 'Докажи, что ты не робот, решив капчу:'
+    errors:
+      recaptcha_unavailable: 'Каптча не сработала.  Реши-ка ещё загадку!'
+      verification_failed: 'Да ты же робот!  Старайся получше!'

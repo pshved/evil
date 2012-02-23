@@ -34,4 +34,12 @@ class ApplicationController < ActionController::Base
     # @template is an instance of a helper
     render :partial => 'user_sessions/perm'
   end
+
+  def captcha_enabled
+    not (Configurable[:recaptcha_public].blank? || Configurable[:recaptcha_private].blank?)
+  end
+  helper_method :captcha_enabled
+  def captcha_ok?
+    current_user || !captcha_enabled || verify_recaptcha(:model => @loginpost, :private_key => Configurable[:recaptcha_private])
+  end
 end

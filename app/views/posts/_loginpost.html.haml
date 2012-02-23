@@ -53,6 +53,10 @@
       %td{:colspan => 2, :align => :center}
         =f.text_area 'body', :cols => 75, :rows => 12
 
+  -# Display captcha
+  - if !current_user && captcha_enabled
+    =t :'recaptcha.prompt'
+    = captcha_tags
   = f.submit 'Preview'
   = f.submit
 

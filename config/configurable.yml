@@ -36,6 +36,16 @@ default_homepage_threads:
   default: 50
   type: integer
 
+recaptcha_public:
+  name: Recaptcha public key (set to empty string to disable captcha at all)
+  default:
+  type: string
+
+recaptcha_private:
+  name: Recaptcha private key
+  default:
+  type: string
+
 # site_description:
 #   name: Description for Google
 #   default: Lots of Awesomeness Here

@@ -73,3 +73,6 @@ end
 gem 'tzinfo'
 
 gem 'libxml-ruby'
+
+# Captcha
+gem "recaptcha", :require => "recaptcha/rails"
