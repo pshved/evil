@@ -39,7 +39,7 @@ class ApplicationController < ActionController::Base
     not (Configurable[:recaptcha_public].blank? || Configurable[:recaptcha_private].blank?)
   end
   helper_method :captcha_enabled
-  def captcha_ok?
-    current_user || !captcha_enabled || verify_recaptcha(:model => @loginpost, :private_key => Configurable[:recaptcha_private])
+  def captcha_ok?(opts = {})
+    current_user || !captcha_enabled || verify_recaptcha({:model => @loginpost, :private_key => Configurable[:recaptcha_private]}.merge(opts))
   end
 end
