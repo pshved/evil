@@ -15,7 +15,7 @@ class ApplicationController < ActionController::Base
 
   def current_presentation
     if current_user
-      current_user.current_presentation
+      current_user.current_presentation(cookies)
     else
       return @default_presentation if @default_presentation
       @default_presentation = Presentation.default

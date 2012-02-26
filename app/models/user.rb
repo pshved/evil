@@ -47,10 +47,19 @@ class User < ActiveRecord::Base
 
   # Presentations
   has_many :presentations
-  # TODO: users should have several presentations, one of which should be recorded in cookies as the current one.
-  def current_presentation
-    presentations[0] or raise "Can't find current presentation for user #{self.login}"
+  belongs_to :default_presentation, :class_name => 'Presentation'
+  def current_presentation(cookies = {})
+    result = nil
+    # Try to load the presentation for the current user recorded in cookies
+    if presentation_name = cookies[:presentation_name]
+      result = presentations.where(['name = ?', presentation_name]).first
+    end
+    # If we couldn't find a presentation via cookies, just show the default.  We should not show an error here!
+    result ||= default_presentation
+    result ||= presentations.first
+    result or raise "Can't find current presentation for user #{self.login}"
   end
+
   #Hidden posts
   has_and_belongs_to_many :hidden_posts, :class_name => 'Posts', :join_table => 'hidden_posts_users', :association_foreign_key => 'posts_id'
 end

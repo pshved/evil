@@ -1,0 +1,18 @@
+-if @presentations && !@presentations.empty?
+  %ul
+    -@presentations.each do |p|
+      %li
+        =link_to_unless_current "Edit view '#{p.name}'", edit_presentation_path(p)
+        (
+        -if p == current_presentation
+          Current
+        -else
+          =link_to "Use", use_presentation_path(p)
+        |
+        =link_to "Clone", clone_presentation_path(p)
+        |
+        -if current_user.default_presentation == p
+          Default
+        -else
+          =link_to "Make default", make_default_presentation_path(p)
+        )

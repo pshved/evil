@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120214191724) do
+ActiveRecord::Schema.define(:version => 20120226094458) do
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -74,8 +74,11 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "time_zone",       :default => "Europe/Moscow"
+    t.string   "name"
   end
 
+  add_index "presentations", ["name"], :name => "index_presentations_on_name"
+  add_index "presentations", ["user_id", "name"], :name => "index_presentations_on_user_id_and_name"
   add_index "presentations", ["user_id"], :name => "index_presentations_on_user_id"
 
   create_table "private_messages", :force => true do |t|
@@ -149,7 +152,8 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
     t.string   "persistence_token"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "demo",              :default => false
+    t.boolean  "demo",                    :default => false
+    t.integer  "default_presentation_id"
   end
 
 end

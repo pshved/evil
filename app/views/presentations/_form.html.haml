@@ -13,6 +13,9 @@
   %div.field
     = f.label :time_zone
     = f.time_zone_select :time_zone, /Minsk|Moscow|Petersburg|Volgograd|Ekaterinburg|Novosibirsk|Krasnoyarsk|Irkutsk|Yakutsk|Vladivostok/, :default => "Europe/Moscow", :model => TZInfo::Timezone
+  %div.field
+    = f.label :name
+    = f.number_field :name
   %div.hiddenthreads
     Hidden threads:
     %ul
