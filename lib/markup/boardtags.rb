@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'treetop'
 require 'erb'
 
@@ -28,6 +29,35 @@ TagConversions = [
   ['tub',      proc {|inner| $c.sign[:vid] = true;  %Q(<iframe class="youtube-player" type="text/html" width="640" height="390" src="http://www.youtube.com/embed/#{inner}?iv_load_policy=3&rel=0&fs=1" frameborder="0"></iframe>)}],
   ['spoiler',  proc{|inner| %Q(<span style="spoiler">#{inner}</span>)}],
 ]
+
+def wrap(tag,wtf,close_tag = nil); %Q(wrap('[#{tag}]', '[/#{close_tag ? close_tag : tag}]', #{wtf});); end
+def _wrap(open,wtf,close); %Q(wrap('#{open}', '#{close}', #{wtf});); end
+
+dbr = {:name => ''}
+BUTTON_REGISTRY = {
+  'b' => dbr.merge({:accesskey => 'l', :style => 'width: 35px', :title => 'bold', :onclick => wrap('b',1)}),
+  'i' => dbr.merge({:accesskey => 'r', :style => 'width: 35px', :title => 'italiq', :onclick => wrap('i',1)}),
+  'b' => dbr.merge({:accesskey => 'b', :style => "width: 30px", :title => "жирный текст: [b]текст[/b] (alt+b)", :onclick => wrap('b',1)}),
+  'i' => dbr.merge({:accesskey => "i", :style => "width: 30px", :title => "курсивный текст: [i]текст[/i] (alt+i)", :onclick => wrap('i',1)}),
+  'u' => dbr.merge({:accesskey => "u", :style => "width: 30px", :title => "подчеркнутый текст: [u]текст[/u] (alt+u)", :onclick => wrap('u',1)}),
+  'q' => dbr.merge({:accesskey => "q", :style => "width: 30px", :title => "цитата: [q]текст[/q] (alt+q)", :onclick => wrap('q',0)}),
+  'pic' => dbr.merge({:accesskey => "p", :style => "width: 40px", :title => "изображение: [pic]http://ссылка[/pic] (alt+p)", :onclick => wrap('pic',0)}),
+  'url' => dbr.merge({:accesskey => "w", :style => "width: 40px", :title => "ссылка: [url=http://ссылка]название[/url] (alt+w)", :onclick => _wrap('[url=',1,']ссылка[/url]')}),
+  'h' => dbr.merge({:accesskey => "h", :style => "width: 30px", :title => "заголовок: [h]текст[/h] (alt+h)", :onclick => wrap('h',1)}),
+  's' => dbr.merge({:accesskey => "s", :style => "width: 30px", :title => "мелкий текст: [s]текст[/s] (alt+s)", :onclick => wrap('s',1)}),
+  'sup' => dbr.merge({:accesskey => "6", :style => "width: 40px", :title => "верхний индекс: [sup]текст[/sup] (alt+6)", :onclick => wrap('sup',0)}),
+  'sub' => dbr.merge({:accesskey => "-", :style => "width: 40px", :title => "нижний индекс: [sub]текст[/sub] (alt+-)", :onclick => wrap('sub',0)}),
+  'strike' => dbr.merge({:accesskey => "=", :style => "width: 55px", :title => "перечеркнутый текст: [strike]текст[/strike] (alt+=)", :onclick => wrap('strike',1)}),
+  'color' => dbr.merge({:accesskey => "3", :style => "width: 55px", :title => "цветной текст: [color=#цвет]текст[/color] (alt+3)", :onclick => _wrap('[color=#00FF00]',1,'[/color]')}),
+  'red' => dbr.merge({:accesskey => "r", :style => "width: 40px", :title => "красный текст: [red]текст[/red] (alt+r)", :onclick => wrap('red',1)}),
+  'pre' => dbr.merge({:accesskey => "f", :style => "width: 40px", :title => "преформатированный текст: [pre]текст[/pre] (alt+f)", :onclick => wrap('pre',0)}),
+  'center' => dbr.merge({:accesskey => "c", :style => "width: 60px", :title => "центрированный текст: [center]текст[/center] (alt+c)", :onclick => wrap('center',0)}),
+  'tex' => dbr.merge({:accesskey => "t", :style => "width: 40px", :title => "TEX-формула: [tex]текст[/tex] (alt+t)", :onclick => wrap('tex',0)}),
+  'tub' => dbr.merge({:accesskey => "y", :style => "width: 40px", :title => "YouTube-видео: [tub]идентификатор видео[/tub] (alt+y)", :onclick => wrap('tub',0)}),
+  'spoiler' => dbr.merge({:accesskey => ".", :style => "width: 65px", :title => "спойлер: [spoiler]текст[/spoiler] (alt+.)", :onclick => wrap('spoiler',1)}),
+  'hr' => dbr.merge({:accesskey => "l", :style => "width: 35px", :title => "горизонтальная линия: [hr] (alt+l)", :onclick => wrap('hr',1)}),
+  'smile' => dbr.merge({:name => 'smile', :accesskey => "0", :style => "width: 55px", :title => "таблица смайлов (alt+0)", :onclick => wrap('smile',1)}),
+}
 
 # NOTE: the lambdas created in TagConversions will be evaluated in a special context, which is supplied by the caller, and is read by it as well.
 

@@ -1,4 +1,5 @@
-= form_for @loginpost do |f|
+-# the name of the form is used in post.js tag editor!  Do not change!
+= form_for @loginpost, :html => {:name => 'postform'} do |f|
   = f.hidden_field :reply_to
   -# Error messages for the validated post
   - if @loginpost.saved_post && @loginpost.saved_post.errors.any?
@@ -50,8 +51,16 @@
       %td
         =f.text_field 'title', :size => 88
     %tr
+      %td{:colspan => 2}
+        - buttons = [%w(b i u q pic url h s sup sub strike), %w(color red pre center tex tub spoiler hr smile)]
+        - buttons.each do |row|
+          - row.each do |btn|
+            = render :partial => 'posts/button', :locals => {:button => btn}
+          %br/
+    %tr
       %td{:colspan => 2, :align => :center}
-        =f.text_area 'body', :cols => 75, :rows => 12
+        -# Older browsers may not support getElementById... so KISS me!
+        =f.text_area 'body', :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('loginpost_body');"
 
   -# Display captcha
   - if !current_user && captcha_enabled

@@ -25,7 +25,7 @@ function missed_newlines(e, s)
 
 function wrap(otag, ctag, allowsubj)
 {
-        if (!last || !allowsubj && last === document.postform.subject)
+        if (!last || !allowsubj && last === document.getElementById('subject'))
                 return;
         var e = last;
         if (typeof e.selectionStart == 'number') {

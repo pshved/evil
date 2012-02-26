@@ -1,5 +1,8 @@
 # coding: utf-8
 # As we work with strings here, we should set encoding for them
+
+require 'markup/boardtags.rb'
+
 module PostsHelper
   def fast_link
     return @_post_fast_link if @_post_fast_link
