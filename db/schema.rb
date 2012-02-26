@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120226124741) do
+ActiveRecord::Schema.define(:version => 20120226191032) do
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -77,6 +77,7 @@ ActiveRecord::Schema.define(:version => 20120226124741) do
     t.string   "name"
     t.string   "cookie_key"
     t.datetime "accessed_at"
+    t.boolean  "highlight_self",  :default => true
   end
 
   add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"
