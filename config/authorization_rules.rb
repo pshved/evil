@@ -16,6 +16,12 @@ authorization do
     has_permission_on :users, :to => :create
     # May view other's profiles
     has_permission_on :users, :to => :read
+    # Unreg users can create and edit local presentations
+    # Technically, nothing prevents them from accessing other unreg users' views, except for the long random cookie key
+    has_permission_on :presentations, :to => [:create, :update], :join_by => :and do
+      if_attribute :user => is { nil }
+      if_attribute :cookie_key => is_not { nil }
+    end
   end
 
   role :banned do

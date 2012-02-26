@@ -1,6 +1,6 @@
 = form_for(@presentation) do |f|
   -if @presentation.errors.any?
-    %div{id=>"error_explanation"}
+    %div{:id=>"error_explanation"}
       %h2
         =pluralize(@presentation.errors.count, "error")
         prohibited this presentation from being saved:
@@ -16,10 +16,5 @@
   %div.field
     = f.label :name
     = f.number_field :name
-  %div.hiddenthreads
-    Hidden threads:
-    %ul
-      - current_user.hidden_posts.each do |p|
-        %li= link_to p.title, p
   %div.actions
     = f.submit

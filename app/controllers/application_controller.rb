@@ -16,11 +16,13 @@ class ApplicationController < ActionController::Base
   def current_presentation
     if current_user
       current_user.current_presentation(cookies)
+    elsif from_cookies = Presentation.from_cookies(cookies)
+      # from_cookies may record access time of the presentation
+      from_cookies
     else
       return @default_presentation if @default_presentation
       @default_presentation = Presentation.default
     end
-    # TODO: record access time, so that this presentation is not discarded
   end
   # Allow its use in views (moreover, it's unlikely we'll use it in the controller at all)
   helper_method :current_presentation

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120226094458) do
+ActiveRecord::Schema.define(:version => 20120226124741) do
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -75,8 +75,11 @@ ActiveRecord::Schema.define(:version => 20120226094458) do
     t.datetime "updated_at"
     t.string   "time_zone",       :default => "Europe/Moscow"
     t.string   "name"
+    t.string   "cookie_key"
+    t.datetime "accessed_at"
   end
 
+  add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"
   add_index "presentations", ["name"], :name => "index_presentations_on_name"
   add_index "presentations", ["user_id", "name"], :name => "index_presentations_on_user_id_and_name"
   add_index "presentations", ["user_id"], :name => "index_presentations_on_user_id"

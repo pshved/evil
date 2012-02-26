@@ -21,6 +21,9 @@ Zlo::Application.routes.draw do
     member do
       get :use, :clone, :make_default
     end
+    collection do
+      get :edit_local
+    end
   end
 
   # The priority is based upon order of creation:

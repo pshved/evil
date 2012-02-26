@@ -2,7 +2,7 @@ class PresentationsController < ApplicationController
   before_filter :new_presentation_from_params, :only => [:create]
   before_filter :new_presentation, :only => [:new]
   before_filter :find_presentation, :only => [:destroy,:update,:edit,:show,:clone,:use,:make_default]
-  before_filter :find_presentations
+  before_filter :find_presentations, :except => [:edit_local]
 
   filter_access_to :create, :new, :show, :attribute_check => true
   filter_access_to :clone, :require => :create, :attribute_check => true
@@ -38,6 +38,7 @@ class PresentationsController < ApplicationController
 
   # POST /presentations
   # POST /presentations.json
+  # If current user is not set, then we're creating a local view
   def create
     respond_to do |format|
       if @presentation.save
@@ -89,17 +90,32 @@ class PresentationsController < ApplicationController
     redirect_to :action => 'edit'
   end
 
+  # This action does not require current_user!
+  def edit_local
+    if current_user
+      redirect_to :action => 'index'
+      return
+    end
+    @presentations = []
+    @presentation = current_presentation
+  end
+
   private
   def find_presentation
     @presentation = Presentation.find(params[:id])
   end
   def find_presentations
-    # Won't fail: prerequisite is a logged in user
-    @presentations = current_user.presentations
+    @presentations = current_user ? current_user.presentations : []
   end
 
   def new_presentation_from_params
-    @presentation = Presentation.new(params[:presentation].merge(:user => current_user))
+    if current_user
+      # Create presentation for the user
+      @presentation = Presentation.new(params[:presentation].merge(:user => current_user))
+    else
+      # Create local presentation
+      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies)
+    end
   end
 
   def new_presentation

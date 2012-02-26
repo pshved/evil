@@ -1,7 +1,10 @@
+require 'autoload/utils'
 class Presentation < ActiveRecord::Base
   belongs_to :user
-  validates_uniqueness_of :name, :scope => :user_id
   composed_of :tz, :class_name => 'TZInfo::Timezone', :mapping => %w(time_zone time_zone)
+
+  validates_uniqueness_of :name, :scope => :user_id, :unless => proc {|p| p.user.nil?}
+  validates_uniqueness_of :cookie_key, :unless => proc {|p| p.cookie_key.nil?}
 
   # Returns default presentation
   def self.default
@@ -26,7 +29,30 @@ class Presentation < ActiveRecord::Base
 
   # Set this presentation as current
   def use(cookies)
-    cookies[:presentation_name] = self.name
+    cookies[:presentation_name] = { :value => self.name, :expires => VIEW_EXPIRATION_TIME.from_now }
+  end
+
+  # Saves this as a local view to the cookies supplied
+  def record_into(cookies)
+    generate_cookie_key
+    cookies[:presentation_key] = { :value => self.cookie_key, :expires => VIEW_EXPIRATION_TIME.from_now }
+    self
+  end
+
+  # Loads the presentation from cookies
+  def self.from_cookies(cookies)
+    key = cookies[:presentation_key]
+    if r = Presentation.find_last_by_cookie_key_and_user_id(key,nil)
+      # Technically, we need to update access time each time we load the presentation.  This would exhibit high load on the server.
+      # Instead, we update only in 1% of accesses.
+      if rand < (1.0/UPDATE_VIEW_ACCESS_TIME_PER)
+        r.accessed_at = Time.now
+        r.save
+      end
+      r
+    else
+      Presentation.default
+    end
   end
 
   private
@@ -38,5 +64,13 @@ class Presentation < ActiveRecord::Base
       user_has += 1
     end
     "view#{user_has}"
+  end
+
+  # Generate cookie_key: a key for this presentation for user cookies.  This can't be ID, as other users should not know them
+  def generate_cookie_key
+    begin
+      key = "ck_#{generate_random_string(35, '0123456789abcdef')}"
+    end until not Presentation.find_by_cookie_key(key)
+    self.cookie_key = key
   end
 end
