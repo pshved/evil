@@ -34,7 +34,7 @@ def wrap(tag,wtf,close_tag = nil); %Q(wrap('[#{tag}]', '[/#{close_tag ? close_ta
 def _wrap(open,wtf,close); %Q(wrap('#{open}', '#{close}', #{wtf});); end
 
 dbr = {:name => ''}
-BUTTON_REGISTRY = {
+tag_buttons = {
   'b' => dbr.merge({:accesskey => 'l', :style => 'width: 35px', :title => 'bold', :onclick => wrap('b',1)}),
   'i' => dbr.merge({:accesskey => 'r', :style => 'width: 35px', :title => 'italiq', :onclick => wrap('i',1)}),
   'b' => dbr.merge({:accesskey => 'b', :style => "width: 30px", :title => "жирный текст: [b]текст[/b] (alt+b)", :onclick => wrap('b',1)}),
@@ -56,71 +56,84 @@ BUTTON_REGISTRY = {
   'tub' => dbr.merge({:accesskey => "y", :style => "width: 40px", :title => "YouTube-видео: [tub]идентификатор видео[/tub] (alt+y)", :onclick => wrap('tub',0)}),
   'spoiler' => dbr.merge({:accesskey => ".", :style => "width: 65px", :title => "спойлер: [spoiler]текст[/spoiler] (alt+.)", :onclick => wrap('spoiler',1)}),
   'hr' => dbr.merge({:accesskey => "l", :style => "width: 35px", :title => "горизонтальная линия: [hr] (alt+l)", :onclick => wrap('hr',1)}),
-  'smile' => dbr.merge({:name => 'smile', :accesskey => "0", :style => "width: 55px", :title => "таблица смайлов (alt+0)", :onclick => wrap('smile',1)}),
+  'smile' => dbr.merge({:name => 'smile', :accesskey => "0", :style => "width: 55px", :title => "таблица смайлов (alt+0)", :onclick => 'show();'}),
 }
 
 # NOTE: the lambdas created in TagConversions will be evaluated in a special context, which is supplied by the caller, and is read by it as well.
 
+# Add your own replacements here
+usual_replacements = [
+  # Replace newlines with HTML tag (but save the line breaks for a nicer view)
+  ["\r\n",      "<br/>"                         ],
+  # the next matches only after the previous one is exhausted
+  ["\n",        "<br/>"                         ],
+  # indent with 9 non-breaking spaces
+  ["^\t",       "&nbsp;" * 9                    ],
+]
+ 
+# SMILEYS
+# =======
+#
 # TODO : move this to app.config
 def make_smiley(smn)
   "/pic/#{smn}"
 end
 
-Replacements = [
-  # Replace newlines with HTML tag (but save the line breaks for a nicer view)
-  ["\r\n",      "<br/>\n"                       ],
-  # the next matches only after the previous one is exhausted
-  ["\n",        "<br/>\n"                       ],
-  # indent with 9 non-breaking spaces
-  ["^\t",       "&nbsp;" * 9                    ],
-  # The rest is smileys
-  [":))",       make_smiley("bigsmile.gif")     ],
-  [":)",        make_smiley("smile.gif")        ],
-  [":(",        make_smiley("frown.gif")        ],
-  [";)",        make_smiley("wink.gif")         ],
-  [":!!",       make_smiley("lol.gif")          ],
-  [":\\",       make_smiley("smirk.gif")        ],
-  [":o",        make_smiley("redface.gif")      ],
-  [":MAD",      make_smiley("mad.gif")          ],
-  [":STOP",     make_smiley("stop.gif")         ],
-  [":APPL",     make_smiley("appl.gif")         ],
-  [":BAN",      make_smiley("ban.gif")          ],
-  [":BEE",      make_smiley("bee.gif")          ],
-  [":BIS",      make_smiley("bis.gif")          ],
-  [":ZLOBA",    make_smiley("blya.gif")         ],
-  [":BORED",    make_smiley("bored.gif")        ],
-  [":BOTAT",    make_smiley("botat.gif")        ],
-  [":COMP",     make_smiley("comp.gif")         ],
-  [":CRAZY",    make_smiley("crazy.gif")        ],
-  [":DEVIL",    make_smiley("devil.gif")        ],
-  [":DOWN",     make_smiley("down.gif")         ],
-  [":FIGA",     make_smiley("figa.gif")         ],
-  [":GIT",      make_smiley("git.gif")          ],
-  [":GYGY",     make_smiley("gy.gif")           ],
-  [":HEH",      make_smiley("heh.gif")          ],
-  [":CIQ",      make_smiley("iq.gif")           ],
-  [":KURIT",    make_smiley("kos.gif")          ],
-  [":LAM",      make_smiley("lam.gif")          ],
-  [":MNC",      make_smiley("mnc.gif")          ],
-  [":NO",       make_smiley("no.gif")           ],
-  [":SMOKE",    make_smiley("smoke.gif")        ],
-  [":SORRY",    make_smiley("sorry.gif")        ],
-  [":SUPER",    make_smiley("super.gif")        ],
-  [":UP",       make_smiley("up.gif")           ],
-  [":YES2",     make_smiley("yes2.gif")         ],
-  [":YES",      make_smiley("yes.gif")          ],
-  [":BASH",     make_smiley("bash.gif")         ],
-  [":CLAPPY",   make_smiley("clappy.gif")       ],
-  [":EWW",      make_smiley("eww.gif")          ],
-  [":ROTFL",    make_smiley("roflol.gif")       ],
-  [":SPOTMAN",  make_smiley("spotman.gif")      ],
-  [":WAVE",     make_smiley("wave.gif")         ],
-  [":COWARD",   make_smiley("coward.gif")       ],
-  [":DRAZNIT",  make_smiley("draznit.gif")      ],
-  [":ROLLEYES", make_smiley("rolleyes.gif")     ],
-  [":PLOHO",    make_smiley("blevalyanaeto.gif")],
-  [":}",        make_smiley("icqbig.gif")       ],
-]
+SMILE_REGISTRY = {
+  ":))"       => { :html => make_smiley("bigsmile.gif")},
+  ":)"        => { :html => make_smiley("smile.gif")},
+  ":("        => { :html => make_smiley("frown.gif")},
+  ";)"        => { :html => make_smiley("wink.gif")},
+  ":!!"       => { :html => make_smiley("lol.gif")},
+  ":\\"       => { :html => make_smiley("smirk.gif")},
+  ":o"        => { :html => make_smiley("redface.gif")},
+  ":MAD"      => { :html => make_smiley("mad.gif")},
+  ":STOP"     => { :html => make_smiley("stop.gif")},
+  ":APPL"     => { :html => make_smiley("appl.gif")},
+  ":BAN"      => { :html => make_smiley("ban.gif")},
+  ":BEE"      => { :html => make_smiley("bee.gif")},
+  ":BIS"      => { :html => make_smiley("bis.gif")},
+  ":ZLOBA"    => { :html => make_smiley("blya.gif")},
+  ":BORED"    => { :html => make_smiley("bored.gif")},
+  ":BOTAT"    => { :html => make_smiley("botat.gif")},
+  ":COMP"     => { :html => make_smiley("comp.gif")},
+  ":CRAZY"    => { :html => make_smiley("crazy.gif")},
+  ":DEVIL"    => { :html => make_smiley("devil.gif")},
+  ":DOWN"     => { :html => make_smiley("down.gif")},
+  ":FIGA"     => { :html => make_smiley("figa.gif")},
+  ":GIT"      => { :html => make_smiley("git.gif")},
+  ":GYGY"     => { :html => make_smiley("gy.gif")},
+  ":HEH"      => { :html => make_smiley("heh.gif")},
+  ":CIQ"      => { :html => make_smiley("iq.gif")},
+  ":KURIT"    => { :html => make_smiley("kos.gif")},
+  ":LAM"      => { :html => make_smiley("lam.gif")},
+  ":MNC"      => { :html => make_smiley("mnc.gif")},
+  ":NO"       => { :html => make_smiley("no.gif")},
+  ":SMOKE"    => { :html => make_smiley("smoke.gif")},
+  ":SORRY"    => { :html => make_smiley("sorry.gif")},
+  ":SUPER"    => { :html => make_smiley("super.gif")},
+  ":UP"       => { :html => make_smiley("up.gif")},
+  ":YES2"     => { :html => make_smiley("yes2.gif")},
+  ":YES"      => { :html => make_smiley("yes.gif")},
+  ":BASH"     => { :html => make_smiley("bash.gif")},
+  ":CLAPPY"   => { :html => make_smiley("clappy.gif")},
+  ":EWW"      => { :html => make_smiley("eww.gif")},
+  ":ROTFL"    => { :html => make_smiley("roflol.gif")},
+  ":SPOTMAN"  => { :html => make_smiley("spotman.gif")},
+  ":WAVE"     => { :html => make_smiley("wave.gif")},
+  ":COWARD"   => { :html => make_smiley("coward.gif")},
+  ":DRAZNIT"  => { :html => make_smiley("draznit.gif")},
+  ":ROLLEYES" => { :html => make_smiley("rolleyes.gif")},
+  ":PLOHO"    => { :html => make_smiley("blevalyanaeto.gif")},
+  ":}"        => { :html => make_smiley("icqbig.gif")},
+}
+
+smile_replacements = SMILE_REGISTRY.map{|code,v| [code, v[:html]]}
+
+# Compute button and tag registries
+Replacements = usual_replacements + smile_replacements
+
+BUTTON_REGISTRY = SMILE_REGISTRY.inject(tag_buttons.dup){|acc,kv| acc[kv[0]] = {:title => kv[0], :onclick => "insert(' #{kv[0]} ',0)", :html => kv[1][:html]}; acc}
 
 only, both = TagConversions.partition{|tc| tc[1].arity == 0}
 

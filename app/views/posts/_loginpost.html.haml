@@ -57,6 +57,7 @@
           - row.each do |btn|
             = render :partial => 'posts/button', :locals => {:button => btn}
           %br/
+        = render :partial => 'posts/smiles'
     %tr
       %td{:colspan => 2, :align => :center}
         -# Older browsers may not support getElementById... so KISS me!
