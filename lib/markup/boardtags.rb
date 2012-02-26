@@ -19,7 +19,7 @@ TagConversions = [
   ['pic',      proc {|inner| $c.sign[:pic] = true;  %Q(<img class="imgtag" src="#{inner}"/>)}],
   ['hr',       proc {|| %Q(<hr/>)}],
   ['tab',      proc {|| %Q(&nbsp;)*9}],
-  ['q',        proc {|inner| %Q(<blockquote><span class="inquote">[q]</span><b>Quote:</b><br/>#{inner}<span class="inquote">[/q]</span></blockquote>)}],
+  ['q',        proc {|inner| pre = %Q(<blockquote><span class="inquote">[q]</span><b>Quote:</b><br/>); $c.search_after = pre.length; %Q(#{pre}#{inner}<span class="inquote">[/q]</span></blockquote>)}],
   ['center',   proc {|inner| %Q(<center>#{inner}</center>)}],
   # [pre] is handled in the parser
   ['strike',   proc {|inner| %Q(<strike>#{inner}</strike>)}],
@@ -136,7 +136,7 @@ module ProxyNode
 end
 
 class DefaultParseContext
-  attr_accessor :sign
+  attr_accessor :sign, :search_after
   def initialize
     @sign = {}
   end
@@ -156,6 +156,8 @@ module RegexpConvertNode
       # Note also the unicode in messages
       # We use html_safe to make Rails not html-escape strings on concatenation.
       # Check how many arguments there are in the conv, and reason about tag format
+      # Note that we read position specification from tag conversion.  This is to prevent recursive expanding of tags if the result of the conversion contains the original tag (i.e. [q]...[/q] -> <blockquote>[q]...[/q]</blockquote>.)
+      start_pos = 0
       case conv.arity
       when 0
         # Regexp is (...)[tag](...)
@@ -166,14 +168,16 @@ module RegexpConvertNode
       when 1
         # Regexp is (...)[tag](...)[/tag](...)
         rx = /^(.*)\[#{tag}\](.*?)\[\/#{tag}\](.*)$/mu
-        while md = t.match(rx)
+        while md = t.match(rx,start_pos)
           t = md[1] + conv[md[2]].html_safe + md[3]
+          start_pos = $c.search_after ? (md[1].length + $c.search_after) : 0
         end
       when 2
         # Regexp is (...)[tag=(...)](...)[/tag](...)
         rx = /^(.*)\[#{tag}=([^\]]*)\](.*?)\[\/#{tag}\](.*)$/mu
-        while md = t.match(rx)
+        while md = t.match(rx,start_pos)
           t = md[1] + conv[md[3],md[2]].html_safe + md[4]
+          start_pos = $c.search_after ? (md[1].length + $c.search_after) : 0
         end
       end
     end
