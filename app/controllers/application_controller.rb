@@ -13,16 +13,24 @@ class ApplicationController < ActionController::Base
       @current_user = current_user_session && current_user_session.user
     end
 
+  def current_presentation
+    if current_user
+      current_user.current_presentation
+    else
+      return @default_presentation if @default_presentation
+      @default_presentation = Presentation.default
+    end
+    # TODO: record access time, so that this presentation is not discarded
+  end
+  # Allow its use in views (moreover, it's unlikely we'll use it in the controller at all)
+  helper_method :current_presentation
+
   # Threads controller action sub.  Used to display threads on the main page
   def prepare_threads
     # Set up a "Global" view setting, so that the newly created threads comply to it
     Threads.settings_for = current_user
     @threads = Threads.order("created_at DESC").page(params[:page])
-    thread_page_size = nil
-    if current_user
-      thread_page_size = current_user.current_presentation.threadpage_size
-    end
-    thread_page_size = Configurable[:default_homepage_threads] || Kaminari.config.default_per_page
+    thread_page_size = current_presentation.threadpage_size
     @threads = @threads.per(thread_page_size)
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)

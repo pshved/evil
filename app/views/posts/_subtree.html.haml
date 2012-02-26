@@ -5,8 +5,7 @@
   - if defined?(fast) && fast
     - buf = ''
     -# User's view settings have been passed in controller
-    -# TODO: refactor_presentations
-    -tz = current_user ? current_user.current_presentation.tz : DEFAULT_TZ
+    -tz = current_presentation.tz
     != fast_tree(buf,thr.build_subtree_fast,post,thr.hides_fast,tz)
   -else
     = render :partial => 'posts/header_line', :locals => {:post => post, :thr => thr}
