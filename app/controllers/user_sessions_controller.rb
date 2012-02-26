@@ -28,6 +28,10 @@ class UserSessionsController < ApplicationController
 
     respond_to do |format|
       if @user_session.save
+        # If user has logged in, and there was a cookie-stored session, copy it to the user's
+        if local_view = Presentation.from_cookies(cookies)
+          local_view.dup.attach_to(current_user)
+        end
         format.html { redirect_to root_url, notice: 'Successfully logged in.' }
         format.json { render json: @user_session, status: :created, location: @user_session }
       else

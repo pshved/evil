@@ -55,15 +55,25 @@ class Presentation < ActiveRecord::Base
     end
   end
 
+  # Attaches the local view to the user, generating a name, if necessary
+  def attach_to(target_user)
+    self.cookie_key = nil
+    self.user = target_user
+    if target_user.presentations.where(['name = ?', self.name]).first
+      self.name = unique_name('local')
+    end
+    save
+  end
+
   private
   # Generate a name that's not already been taken
   # NOTE that there's an obiovus race condition: a unique name may be already taken at the point of creation, but it's scoped to the user, so we leave it to him or her
-  def unique_name
+  def unique_name(base = 'view')
     user_has = self.user.presentations.length
-    while self.user.presentations.where(['name = ?', "view#{user_has}"]).first
+    while self.user.presentations.where(['name = ?', "#{base}#{user_has}"]).first
       user_has += 1
     end
-    "view#{user_has}"
+    "#{base}#{user_has}"
   end
 
   # Generate cookie_key: a key for this presentation for user cookies.  This can't be ID, as other users should not know them
