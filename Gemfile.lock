@@ -1,3 +1,10 @@
+GIT
+  remote: git://github.com/tra/spawn
+  revision: 0e1ab99b8c90ec16f6163641d9e84005fea01263
+  branch: edge
+  specs:
+    spawn (1.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -177,6 +184,7 @@ DEPENDENCIES
   ruby-debug19
   ruby-prof
   sass-rails (~> 3.1.5)
+  spawn!
   therubyracer
   treetop
   turn (~> 0.8.3)

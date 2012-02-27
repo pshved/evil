@@ -1,3 +1,4 @@
+require 'autoload/utils'
 class ApplicationController < ActionController::Base
   protect_from_forgery
   helper_method :current_user_session, :current_user
@@ -52,4 +53,20 @@ class ApplicationController < ActionController::Base
   def captcha_ok?(opts = {})
     current_user || !captcha_enabled || verify_recaptcha({:model => @loginpost, :private_key => Configurable[:recaptcha_private]}.merge(opts))
   end
+
+  # Activity metrics
+  # Hint was given here: http://stackoverflow.com/a/9470559/158676
+  before_filter :log_request
+  protected
+  # TODO: can't run without this!  Somehow init.rb is not included everywhere
+  ActionController::Base.send :include, Spawn
+  # Spawn another thread that will log the proper request
+  def log_request
+    spawn do
+      Activity.create(:host => gethostbyaddr(request.remote_ip))
+      # Now cleanup all old activities
+      Activity.destroy_all(['created_at < ?', Time.now - Configurable[:activity_minutes].minutes])
+    end
+  end
+
 end

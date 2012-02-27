@@ -46,6 +46,11 @@ recaptcha_private:
   default:
   type: string
 
+activity_minutes:
+  name: Show activity for this number of minutes
+  default: 10
+  type: integer
+
 # site_description:
 #   name: Description for Google
 #   default: Lots of Awesomeness Here

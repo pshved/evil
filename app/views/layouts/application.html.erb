@@ -25,6 +25,7 @@
     <% end %>
     <%= link_to_unless_current "View settings", view_settings_path  %> |
   </div>
+  <%= render :partial => 'activities/stats' %>
 
   <p id="notice"><%= notice %></p>
 

@@ -11,7 +11,16 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120226191032) do
+ActiveRecord::Schema.define(:version => 20120227192348) do
+
+  create_table "activities", :force => true do |t|
+    t.string   "host"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "activities", ["created_at"], :name => "index_activities_on_created_at"
+  add_index "activities", ["host"], :name => "index_activities_on_host"
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
