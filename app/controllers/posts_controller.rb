@@ -3,6 +3,8 @@ class PostsController < ApplicationController
   before_filter :find_thread, :only => [:edit, :update, :show]
   before_filter :init_loginpost, :only => [:edit, :update]
 
+  # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
+  before_filter :trick_authorization, :only => [:latest]
   filter_access_to :all, :attribute_check => true, :model => Posts
 
   # GET /posts/1
@@ -53,15 +55,23 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
-    @post.maybe_new_revision_for_edit
-
-    respond_to do |format|
-      if @post.update_attributes(params[:posts])
-        format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
-        format.json { head :ok }
-      else
+    if params[:commit] == 'Preview'
+      @post.assign_attributes(params[:posts])
+      # This is a preview, validate and show it
+      @post.valid?
+      respond_to do |format|
+        flash[:notice] = 'This is a preview only!'
         format.html { render action: "edit" }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
+      end
+    else
+      respond_to do |format|
+        if @post.update_attributes(params[:posts])
+          format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
+          format.json { head :ok }
+        else
+          format.html { render action: "edit" }
+          format.json { render json: @post.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
@@ -88,6 +98,29 @@ class PostsController < ApplicationController
     end
   end
 
+  def latest
+    # Get threads for the latest
+    # TODO: make it DRY with Threads model!
+    settings_for = current_user
+    length = params[:number].blank? ? POST_FEED_LENGTH : params[:number].to_i
+    # This fetches bodies as well, but they're rendered only at the view
+    @posts = FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden, body_items.body as body, text_containers.filter as body_filter
+    from posts
+    join text_containers on posts.text_container_id = text_containers.id
+    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
+    join text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)
+    left join users on posts.user_id = users.id
+    left join clicks on clicks.post_id = posts.id
+    left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
+    where text_items.number = 0 and body_items.number = 1
+    order by posts.created_at desc limit ?", length])
+
+    respond_to do |format|
+      format.html # latest.html.erb
+      format.rss { render :layout => false }
+    end
+  end
+
   protected
   def find_post
     @post = Posts.find(params[:id])
@@ -97,5 +130,10 @@ class PostsController < ApplicationController
     @thread = @post.thread
   end
   def init_loginpost
+  end
+  @@fake_posts = nil
+  def trick_authorization
+    @posts = @@fake_posts if @@fake_posts
+    @posts = @@fake_posts = Posts.find(1)
   end
 end

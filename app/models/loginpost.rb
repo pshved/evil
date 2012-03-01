@@ -63,13 +63,12 @@ class Loginpost
 
   # Returns the newly created post.  You should fill it with more information
   def post
-    p = @saved_post.nil?? Posts.new : @saved_post
+    p = @saved_post.nil?? Posts.new(:title => title, :body => body) : @saved_post
     if @unreg_posting
       p.unreg_name = session.login
     else
       p.user = @user
     end
-    p.text_container = TextContainer.make(title,body)
     @saved_post = p
   end
   # Saved post, for validation errors

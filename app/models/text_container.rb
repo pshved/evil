@@ -11,13 +11,17 @@ class TextContainer < ActiveRecord::Base
   end
 
   # Filters the string given the context and this container's filtering setting
-  def filter_item(txt,context = nil)
+  def self.filter(txt,filter,context = nil)
     case filter
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)
     when :html
       txt || ''
     end
+  end
+
+  def filter_item(txt,context = nil)
+    TextContainer.filter(txt,filter,context)
   end
 
   def filtered(context = nil)
@@ -48,6 +52,21 @@ class TextContainer < ActiveRecord::Base
     else
       # If the new revisions are not going to be saved, store them locally, and flush at save
       @unsaved_texts = texts.dup
+    end
+  end
+
+  # A more convenient method to mutate the container
+  def []=(index,val)
+    raise "Set up TextContainer before mutation!" if arity.nil?
+    raise "Trying to mutate at #{index} when the arity is #{arity}" if arity <= index
+    if @unsaved_texts
+      # If we have already started the mutation, then we can directly alter the container
+      @unsaved_texts[index] = val
+    else
+      # Start the mutation with the altered container
+      new_items = _items.dup
+      new_items[index] = val
+      _add_revs(false,*new_items)
     end
   end
 

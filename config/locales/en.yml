@@ -11,3 +11,8 @@ en:
       first: "First"
       last: "Last"
       truncate: "+++"
+  recaptcha:
+    prompt: 'Please, prove you have brains by solving this captcha:'
+    errors:
+      recaptcha_unavailable: 'Captcha timeout.  Try again please'
+      verification_failed: 'You are a robot, not a human.  Try harder!'

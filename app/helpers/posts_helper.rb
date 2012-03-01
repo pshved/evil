@@ -1,5 +1,8 @@
 # coding: utf-8
 # As we work with strings here, we should set encoding for them
+
+require 'markup/boardtags.rb'
+
 module PostsHelper
   def fast_link
     return @_post_fast_link if @_post_fast_link
@@ -56,6 +59,18 @@ module PostsHelper
 
   end
 
+  # Returns proc that returns if the user name given should be highlighted.  Encapsulates current user and presentation.
+  def should_highlight
+    return @_should_highlight if @_should_highlight
+    # Load settings
+    settings_allow = current_presentation.highlight_self
+    # Load current user's nickname
+    cu = current_user
+    cu = cu.login if cu
+
+    @_should_highlight = proc {|l| settings_allow && (l == cu)}
+  end
+
   def time_for_header(time,tz)
     tz.utc_to_local(time).strftime("%d.%m.%Y %H:%M")
   end
@@ -89,9 +104,14 @@ module PostsHelper
     end
     buf << ' - '
     # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
-    if post.user_login
-      buf << %Q(<span class="post-user">)
-      fast_user[buf,post.user_login]
+    if this_login = post.user_login
+      # Highlight message, if necessary
+      if should_highlight[this_login]
+        buf << %Q(<span class="post-self">)
+      else
+        buf << %Q(<span class="post-user">)
+      end
+      fast_user[buf,this_login]
       buf << %Q(</span>)
     else
       buf << %Q(<span class="post-unreg">) << (post.unreg_name || "NIL") << %Q(</span>)

@@ -1,3 +1,13 @@
-%h1 Editing presentation
+%h1 View settings
+= render 'list'
+%h2
+  Edit view
+  =%Q("#{@presentation.name}")
 = render 'form'
+-if current_user
+  %div.hiddenthreads
+    Hidden threads:
+    %ul
+      - current_user.hidden_posts.each do |p|
+        %li= link_to p.title, p
 

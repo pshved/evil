@@ -1,6 +1,6 @@
 = form_for(@presentation) do |f|
   -if @presentation.errors.any?
-    %div{id=>"error_explanation"}
+    %div{:id=>"error_explanation"}
       %h2
         =pluralize(@presentation.errors.count, "error")
         prohibited this presentation from being saved:
@@ -13,10 +13,11 @@
   %div.field
     = f.label :time_zone
     = f.time_zone_select :time_zone, /Minsk|Moscow|Petersburg|Volgograd|Ekaterinburg|Novosibirsk|Krasnoyarsk|Irkutsk|Yakutsk|Vladivostok/, :default => "Europe/Moscow", :model => TZInfo::Timezone
-  %div.hiddenthreads
-    Hidden threads:
-    %ul
-      - current_user.hidden_posts.each do |p|
-        %li= link_to p.title, p
+  %div.field
+    = f.label :name
+    = f.number_field :name
+  %div.field
+    = f.label :highlight_self
+    = f.check_box :highlight_self
   %div.actions
     = f.submit

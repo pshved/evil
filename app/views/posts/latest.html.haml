@@ -1,0 +1,6 @@
+%ul
+  - tz = current_presentation.tz
+  - @posts.each do |p|
+    %li
+      != fast_tree('',{},p,{},tz)
+

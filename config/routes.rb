@@ -11,13 +11,24 @@ Zlo::Application.routes.draw do
     member do
       get :toggle_showhide
     end
+    collection do
+      get :latest
+      match 'latest/:number' => 'posts#latest'
+    end
   end
   resources :private_messages, :path => 'persmsg'
 
   resources :loginposts, :only => [:create]
 
   # User's view settings
-  resources :presentations
+  resources :presentations do
+    member do
+      get :use, :clone, :make_default
+    end
+    collection do
+      get :edit_local
+    end
+  end
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

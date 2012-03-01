@@ -5,6 +5,8 @@ authorization do
     # TODO : web interface?
     has_permission_on :threads, :to => :list
     has_permission_on :posts, :to => :read
+    # See the posts feed
+    has_permission_on :posts, :to => :latest
 
     # Creation block.  Disable if you want.
     has_permission_on :threads, :to => :create
@@ -16,6 +18,12 @@ authorization do
     has_permission_on :users, :to => :create
     # May view other's profiles
     has_permission_on :users, :to => :read
+    # Unreg users can create and edit local presentations
+    # Technically, nothing prevents them from accessing other unreg users' views, except for the long random cookie key
+    has_permission_on :presentations, :to => [:create, :update], :join_by => :and do
+      if_attribute :user => is { nil }
+      if_attribute :cookie_key => is_not { nil }
+    end
   end
 
   role :banned do
@@ -37,8 +45,7 @@ authorization do
 
     # Presentations are aready tied to the current_user as an owner, so there's no need to check attributes
     has_permission_on :presentations, :to => :index
-    # However, user can't reply to others' messages
-    has_permission_on :presentations, :to => :create do
+    has_permission_on :presentations, :to => [:create, :update] do
       if_attribute :user => is { user }
     end
 

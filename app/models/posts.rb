@@ -55,7 +55,6 @@ class Posts < ActiveRecord::Base
 
   # Update whether the post is empty (needed for optimization)
   def renew_emptiness
-    debugger
     self.empty_body = body.strip.blank?
     true
   end
@@ -67,13 +66,20 @@ class Posts < ActiveRecord::Base
 
 
   # Post fields accessors
+  # All textual fields are stored in the text container.  We should create one before accessing them
+  private
+  def ensure_container
+    self.text_container ||= TextContainer.make('','') # Smile! ^_^
+    self.text_container
+  end
+  public
 
   def title
-    text_container.body[0]
+    ensure_container.body[0]
   end
 
   def body
-    text_container.body[1]
+    ensure_container.body[1]
   end
 
   # Post's body after the proper filter application
@@ -123,28 +129,16 @@ class Posts < ActiveRecord::Base
   end
 
   # Editing posts and revisions
-  def maybe_new_revision_for_edit
-    @editing = true 
-  end
-
   def title=(title)
-    @unsaved_title = title.dup
+    ensure_container[0] = title
   end
 
   def body=(body)
-    @unsaved_body = body
+    ensure_container[1] = body
   end
 
   before_validation do
-    self.text_container = TextContainer.make('','') unless self.text_container
-    true
-  end
-
-  before_validation do
-    if @editing
-      text_container.add_revision(@unsaved_title,@unsaved_body)
-      @editing = false
-    end
+    ensure_container
     true
   end
 

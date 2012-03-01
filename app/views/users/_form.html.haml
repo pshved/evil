@@ -26,5 +26,8 @@
     = f.label :email
     = f.text_field :email
     Write some crap here, no e-mail will be sent anyway!
+  - if !current_user && captcha_enabled
+    =t :'recaptcha.prompt'
+    = captcha_tags
   %div.actions
     =f.submit
