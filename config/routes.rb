@@ -11,6 +11,10 @@ Zlo::Application.routes.draw do
     member do
       get :toggle_showhide
     end
+    collection do
+      get :latest
+      match 'latest/:number' => 'posts#latest'
+    end
   end
   resources :private_messages, :path => 'persmsg'
 

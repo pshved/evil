@@ -5,6 +5,8 @@ authorization do
     # TODO : web interface?
     has_permission_on :threads, :to => :list
     has_permission_on :posts, :to => :read
+    # See the posts feed
+    has_permission_on :posts, :to => :latest
 
     # Creation block.  Disable if you want.
     has_permission_on :threads, :to => :create

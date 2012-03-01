@@ -24,6 +24,7 @@
       Private Msgs |
     <% end %>
     <%= link_to_unless_current "View settings", view_settings_path  %> |
+    <%= link_to_unless_current "Latest Messages", latest_posts_path  %> |
   </div>
   <%= render :partial => 'activities/stats' %>
 
