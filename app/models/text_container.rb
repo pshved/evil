@@ -11,13 +11,17 @@ class TextContainer < ActiveRecord::Base
   end
 
   # Filters the string given the context and this container's filtering setting
-  def filter_item(txt,context = nil)
+  def self.filter(txt,filter,context = nil)
     case filter
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)
     when :html
       txt || ''
     end
+  end
+
+  def filter_item(txt,context = nil)
+    TextContainer.filter(txt,filter,context)
   end
 
   def filtered(context = nil)

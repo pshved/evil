@@ -55,7 +55,6 @@ class Posts < ActiveRecord::Base
 
   # Update whether the post is empty (needed for optimization)
   def renew_emptiness
-    debugger
     self.empty_body = body.strip.blank?
     true
   end

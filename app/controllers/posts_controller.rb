@@ -103,18 +103,21 @@ class PostsController < ApplicationController
     # TODO: make it DRY with Threads model!
     settings_for = current_user
     length = params[:number].blank? ? POST_FEED_LENGTH : params[:number].to_i
-    @posts = FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden
+    # This fetches bodies as well, but they're rendered only at the view
+    @posts = FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden, body_items.body as body, text_containers.filter as body_filter
     from posts
     join text_containers on posts.text_container_id = text_containers.id
     join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
+    join text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)
     left join users on posts.user_id = users.id
     left join clicks on clicks.post_id = posts.id
     left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
-    where text_items.number = 0
+    where text_items.number = 0 and body_items.number = 1
     order by posts.created_at desc limit ?", length])
 
     respond_to do |format|
       format.html # latest.html.erb
+      format.rss { render :layout => false }
     end
   end
 
