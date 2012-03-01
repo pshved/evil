@@ -205,7 +205,7 @@ module RegexpConvertNode
     while not to_convert.empty?
       # The regexp should detect URLs with ports, and do not include the trailing punctuation in 'http://ya.ru.' or 'http://ya.ru/url/.'
       # Match:  protocol           // path                         country     ( port(if any), the rest, last should be an alnum) if any
-      if md = (/(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/]*[a-z0-9_\-\/])?/im.match(to_convert))
+      if md = (/(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&]*[a-z0-9_\-\/#])?/im.match(to_convert))
         result << md.pre_match << %Q(<a href="#{md[0]}">#{md[0].html_safe}</a>)
         to_convert = md.post_match
       else
