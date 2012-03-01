@@ -134,6 +134,6 @@ class PostsController < ApplicationController
   @@fake_posts = nil
   def trick_authorization
     @posts = @@fake_posts if @@fake_posts
-    @posts = @@fake_posts = Posts.find(1)
+    @posts = @@fake_posts = Posts.find(:first)
   end
 end
