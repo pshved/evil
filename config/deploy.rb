@@ -1,15 +1,15 @@
 require "bundler/capistrano"
 
-set :application, "xboard"
+set :application, "test"
 set :repository,  "git@coldattic.info:evil.git"
 set :branch,      "x-deploy"
 
 set :scm, :git
 # Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
 
-role :web, "x.coldattic.info"                          # Your HTTP server, Apache/etc
-role :app, "x.coldattic.info"                          # This may be the same as your `Web` server
-role :db,  "x.coldattic.info", :primary => true # This is where Rails migrations will run
+role :web, "test.coldattic.info"                          # Your HTTP server, Apache/etc
+role :app, "test.coldattic.info"                          # This may be the same as your `Web` server
+role :db,  "test.coldattic.info", :primary => true # This is where Rails migrations will run
 
 # if you're still using the script/reaper helper you will need
 # these http://github.com/rails/irs_process_scripts
@@ -23,7 +23,7 @@ namespace :deploy do
   end
 end
 
-set :deploy_to, '/var/www/xboard'
+set :deploy_to, '/var/www/test'
 set :user, 'zlowik'
 # Capistrano doesn't seem to have group setting...
 after 'deploy:update_code', 'deploy:chown'
