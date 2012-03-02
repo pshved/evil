@@ -56,6 +56,7 @@ class TextContainer < ActiveRecord::Base
   end
 
   # A more convenient method to mutate the container
+  # NOTE that you can't add [] method as well, because ActiveRecord uses it for something
   def []=(index,val)
     raise "Set up TextContainer before mutation!" if arity.nil?
     raise "Trying to mutate at #{index} when the arity is #{arity}" if arity <= index

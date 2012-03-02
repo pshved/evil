@@ -6,6 +6,7 @@
   - else
     (Edit forbidden)
 =render @post
+=render 'signature'
 %div.thread-tree
   = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
 %div

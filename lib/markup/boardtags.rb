@@ -75,8 +75,10 @@ usual_replacements = [
 # =======
 #
 # TODO : move this to app.config
+# Unfortunately, we can't use asset pipeline here, as this file is loaded _before_ the assets!
+# So we put smileys into the "public" folder, and print the direct html
 def make_smiley(smn)
-  "/pic/#{smn}"
+  %Q(<img src="/images/smileys/#{smn}"/>)
 end
 
 SMILE_REGISTRY = {

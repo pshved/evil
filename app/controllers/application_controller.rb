@@ -64,8 +64,8 @@ class ApplicationController < ActionController::Base
   def log_request
     spawn do
       Activity.create(:host => gethostbyaddr(request.remote_ip))
-      # Now cleanup all old activities
-      Activity.destroy_all(['created_at < ?', Time.now - Configurable[:activity_minutes].minutes])
+      # Now cleanup all old activities (NOTE the usage of delete_all instead of destroy_all: we do not need to load them!)
+      Activity.delete_all(['created_at < ?', Time.now - Configurable[:activity_minutes].minutes])
     end
   end
 
