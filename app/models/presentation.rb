@@ -10,7 +10,8 @@ class Presentation < ActiveRecord::Base
   def self.default
     Presentation.new(:time_zone => DEFAULT_TZ.name,
                      :threadpage_size => Configurable[:default_homepage_threads] || Kaminari.config.default_per_page,
-                     :highlight_self => true
+                     :highlight_self => true,
+                     :hide_signatures => false
                     )
   end
 

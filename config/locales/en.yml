@@ -16,3 +16,4 @@ en:
     errors:
       recaptcha_unavailable: 'Captcha timeout.  Try again please'
       verification_failed: 'You are a robot, not a human.  Try harder!'
+  signatures_are_hidden: The user has a signature, but you turned them off in your presentation settings!

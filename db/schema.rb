@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120302214910) do
+ActiveRecord::Schema.define(:version => 20120302223954) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -84,9 +84,10 @@ ActiveRecord::Schema.define(:version => 20120302214910) do
     t.datetime "updated_at"
     t.string   "time_zone",       :default => "Europe/Moscow"
     t.string   "name"
-    t.string   "cookie_key"
     t.datetime "accessed_at"
     t.boolean  "highlight_self",  :default => true
+    t.string   "cookie_key"
+    t.boolean  "hide_signatures", :default => false
   end
 
   add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"

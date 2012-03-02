@@ -2,6 +2,9 @@
   -signature = @post.user.formatted_signature
   -unless signature.blank?
     \----------
-    %br/
-    !=signature
+    -if current_presentation.hide_signatures
+      %div.signature-no=t :signatures_are_hidden
+    -else
+      %br/
+      %div.signature!=signature
 
