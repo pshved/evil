@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120227192348) do
+ActiveRecord::Schema.define(:version => 20120302214910) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -167,6 +167,9 @@ ActiveRecord::Schema.define(:version => 20120227192348) do
     t.datetime "updated_at"
     t.boolean  "demo",                    :default => false
     t.integer  "default_presentation_id"
+    t.integer  "signature"
   end
+
+  add_index "users", ["signature"], :name => "index_users_on_signature"
 
 end

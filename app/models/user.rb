@@ -62,4 +62,26 @@ class User < ActiveRecord::Base
 
   #Hidden posts
   has_and_belongs_to_many :hidden_posts, :class_name => 'Posts', :join_table => 'hidden_posts_users', :association_foreign_key => 'posts_id'
+
+  # Signature
+  belongs_to :signature, :autosave => true, :class_name => 'TextContainer', :foreign_key => 'signature'
+  validates_length_of :signature, :maximum => 333
+  protected
+  def ensure_signature
+    self.signature ||= TextContainer.make('')
+  end
+  public
+  def signature_body=(x)
+    ensure_signature[0] = x
+  end
+  def signature_body
+    ensure_signature.body[0]
+  end
+  def formatted_signature
+    ensure_signature.filtered[0]
+  end
+  # Belongs_to associations, unlike has_one, need to be saved explicitly
+  before_save do
+    signature.save
+  end
 end

@@ -26,6 +26,13 @@
     = f.label :email
     = f.text_field :email
     Write some crap here, no e-mail will be sent anyway!
+  %div.field
+    = f.label :signature_body
+    = f.text_area :signature_body, :cols => 50, :rows => 7
+  %div
+    Current signature:
+    %br/
+    != @user.formatted_signature
   - if !current_user && captcha_enabled
     =t :'recaptcha.prompt'
     = captcha_tags

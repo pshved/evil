@@ -142,7 +142,7 @@ class Posts < ActiveRecord::Base
     true
   end
 
-  # TODO: I don't understand why it's needeed with :autosave...
+  # Belongs_to associations, unlike has_one, need to be saved explicitly
   before_save do
     text_container.save
   end

@@ -1,0 +1,7 @@
+-if @post.user
+  -signature = @post.user.formatted_signature
+  -unless signature.blank?
+    \----------
+    %br/
+    !=signature
+
