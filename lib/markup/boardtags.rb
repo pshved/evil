@@ -162,17 +162,20 @@ class DefaultParseContext
 end
 
 module RegexpConvertNode
+  include ERB::Util
   def to_body
-    t = ERB::Util::html_escape(text_value)
+    # The HTML-escaping will be performed inside the HTML-conversion loop, so that we properly convert links with ampersands.
+    t = text_value
     # Now convert URLs to links
     result = ''
     to_convert = t
+    debugger
     while not to_convert.empty?
       # The regexp should detect URLs with ports, and do not include the trailing punctuation in 'http://ya.ru.' or 'http://ya.ru/url/.'
       # The beginning and the end contain lookahead assumptions to rule out converting links that are inside URL tags.
       # Match:  not-tag     protocol           // path                         country     ( port(if any), the rest, last should be an alnum) if any
-      if md = (/(?<!\[url=)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&]*[a-z0-9_\-\/#])?(?!\])/im.match(to_convert))
-        result << md.pre_match << %Q(<a href="#{md[0]}">#{md[0].html_safe}</a>)
+      if md = (/(?<!\[url=)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&\@:]*[a-z0-9_\-\/#\@:])?(?!\])/im.match(to_convert))
+        result << h(md.pre_match) << %Q(<a href="#{md[0].html_safe}">#{h md[0]}</a>)
         to_convert = md.post_match
       else
         # No more URLs left, returning
@@ -181,6 +184,8 @@ module RegexpConvertNode
       end
     end
     t = result
+    # The string is already HTML-safe at this point.
+
     # Find each conversion until it's exhausted
     TagConversions.each do |tcd|
       tag, conv = tcd
