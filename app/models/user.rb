@@ -65,7 +65,7 @@ class User < ActiveRecord::Base
 
   # Signature
   belongs_to :signature, :autosave => true, :class_name => 'TextContainer', :foreign_key => 'signature'
-  validates_length_of :signature, :maximum => 333
+  validates_length_of :signature_body, :maximum => 333
   protected
   def ensure_signature
     self.signature ||= TextContainer.make('')
