@@ -14,7 +14,7 @@ class FasterPost < ActiveRecord::Base
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
-  %w(title unreg_name user_login empty_body parent_id created_at hidden body body_filter).each {|m| send :define_method, m.to_sym do
+  %w(title unreg_name user_login empty_body parent_id created_at hidden body body_filter cache_timestamp).each {|m| send :define_method, m.to_sym do
     read_attribute_before_type_cast(m)
   end}
 
@@ -80,7 +80,7 @@ class FasterPost < ActiveRecord::Base
 
   # If a body and a body_filter are present, filter it!
   def filtered_body
-    TextContainer.filter(body,body_filter.to_sym)
+    TextContainer.filter_cached(body,body_filter.to_sym,id,1,cache_timestamp)
   end
 
   # TODO: Add loading actual Post on method_missing!  It will become a fully transparent proxy object then!

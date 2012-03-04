@@ -20,15 +20,33 @@ class TextContainer < ActiveRecord::Base
     end
   end
 
+  # Cached filter
+  def self.filter_cached(txt,filter,cache_id,cache_index,cache_key,context = nil)
+    Rails.cache.fetch("tc-#{cache_id}[#{cache_index}]+#{cache_key}") do
+      filter(txt,filter,context = nil)
+    end
+  end
+
   def filter_item(txt,context = nil)
     TextContainer.filter(txt,filter,context)
   end
 
+  def filter_item_cached(txt,index,context = nil)
+    if @unsaved_texts
+      # There are unsaved items.  We do not cache them!
+      TextContainer.filter(txt,filter,context)
+    else
+      TextContainer.filter_cached(txt,filter,id,index,updated_at,context)
+    end
+  end
+
   def filtered(context = nil)
     f = _items
-    f.map do |txt|
-      filter_item(txt,context)
+    r = []
+    f.each_with_index do |txt,i|
+      r << filter_item_cached(txt,i,context)
     end
+    r
   end
 
   def add_revision(*texts)

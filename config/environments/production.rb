@@ -37,7 +37,7 @@ Zlo::Application.configure do
   # config.logger = SyslogLogger.new
 
   # Use memcached in production
-  config.cache_store = :dalli_store, 'localhost:13822'
+  config.cache_store = :dalli_store, MEMCACHE_ADDR
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"

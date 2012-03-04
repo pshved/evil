@@ -14,6 +14,10 @@ ENV['TZ'] = 'UTC' # This makes Time.now return time in UTC
 
 POST_FEED_LENGTH = 100
 
+# Host:port for memcache server
+MEMCACHE_ADDR = 'localhost:13822'
+DEFAULT_PRESENTATION_MTIME = Time.now
+
 module Zlo
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.

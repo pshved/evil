@@ -7,11 +7,16 @@ class Presentation < ActiveRecord::Base
   validates_uniqueness_of :cookie_key, :unless => proc {|p| p.cookie_key.nil?}
 
   # Returns default presentation
+  @@default_presentation = nil
   def self.default
-    Presentation.new(:time_zone => DEFAULT_TZ.name,
+    @@default_presentation ||= Presentation.new(
+                     :time_zone => DEFAULT_TZ.name,
                      :threadpage_size => Configurable[:default_homepage_threads] || Kaminari.config.default_per_page,
                      :highlight_self => true,
-                     :hide_signatures => false
+                     :hide_signatures => false,
+                     # Updated_at is very important for caching.  It serves as a cache key for all guest users.
+                     # The default presentation may change either at server restart or when admin adjusts the configuration.  We account for both, whichever happens last.
+                     :updated_at => [Configurable.maximum('updated_at'),DEFAULT_PRESENTATION_MTIME].max
                     )
   end
 
