@@ -169,7 +169,6 @@ module RegexpConvertNode
     # Now convert URLs to links
     result = ''
     to_convert = t
-    debugger
     while not to_convert.empty?
       # The regexp should detect URLs with ports, and do not include the trailing punctuation in 'http://ya.ru.' or 'http://ya.ru/url/.'
       # The beginning and the end contain lookahead assumptions to rule out converting links that are inside URL tags.

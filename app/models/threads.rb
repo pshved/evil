@@ -26,7 +26,7 @@ class Threads < ActiveRecord::Base
   # Fast posts fetcher only stores titles
   has_many :faster_posts,
     :class_name => 'FasterPost',
-    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden
+    :finder_sql => proc { "select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden, text_containers.updated_at as cache_timestamp
     from posts
     join text_containers on posts.text_container_id = text_containers.id
     join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
