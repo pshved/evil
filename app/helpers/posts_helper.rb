@@ -75,20 +75,21 @@ module PostsHelper
     tz.utc_to_local(time).strftime("%d.%m.%Y %H:%M")
   end
 
+  # Casted after the tree is printed.  Changes the class of the span the current post's header is wrapped, so that it looks differently
+  def post_span_replace(post,tree_string)
+    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,'<!--post:#{post.id}--><span class="this-post-oneline">')
+  end
+
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
   def fast_print(post, tz, buf = '')
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
 
     # Post title (link or plain, depending on whether it's the current post)
-    # We strip whitespace from the post's title
-    post_title = post.title.strip
-    if @post && (post.id == @post.id)
-      buf << %Q(<span class="this-post-oneline">) << h(post_title) << %Q(</span>)
-    else
-      buf << %Q(<span class="post-oneline">)
-      fast_link[buf,post]
-      buf << %Q(</span>)
-    end
+    # Warning!  This comment with a post's ID is used to replace the span's class to match the post.  See post_span_replace function.
+    buf << %Q(<!--post:#{post.id}--><span class="post-oneline">)
+    # This already prints to the buf!  Do not append, or your memory will blow!
+    fast_link[buf,post]
+    buf << %Q(</span>)
     if post.empty_body?
       buf << ' (-)'
     else
@@ -139,7 +140,8 @@ module PostsHelper
     return !hidden
   end
 
-  def fast_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
+  # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
+  def fast_generic_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
     # If start is nil, then we're printing the index, and skip the post itself.
     fast_print(start,tz,buf) if start
     # Show if post is hidden, and display the toggle
@@ -153,10 +155,44 @@ module PostsHelper
     buf << %Q(<ul>\n)
     kids.each do |child|
       buf << %Q(<li>)
-      fast_tree(buf,tree,child,hides,tz)
+      fast_generic_tree(buf,tree,child,hides,tz)
       buf << %Q(</li>\n)
     end
     buf << %Q(</ul>\n)
+  end
+
+  def fast_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
+    prepped = fast_generic_tree(buf,tree,start,hides,tz)
+    post_span_replace(@post,prepped)
+  end
+
+  # A convenience helper to get a cache-stamp of something.  This "something" usually has a modification time accessible via "updated_at" and an id.
+  def key_of(something)
+    "#{something.id}@#{something.updated_at}"
+  end
+
+  # Returns the cached HTML for the tree of the "thr" thread.  Accounts for @post.
+  def fast_tree_cache(thr,buf,start,presentation)
+    # The wat a thread is displayed depends on many factors.
+    # - thread itself (identified by id and modification time);
+    # - the user itself (his or her name may be colored), identified by id *and* modification time (think altnames!).  This implies that its roles are already accounted for.
+    # - the user's presentation (identified by its id and mtime)
+    # - the current thread (this is fixed by a kludgy regexp).
+    # x user's timezone (this is accounted for in the presentations)
+    # x what post we are showing (it's @post).  This will be replaces with a regexp-like kludge.
+    # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
+    thread_key = key_of thr
+    user_key = current_user ? key_of(current_user) : 'guest'
+    presentation_key = key_of presentation
+    cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}"
+    logger.debug "Tree for key: '#{cache_key}'"
+    # Get the prepared thread to incur the current post into it
+    prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
+      logger.debug "Tree for key: '#{cache_key}' miss!"
+      fast_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz)
+    end
+    # Replace current post
+    post_span_replace(@post,prepped)
   end
 
 end

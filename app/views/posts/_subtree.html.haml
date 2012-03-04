@@ -1,13 +1,12 @@
 -# coding: utf-8
 -# To improve performance, you must supply thread to this partial
 - thr = @thread || thread
--if post
-  - if defined?(fast) && fast
-    - buf = ''
-    -# User's view settings have been passed in controller
-    -tz = current_presentation.tz
-    != fast_tree(buf,thr.build_subtree_fast,post,thr.hides_fast,tz)
-  -else
+- if defined?(fast) && fast
+  - buf = ''
+  -# 'start' post is nil, which means we display the whole thread.  We save a DB request by not fetching it!
+  != fast_tree_cache(thr,buf,nil,current_presentation)
+-else
+  -if post
     = render :partial => 'posts/header_line', :locals => {:post => post, :thr => thr}
     -# TODO: this partial and heder_line compute the "hidden" two times.  This may be optimized
     -#We only hide posts in the index, hence @show_all_posts condition!

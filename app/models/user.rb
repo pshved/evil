@@ -84,4 +84,9 @@ class User < ActiveRecord::Base
   before_save do
     signature.save
   end
+
+  # Caching
+  def user_roles_key
+    current_user ? current_user.roles.map(&:name).join(',') : 'guest'
+  end
 end

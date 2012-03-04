@@ -2,7 +2,8 @@
   - current_presentation_cache = current_presentation
   - @threads.each do |t|
     - if defined?(fast) && fast
-      %li= render :partial => 'posts/subtree', :locals => {:post => t.fast_head, :thread => t, :fast => true, :current_presentation => current_presentation_cache}
+      -# we do not always need to fetch the head if we're using a fast index
+      %li= render :partial => 'posts/subtree', :locals => {:post => nil, :thread => t, :fast => true, :current_presentation => current_presentation_cache}
     - else
       %li= render :partial => 'posts/subtree', :locals => {:post => t.head, :thread => t}
 =paginate @threads

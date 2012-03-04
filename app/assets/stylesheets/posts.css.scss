@@ -16,9 +16,17 @@ span.post-oneline
 {
 }
 
-span.this-post-oneline
+// Due to caching, when highlighting a post in a large thread, we can't just make it not <a> tag.  Instead, we adjust the stype of the wrapping <span> so that the link doesn't look like one.  Do not try to change this, please.
+span.this-post-oneline a
 {
   font-weight: bold;
+  text-decoration: none;
+  color: #000;
+  &:visited {}
+  &:hover {
+    background-color: #fff;
+    color: #000;
+  }
 }
 
 span.post-unreg
