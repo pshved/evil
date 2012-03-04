@@ -178,13 +178,14 @@ module PostsHelper
     # - the user itself (his or her name may be colored), identified by id *and* modification time (think altnames!).  This implies that its roles are already accounted for.
     # - the user's presentation (identified by its id and mtime)
     # - the current thread (this is fixed by a kludgy regexp).
+    # - global configuration of the site (modification time of it);
     # x user's timezone (this is accounted for in the presentations)
     # x what post we are showing (it's @post).  This will be replaces with a regexp-like kludge.
     # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
     thread_key = key_of thr
     user_key = current_user ? key_of(current_user) : 'guest'
     presentation_key = key_of presentation
-    cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}"
+    cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}-global:#{config_mtime}"
     logger.debug "Tree for key: '#{cache_key}'"
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
