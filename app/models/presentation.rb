@@ -9,7 +9,8 @@ class Presentation < ActiveRecord::Base
   # Returns default presentation
   @@default_presentation = nil
   def self.default
-    @@default_presentation ||= Presentation.new(
+    # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
+    Presentation.new(
                      :time_zone => DEFAULT_TZ.name,
                      :threadpage_size => Configurable[:default_homepage_threads] || Kaminari.config.default_per_page,
                      :highlight_self => true,
