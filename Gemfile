@@ -79,3 +79,6 @@ gem "recaptcha", :require => "recaptcha/rails"
 
 # Thread/fork spawner
 gem 'spawn', :git => 'git://github.com/tra/spawn', :branch => 'edge'
+
+# Caching (memcached)
+gem 'dalli'
