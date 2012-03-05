@@ -27,6 +27,7 @@ Zlo::Application.routes.draw do
     end
     collection do
       get :edit_local
+      get :edit_default
     end
   end
 

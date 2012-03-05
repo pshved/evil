@@ -2,12 +2,13 @@ class PresentationsController < ApplicationController
   before_filter :new_presentation_from_params, :only => [:create]
   before_filter :new_presentation, :only => [:new]
   before_filter :find_presentation, :only => [:destroy,:update,:edit,:show,:clone,:use,:make_default]
-  before_filter :find_presentations, :except => [:edit_local]
+  before_filter :find_presentations, :except => [:edit_local,:edit_default]
 
   filter_access_to :create, :new, :show, :attribute_check => true
   filter_access_to :clone, :require => :create, :attribute_check => true
   filter_access_to :use, :make_default, :require => :update, :attribute_check => true
   filter_access_to :index, :attribute_check => false
+  filter_access_to :edit_default, :attribute_check => false
 
   # GET /presentations
   # GET /presentations.json
@@ -97,7 +98,13 @@ class PresentationsController < ApplicationController
       return
     end
     @presentations = []
-    @presentation = current_presentation
+    # If the current presentation is global, then duplicate it
+    @presentation = current_presentation(:never_global => true)
+  end
+
+  def edit_default
+    @presentations = []
+    @presentation = Presentation.default
   end
 
   private
@@ -110,8 +117,9 @@ class PresentationsController < ApplicationController
 
   def new_presentation_from_params
     if current_user
-      # Create presentation for the user
-      @presentation = Presentation.new(params[:presentation].merge(:user => current_user))
+      # Create presentation for the user (if it's not a global, site-wide, special presentation
+      user_hash = params[:presentation][:global] ? {} : {:user => current_user}
+      @presentation = Presentation.new(params[:presentation].merge(user_hash))
     else
       # Create local presentation
       @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies)

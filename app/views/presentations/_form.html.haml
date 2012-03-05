@@ -7,6 +7,7 @@
       %ul
         -@presentation.errors.full_messages.each do |msg|
           %li= msg
+  = f.hidden_field :global
   %div.field
     = f.label :threadpage_size
     = f.number_field :threadpage_size

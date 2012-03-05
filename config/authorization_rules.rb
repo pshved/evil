@@ -23,6 +23,7 @@ authorization do
     has_permission_on :presentations, :to => [:create, :update], :join_by => :and do
       if_attribute :user => is { nil }
       if_attribute :cookie_key => is_not { nil }
+      if_attribute :global => is_not { true }
     end
   end
 
@@ -45,8 +46,9 @@ authorization do
 
     # Presentations are aready tied to the current_user as an owner, so there's no need to check attributes
     has_permission_on :presentations, :to => :index
-    has_permission_on :presentations, :to => [:create, :update] do
+    has_permission_on :presentations, :to => [:create, :update], :join_by => :and do
       if_attribute :user => is { user }
+      if_attribute :global => is_not { true }
     end
 
     # Show/hide posts
@@ -83,6 +85,10 @@ authorization do
 
     # Manage site-wide configuration options
     has_permission_on :admin_configurables, :to => :manage
+    has_permission_on :presentations, :to => :edit_default
+    has_permission_on :presentations, :to => [:update,:create] do
+      if_attribute :global => is { true }
+    end
   end
 end
 
