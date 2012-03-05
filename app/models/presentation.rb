@@ -14,7 +14,7 @@ class Presentation < ActiveRecord::Base
                      :name => 'site_global',
                      :global => true,
                      :time_zone => DEFAULT_TZ.name,
-                     :threadpage_size => Configurable[:default_homepage_threads] || Kaminari.config.default_per_page,
+                     :threadpage_size => 50,
                      :highlight_self => true,
                      :hide_signatures => false,
                      # Updated_at is very important for caching.  It serves as a cache key for all guest users.

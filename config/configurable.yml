@@ -20,22 +20,6 @@ site_title:
   default: Just a forum
   type: string
 
-autowrap_thread_threshold:
-  name: Subthreads will be auto-wrapped as soon as they hit this depth
-  default: 8
-  type: integer
-
-autowrap_thread_value:
-  name: Thread wrap depth
-  default: 5
-  type: integer
-
-# TODO: replace with admin view
-default_homepage_threads:
-  name: Number of threads at homepage for guests
-  default: 50
-  type: integer
-
 recaptcha_public:
   name: Recaptcha public key (set to empty string to disable captcha at all)
   default:

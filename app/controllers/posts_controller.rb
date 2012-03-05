@@ -128,6 +128,7 @@ class PostsController < ApplicationController
   def find_thread
     Threads.settings_for = current_user
     @thread = @post.thread
+    @thread.presentation = current_presentation
   end
   def init_loginpost
   end
