@@ -10,9 +10,11 @@ class Presentation < ActiveRecord::Base
   @@default_presentation = nil
   def self.default
     # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
-    Presentation.new(
+    Presentation.where('global = true').first || Presentation.new(
+                     :name => 'site_global',
+                     :global => true,
                      :time_zone => DEFAULT_TZ.name,
-                     :threadpage_size => Configurable[:default_homepage_threads] || Kaminari.config.default_per_page,
+                     :threadpage_size => 50,
                      :highlight_self => true,
                      :hide_signatures => false,
                      # Updated_at is very important for caching.  It serves as a cache key for all guest users.
@@ -50,7 +52,8 @@ class Presentation < ActiveRecord::Base
   # Loads the presentation from cookies
   def self.from_cookies(cookies)
     key = cookies[:presentation_key]
-    if r = Presentation.find_last_by_cookie_key_and_user_id(key,nil)
+    # Global presentation has cookie_key and user_id equal to nil, but global is "true" for it.
+    if r = Presentation.find_last_by_cookie_key_and_user_id_and_global(key,nil,false)
       # Technically, we need to update access time each time we load the presentation.  This would exhibit high load on the server.
       # Instead, we update only in 1% of accesses.
       if rand < (1.0/UPDATE_VIEW_ACCESS_TIME_PER)
@@ -59,7 +62,8 @@ class Presentation < ActiveRecord::Base
       end
       r
     else
-      Presentation.default
+      # If there's no presentation in cookies, return nothing.  We'll get to the default presentation via controller's current_presentation
+      nil
     end
   end
 
@@ -77,6 +81,9 @@ class Presentation < ActiveRecord::Base
   # Generate a name that's not already been taken
   # NOTE that there's an obiovus race condition: a unique name may be already taken at the point of creation, but it's scoped to the user, so we leave it to him or her
   def unique_name(base = 'view')
+    # This may be called when we're dupping the default global presentation for a cookie key.  Then, we don't have a user, and will never have
+    return name unless self.user
+    # Ok, we're dupping one of the user's presentation
     user_has = self.user.presentations.length
     while self.user.presentations.where(['name = ?', "#{base}#{user_has}"]).first
       user_has += 1

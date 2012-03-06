@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120302223954) do
+ActiveRecord::Schema.define(:version => 20120305201628) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -82,15 +82,19 @@ ActiveRecord::Schema.define(:version => 20120302223954) do
     t.integer  "user_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "time_zone",       :default => "Europe/Moscow"
+    t.string   "time_zone",                 :default => "Europe/Moscow"
     t.string   "name"
     t.datetime "accessed_at"
-    t.boolean  "highlight_self",  :default => true
+    t.boolean  "highlight_self",            :default => true
     t.string   "cookie_key"
-    t.boolean  "hide_signatures", :default => false
+    t.boolean  "hide_signatures",           :default => false
+    t.boolean  "global",                    :default => false
+    t.integer  "autowrap_thread_threshold", :default => 100
+    t.integer  "autowrap_thread_value",     :default => 100
   end
 
   add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"
+  add_index "presentations", ["global"], :name => "index_presentations_on_global"
   add_index "presentations", ["name"], :name => "index_presentations_on_name"
   add_index "presentations", ["user_id", "name"], :name => "index_presentations_on_user_id_and_name"
   add_index "presentations", ["user_id"], :name => "index_presentations_on_user_id"

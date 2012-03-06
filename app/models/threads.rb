@@ -57,6 +57,11 @@ class Threads < ActiveRecord::Base
     @@settings_for
   end
 
+  attr_accessor :presentation
+  def presentation
+    @presentation || Presentation.default
+  end
+
   # As this model does not persist across requests, we may safely cache it
   protected; def ensure_subtree_fast_cache
     unless @cached_subtree_fast
@@ -110,8 +115,8 @@ class Threads < ActiveRecord::Base
     end
     hides = {}
     # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
-    threshold = Configurable[:autowrap_thread_threshold]
-    value = Configurable[:autowrap_thread_value]
+    threshold = presentation.autowrap_thread_threshold
+    value = presentation.autowrap_thread_value
     compute_hides(idtree,idtree[nil][0],hides,threshold,value)
     r_hides = hides
 

@@ -14,15 +14,21 @@ class ApplicationController < ActionController::Base
       @current_user = current_user_session && current_user_session.user
     end
 
-  def current_presentation
-    if current_user
-      current_user.current_presentation(cookies)
+  def current_presentation(opts = {})
+    if u = (current_user ? current_user : opts[:user])
+      u.current_presentation(cookies)
     elsif from_cookies = Presentation.from_cookies(cookies)
       # from_cookies may record access time of the presentation
       from_cookies
     else
-      return @default_presentation if @default_presentation
-      @default_presentation = Presentation.default
+      if opts[:never_global]
+        # If we do not want a global presentation (i.e. we create a new one for an unreg), we should clone it *and* reset if it's global
+        p = Presentation.default.clone
+        p.global = false
+        p
+      else
+        Presentation.default
+      end
     end
   end
   # Allow its use in views (moreover, it's unlikely we'll use it in the controller at all)
@@ -35,6 +41,9 @@ class ApplicationController < ActionController::Base
     @threads = Threads.order("created_at DESC").page(params[:page])
     thread_page_size = current_presentation.threadpage_size
     @threads = @threads.per(thread_page_size)
+    # Assign presentation to threads, so we know how to display them
+    cpres = current_presentation
+    @threads.each {|t| t.presentation = cpres}
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end

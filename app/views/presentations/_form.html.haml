@@ -7,6 +7,7 @@
       %ul
         -@presentation.errors.full_messages.each do |msg|
           %li= msg
+  = f.hidden_field :global
   %div.field
     = f.label :threadpage_size
     = f.number_field :threadpage_size
@@ -22,5 +23,11 @@
   %div.field
     = f.label :hide_signatures
     = f.check_box :hide_signatures
+  %div.field
+    = f.label :autowrap_thread_value
+    = f.number_field :autowrap_thread_value
+  %div.field
+    = f.label :autowrap_thread_threshold
+    = f.number_field :autowrap_thread_threshold
   %div.actions
     = f.submit

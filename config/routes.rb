@@ -27,7 +27,13 @@ Zlo::Application.routes.draw do
     end
     collection do
       get :edit_local
+      get :edit_default
     end
+  end
+
+  namespace :admin do
+    # Configurable_engine is already included here via its own routes
+    get 'index' => 'specials#index'
   end
 
   # The priority is based upon order of creation:
