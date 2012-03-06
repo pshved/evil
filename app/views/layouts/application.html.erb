@@ -23,6 +23,9 @@
       Edit profile |
       Private Msgs |
     <% end %>
+    <% if permitted_to? :manage, :admin_specials %>
+      <%= link_to_unless_current "Admin settings", admin_index_path %> |
+    <% end %>
     <%= link_to_unless_current "View settings", view_settings_path  %> |
     <%= link_to_unless_current "Latest Messages", latest_posts_path  %> |
     <%= link_to_unless_current "RSS", latest_posts_path(:format => :rss)  %> |

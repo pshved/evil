@@ -85,6 +85,7 @@ authorization do
 
     # Manage site-wide configuration options
     has_permission_on :admin_configurables, :to => :manage
+    has_permission_on :admin_specials, :to => :manage
     has_permission_on :presentations, :to => :edit_default
     has_permission_on :presentations, :to => [:update,:create] do
       if_attribute :global => is { true }
