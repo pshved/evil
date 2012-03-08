@@ -23,6 +23,16 @@ class Posts < ActiveRecord::Base
   # Check that there's no two imported posts with the same ID (not strict because we may want to return a value to an importer)
   validates_uniqueness_of :back, :unless => proc {|p| p.back.blank?}
 
+  # This checks that you are not replying to a closed thread, or to a deleted post
+  validate :replies_to_open?
+
+  # Check if the username and password are valid.  These are either valid credentials for a registred user, or a password-less
+  def replies_to_open?
+    if parent && parent.deleted
+      errors.add(:base, "You can't reply to a deleted post!")
+    end
+  end
+
   # Other validations
   extend PostValidators
   validates_post_attrs
