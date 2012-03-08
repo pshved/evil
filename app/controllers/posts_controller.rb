@@ -100,20 +100,9 @@ class PostsController < ApplicationController
 
   def latest
     # Get threads for the latest
-    # TODO: make it DRY with Threads model!
-    settings_for = current_user
     length = params[:number].blank? ? POST_FEED_LENGTH : params[:number].to_i
     # This fetches bodies as well, but they're rendered only at the view
-    @posts = FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden, body_items.body as body, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp
-    from posts
-    join text_containers on posts.text_container_id = text_containers.id
-    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
-    join text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)
-    left join users on posts.user_id = users.id
-    left join clicks on clicks.post_id = posts.id
-    left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
-    where text_items.number = 0 and body_items.number = 1
-    order by posts.created_at desc limit ?", length])
+    @posts = FasterPost.latest(length,current_user,permitted_to?(:see_deleted,:posts))
 
     respond_to do |format|
       format.html # latest.html.erb
@@ -127,6 +116,7 @@ class PostsController < ApplicationController
     # Remove post, and if it was an only post in a thread, remove the thread as well.
     # The post and the thread have already been found in the filters
     @post.deleted = true
+    # NOTE that the thread will be updated at the @post.save due to a wisely specified :autosave attribute at association, and the caches will be rebuilt.
     if @post.save
       # The post was deleted, add a record to the moderation log
       ModerationAction.create(:post => @post, :user => current_user, :reason => 'Remove SPAM')

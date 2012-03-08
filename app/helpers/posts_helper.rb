@@ -59,6 +59,14 @@ module PostsHelper
 
   end
 
+  def unless_deleted(post)
+    # Cache user's permission to view deleted posts
+    if @_can_see_deleted.nil?
+      @_can_see_deleted = permitted_to? :see_deleted, :posts
+    end
+    yield unless !@_can_see_deleted && post.deleted
+  end
+
   # Returns proc that returns if the user name given should be highlighted.  Encapsulates current user and presentation.
   def should_highlight
     return @_should_highlight if @_should_highlight
@@ -83,6 +91,10 @@ module PostsHelper
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
   def fast_print(post, tz, buf = '')
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
+
+    # Some users may view deleted posts (if they're privileged enough).
+    # See the closing tag the end of the function
+    buf << %Q(<span class="post-deleted">) if post.deleted
 
     # Post title (link or plain, depending on whether it's the current post)
     # Warning!  This comment with a post's ID is used to replace the span's class to match the post.  See post_span_replace function.
@@ -119,6 +131,9 @@ module PostsHelper
     end
     buf << " (#{post.host}) "
     buf << %Q(<span class="post-timestamp">) << time_for_header(post.created_at,tz) << %Q(</span>)
+
+    # See the opening tag the end of the function
+    buf << %Q(</span>) if post.deleted
   end
 
   def fast_showhide(post,tree,thread_hides,buf = '')
@@ -143,7 +158,7 @@ module PostsHelper
   # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
   def fast_generic_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
     # If start is nil, then we're printing the index, and skip the post itself.
-    fast_print(start,tz,buf) if start
+    unless_deleted(start){fast_print(start,tz,buf)} if start
     # Show if post is hidden, and display the toggle
     post_shown = fast_showhide(start,tree,hides,buf)
     unless post_shown
@@ -154,9 +169,11 @@ module PostsHelper
     return buf unless kids
     buf << %Q(<ul>\n)
     kids.each do |child|
-      buf << %Q(<li>)
-      fast_generic_tree(buf,tree,child,hides,tz)
-      buf << %Q(</li>\n)
+      unless_deleted child do
+        buf << %Q(<li>)
+        fast_generic_tree(buf,tree,child,hides,tz)
+        buf << %Q(</li>\n)
+      end
     end
     buf << %Q(</ul>\n)
   end

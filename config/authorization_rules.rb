@@ -56,6 +56,12 @@ authorization do
 
     # Read information about moderation actions
     has_permission_on :moderation_actions, :to => :list
+
+    # Users can see hidden posts if their message count is big enough
+    # TODO: when you'll implement this, add a dummy method "exp_requirement" to Posts model, and make it return a const from initializers
+    #has_permission_on :posts, :to => :see_deleted do
+      #if_attribute :exp_requirement => lte { user.message_count }
+    #end
   end
 
   role :user do
@@ -81,6 +87,8 @@ authorization do
 
     # Moderators can hide posts (hidden posts are visible only to very mature users; unregs and search robots do not see them)
     has_permission_on :posts, :to => :remove
+    # Moderators can see hidden posts
+    has_permission_on :posts, :to => :see_deleted
   end
 
   role :admin do
