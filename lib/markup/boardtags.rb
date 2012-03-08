@@ -15,7 +15,7 @@ TagConversions = [
   ['s',        proc {|inner| %Q(<span class="s">#{inner}</span>)}],
   ['red',      proc {|inner| %Q(<span style="color:red">#{inner}</span>)}],
   ['color',    proc {|inner,color| %Q(<span style="color:#{color}">#{inner}</span>)}],
-  # URL are also handled specifically when we are converting simple links
+  # Links are also created when user posts an URL in the body of their post.  It also should set the same $c attribute!
   ['url',      proc {|inner,url| $c.sign[:url] = true;  %Q(<a href="#{url}" target=_blank>#{inner}</a>)}],
   ['pic',      proc {|inner| $c.sign[:pic] = true;  %Q(<img class="imgtag" src="#{inner}"/>)}],
   ['hr',       proc {|| %Q(<hr/>)}],
@@ -176,6 +176,8 @@ module RegexpConvertNode
       if md = (/(?<!\[url=)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&\@:]*[a-z0-9_\-\/#\@:])?(?!\])/im.match(to_convert))
         result << h(md.pre_match) << %Q(<a href="#{md[0].html_safe}">#{h md[0]}</a>)
         to_convert = md.post_match
+        # Set post's attribute.  Do not forget to sync with [url] tag callback!
+        $c.sign[:url] = true
       else
         # No more URLs left, returning
         result += to_convert
