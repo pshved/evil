@@ -1,8 +1,17 @@
-%div#mainpost
-  %center
-    %div.post-title
+%div.post-header
+  %div.tools
+    -# Post Editing link (moved here from index to make it faster)
+    - if permitted_to? :edit, @post
+      = link_to t("Edit"), edit_post_path(@post)
+    - else
+      (Can't edit)
+  %div#mainpost
+    %div.title
       = @post.title
-  %div.post-body
-    -# Note that we do not strip the post in DB, but rather do it in the view
-    != @post.filtered_body.strip
+    %div.author
+      Sent by
+      = link_to @post.user.name, user_path(@post.user)
+%div.post-body
+  -# Note that we do not strip the post in DB, but rather do it in the view
+  != @post.filtered_body.strip
 

@@ -40,3 +40,15 @@ span.post-self a
   color: red;
 }
 
+// Post's header in single-post view
+.post-header .title
+{
+  font-weight: bold;
+}
+
+.post-header .tools
+{
+  float: right;
+  text-align: right;
+}
+
