@@ -77,7 +77,7 @@ module PostsHelper
 
   # Casted after the tree is printed.  Changes the class of the span the current post's header is wrapped, so that it looks differently
   def post_span_replace(post,tree_string)
-    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,'<!--post:#{post.id}--><span class="this-post-oneline">')
+    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,%Q(<!--post:#{post.id}--><span class="this-post-oneline">))
   end
 
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
@@ -190,7 +190,7 @@ module PostsHelper
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
       logger.debug "Tree for key: '#{cache_key}' miss!"
-      fast_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz)
+      fast_generic_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz)
     end
     # Replace current post
     post_span_replace(@post,prepped)
