@@ -29,6 +29,7 @@
     <%= link_to_unless_current "View settings", view_settings_path  %> |
     <%= link_to_unless_current "Latest Messages", latest_posts_path  %> |
     <%= link_to_unless_current "RSS", latest_posts_path(:format => :rss)  %> |
+    <%= link_to_unless_current "Moderation Log", moderation_actions_path()  %> |
   </div>
   <%= render :partial => 'activities/stats' %>
 

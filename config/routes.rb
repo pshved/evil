@@ -36,6 +36,8 @@ Zlo::Application.routes.draw do
     get 'index' => 'specials#index'
   end
 
+  resources :moderation_actions, :path => 'moder'
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
