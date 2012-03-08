@@ -7,7 +7,11 @@
 =render 'signature'
 %div.thread-tree
   = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
-%div
-  = render :partial => 'loginpost'
+-unless @post.deleted
+  %div
+    = render :partial => 'loginpost'
+-else
+  %div.hint
+    You can't reply to a deleted post!
 
 

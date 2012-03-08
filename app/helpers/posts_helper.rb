@@ -117,6 +117,7 @@ module PostsHelper
     end
     buf << ' - '
     # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
+    # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
     if this_login = post.user_login
       # Highlight message, if necessary
       if should_highlight[this_login]

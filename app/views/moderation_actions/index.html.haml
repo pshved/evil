@@ -2,7 +2,7 @@
 %ul
   -@moderation_actions.each do |ma|
     %li
-      = user_link ma.user
+      - user_link ma.user
       has deleted
       = link_to "post \##{ma.post.id}", post_path(ma.post)
       at
