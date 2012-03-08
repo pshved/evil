@@ -3,8 +3,12 @@
     -# Post Editing link (moved here from index to make it faster)
     - if permitted_to? :edit, @post
       = link_to t("Edit"), edit_post_path(@post)
+      %br/
     - else
       (Can't edit)
+    -# Moderation
+    - if permitted_to? :remove, @post
+      = link_to t("SPAM!"), remove_post_path(@post), :confirm => "Are you sure you want to remove this post as SPAM?"
   %div#mainpost
     %div.title
       = @post.title

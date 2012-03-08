@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120305201628) do
+ActiveRecord::Schema.define(:version => 20120307203704) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -56,6 +56,17 @@ ActiveRecord::Schema.define(:version => 20120305201628) do
 
   add_index "imports", ["post_id"], :name => "index_imports_on_post_id"
 
+  create_table "moderation_actions", :force => true do |t|
+    t.integer  "post_id"
+    t.integer  "user_id"
+    t.string   "reason"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "moderation_actions", ["post_id"], :name => "index_moderation_actions_on_post_id"
+  add_index "moderation_actions", ["user_id"], :name => "index_moderation_actions_on_user_id"
+
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
     t.integer  "text_container_id"
@@ -69,6 +80,7 @@ ActiveRecord::Schema.define(:version => 20120305201628) do
     t.string   "marks"
     t.string   "back"
     t.boolean  "empty_body"
+    t.boolean  "deleted",           :default => false
   end
 
   add_index "posts", ["back"], :name => "index_posts_on_back"

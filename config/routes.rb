@@ -9,7 +9,7 @@ Zlo::Application.routes.draw do
   resources :users
   resources :posts, :path => 'p' do
     member do
-      get :toggle_showhide
+      get :toggle_showhide, :remove
     end
     collection do
       get :latest

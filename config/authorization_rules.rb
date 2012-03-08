@@ -53,6 +53,9 @@ authorization do
 
     # Show/hide posts
     has_permission_on :posts, :to => :toggle_showhide
+
+    # Read information about moderation actions
+    has_permission_on :moderation_actions, :to => :list
   end
 
   role :user do
@@ -75,7 +78,9 @@ authorization do
 
   role :moderator do
     includes :user
-    has_permission_on :threads, :to => :manage
+
+    # Moderators can hide posts (hidden posts are visible only to very mature users; unregs and search robots do not see them)
+    has_permission_on :posts, :to => :remove
   end
 
   role :admin do
@@ -90,6 +95,9 @@ authorization do
     has_permission_on :presentations, :to => [:update,:create] do
       if_attribute :global => is { true }
     end
+
+    # Admins can also remove posts permanently
+    has_permission_on :posts, :to => [:manage, :remove]
   end
 end
 

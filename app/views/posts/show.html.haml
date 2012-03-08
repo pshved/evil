@@ -1,6 +1,8 @@
 %div.post-intro
   Showing post
   = link_to "\##{@post.id}", post_path(@post)
+  -if @post.deleted
+    %span.deleted-mark DELETED!
 =render @post
 =render 'signature'
 %div.thread-tree

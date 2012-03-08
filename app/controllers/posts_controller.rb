@@ -1,6 +1,6 @@
 class PostsController < ApplicationController
-  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide]
-  before_filter :find_thread, :only => [:edit, :update, :show]
+  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
+  before_filter :find_thread, :only => [:edit, :update, :show, :remove]
   before_filter :init_loginpost, :only => [:edit, :update]
 
   # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
@@ -118,6 +118,29 @@ class PostsController < ApplicationController
     respond_to do |format|
       format.html # latest.html.erb
       format.rss { render :layout => false }
+    end
+  end
+
+  # This action doesn't permanently remove the post from database.  It hides the post, so that it can be only viewed by very few users.
+  # This action will be used by moderators to remove posts and spam.
+  def remove
+    # Remove post, and if it was an only post in a thread, remove the thread as well.
+    # The post and the thread have already been found in the filters
+    @post.deleted = true
+    if @post.save
+      # The post was deleted, add a record to the moderation log
+      ModerationAction.create(:post => @post, :user => current_user, :reason => 'Remove SPAM')
+      # This post may have children.  Remove them as well in a separate thread.
+      spawn do
+        @post.hide_kids(current_user,"Belongs to subthread of a removed #{post_url(@post)} due to Remove SPAM!")
+      end
+      respond_to do |format|
+        format.html { redirect_to @post, notice: "The post and its subthread has been removed.  Regular users will not see it." }
+      end
+    else
+      respond_to do |format|
+        format.html { render action: "edit", notice: "Can't delete post; try to edit it?" }
+      end
     end
   end
 
