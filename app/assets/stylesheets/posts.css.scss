@@ -40,3 +40,26 @@ span.post-self a
   color: red;
 }
 
+.post-deleted
+{
+  text-decoration: line-through;
+}
+
+// Post's header in single-post view
+.post-header .title
+{
+  font-weight: bold;
+}
+
+.post-header .tools
+{
+  float: right;
+  text-align: right;
+}
+
+.deleted-mark
+{
+  color: red;
+  font-weight: bold;
+}
+

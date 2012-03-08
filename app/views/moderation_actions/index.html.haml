@@ -1,0 +1,14 @@
+%h1 Moderation History
+%ul
+  -@moderation_actions.each do |ma|
+    %li
+      = user_link ma.user
+      has deleted
+      = link_to "post \##{ma.post.id}", post_path(ma.post)
+      at
+      ="#{user_time ma.created_at}."
+      Reason:
+      = ma.reason
+
+%p
+  =paginate @moderation_actions

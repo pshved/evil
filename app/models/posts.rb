@@ -166,4 +166,26 @@ class Posts < ActiveRecord::Base
     user.nil??  nil : user.login
   end
 
+  # This procedure recursively removes the kids of the post, but doesn't remove the post itself.
+  def hide_kids(moderator,reason)
+    this_thread = self.thread.build_subtree_fast
+    # Get the IDs of the whole subtree
+    queue = [self.id]
+    to_remove = []
+    while not queue.empty?
+      puts "ITER: #{queue.inspect} --- #{to_remove.inspect}"
+      last = queue.shift
+      to_remove << last
+      queue += (this_thread[last] || []).map(&:id)
+    end
+    # The first item of to_remove array is our post which we shouldn't remove.
+    to_remove.shift
+    # Now remove them with a single SQL
+    ActiveRecord::Base.connection.execute(%Q{UPDATE posts SET deleted = true WHERE id in (#{to_remove.join(',')})})
+    # And insert moderation comments
+    to_remove.each do |rm_id|
+      ModerationAction.create(:post_id => rm_id, :user => moderator, :reason => reason)
+    end
+  end
+
 end

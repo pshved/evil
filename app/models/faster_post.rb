@@ -30,6 +30,10 @@ class FasterPost < ActiveRecord::Base
     empty_body && empty_body != 0
   end
 
+  def deleted
+    read_attribute_before_type_cast('deleted') == 1
+  end
+
   def parent_value
     parent_id.nil?? nil : parent_id
   end
@@ -82,6 +86,23 @@ class FasterPost < ActiveRecord::Base
   def filtered_body
     TextContainer.filter_cached(body,body_filter.to_sym,id,1,cache_timestamp)
   end
+
+  # TODO: make it DRY with Threads model!
+  def self.latest(length,settings_for,load_deleted = true)
+    FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden, body_items.body as body, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp,
+      deleted
+    from posts
+    join text_containers on posts.text_container_id = text_containers.id
+    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
+    join text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)
+    left join users on posts.user_id = users.id
+    left join clicks on clicks.post_id = posts.id
+    left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
+    where text_items.number = 0 and body_items.number = 1
+      and ((not deleted) or ?)
+    order by posts.created_at desc limit ?", load_deleted, length])
+  end
+
 
   # TODO: Add loading actual Post on method_missing!  It will become a fully transparent proxy object then!
 

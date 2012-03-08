@@ -1,10 +1,8 @@
-%p
+%div.post-intro
   Showing post
-  -# Post Editing link (moved here from index to make it faster)
-  - if permitted_to? :edit, @post
-    = link_to t("Edit"), edit_post_path(@post)
-  - else
-    (Edit forbidden)
+  = link_to "\##{@post.id}", post_path(@post)
+  -if @post.deleted
+    %span.deleted-mark DELETED!
 =render @post
 =render 'signature'
 %div.thread-tree
