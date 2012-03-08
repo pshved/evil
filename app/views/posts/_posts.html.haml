@@ -14,7 +14,7 @@
       = @post.title
     %div.author
       Sent by
-      = link_to @post.user.name, user_path(@post.user)
+      - user_link @post.user, @post.unreg_name
 %div.post-body
   -# Note that we do not strip the post in DB, but rather do it in the view
   != @post.filtered_body.strip
