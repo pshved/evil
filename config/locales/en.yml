@@ -29,3 +29,7 @@ en:
     credentials: "Invalid credentials"
     blank_password: "can not be blank, because %{login} is already registered"
     enter_password: "Enter password!"
+  moderation:
+    spam:
+      confirm: "Are you sure you want to remove this post as SPAM?"
+      button: "SPAM!"

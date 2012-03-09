@@ -1,6 +1,7 @@
 ru:
   hello: "Preved!"
   is_invalid: "неверен"
+  at: "в"
   views:
     pagination:
       previous: "&lt; Раньше"
@@ -13,6 +14,10 @@ ru:
   Log in: "Войти"
   Back: "Назад"
   Hidden: "Скрыто"
+  Home: "На главную"
+  Edit: "Редактировать"
+  index:
+    admin: "Админка"
   recaptcha:
     prompt: 'Докажи, что ты не робот, решив капчу:'
     errors:
@@ -32,6 +37,7 @@ ru:
   activerecord:
     models:
       posts: "сообщение"
+      post: "сообщение"
       session: "вход"
       user: "пользователь"
       user_session: "сессия"
@@ -39,6 +45,18 @@ ru:
     attributes:
       post:
         title: "заголовок"
+        edit: "Редактирование сообщения"
+        latest: "Последние сообщения"
+        header: "Открыто сообщение"
+        deleted: "УДАЛЕНО!"
+        cant_edit: "(Не редактируется)"
+        sent_by: "Отправлено пользователем"
+        last_edit: "Изменено в"
+        noreply:
+          deleted: "Нельзя отвечать на удалённые сообщения"
+        xml:
+          title: "Свежие сообщения на %{site_title}"
+          description: "Поток самый последних сообщений, которые размещены на %{site_title}"
       user_session:
         login: "Имя"
         password: "Пароль"
@@ -53,6 +71,8 @@ ru:
         current_signature: "Текущая подпись"
         new: "Новый пользователь"
         edit: "Редактировать профиль"
+        register: "Регистрация"
+        index_edit: "Профиль"
       private_message:
         write: "Написать приватку"
         log_in_to_write: "чтобы написать приватку"
@@ -64,6 +84,9 @@ ru:
         to: "Кому"
         recipient_user_login: "Получатель"
         msg_body: "Сообщение"
+        index:
+          no_new: "Приват"
+          some_new: ""
       thread:
         create: "Новый тред"
       presentation:
@@ -85,6 +108,15 @@ ru:
         make_default: "Сделать стандартным"
         index: "Настройки отображения"
         manually_hidden: "Вручную скрытые треды"
+      moderation_action:
+        index: "Журнал модерации"
+        deletion: "Удаление"
+        committed_by: "совершено ползователем"
+        reason: "причина"
+      activity:
+        is: "Активность "
+        during: "за последние"
+        minutes: "минут"
   # Unlike in models, when altering helpers, you sohuld specify the exact case
   helpers:
     submit:
@@ -98,3 +130,8 @@ ru:
     credentials: "Неправильный логин/пароль"
     blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"
     enter_password: "Введите пароль!"
+  moderation:
+    spam:
+      confirm: "Вы точно уверены, что хотите удалить этот пост как СПАМ?"
+      button: "SPAM!"
+

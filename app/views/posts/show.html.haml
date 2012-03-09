@@ -1,8 +1,8 @@
 %div.post-intro
-  Showing post
+  = ta(:header,:post)
   = link_to "\##{@post.id}", post_path(@post)
   -if @post.deleted
-    %span.deleted-mark DELETED!
+    %span.deleted-mark=ta(:deleted,:post)
 =render @post
 =render 'signature'
 %div.thread-tree
@@ -12,6 +12,6 @@
     = render :partial => 'loginpost'
 -else
   %div.hint
-    You can't reply to a deleted post!
+    =ta('noreply.deleted',:post)
 
 

@@ -7,16 +7,18 @@
         = link_to t("Edit"), edit_post_path(@post)
         %br/
       - else
-        (Can't edit)
+        =ta(:cant_edit,:post)
       -# Moderation
       - if permitted_to? :remove, @post
-        = link_to t("SPAM!"), remove_post_path(@post), :confirm => "Are you sure you want to remove this post as SPAM?"
+        = link_to t('moderation.spam.button'), remove_post_path(@post), :confirm => t('moderation.spam.confirm')
   %div#mainpost
     %div.title
       = @post.title
     %div.author
-      Sent by
+      =ta(:sent_by,:post)
       - user_link @post.user, @post.unreg_name
+      =t("at")
+      = user_time @post.created_at
 %div.post-body
   -# Note that we do not strip the post in DB, but rather do it in the view
   != @post.filtered_body.strip

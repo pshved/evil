@@ -1,7 +1,8 @@
 %div.activity
-  Activity is 
+  =ta(:is,:activity)
   %span.hosts=hosts_activity
   %span.clicks=clicks_activity
-  during the latest
+  =ta(:during,:activity)
   =Configurable[:activity_minutes]
-  minute(s)
+  -# TODO: utilize pluralization from Russian Gem
+  =ta(:minutes,:activity)
