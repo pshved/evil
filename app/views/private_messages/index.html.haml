@@ -1,6 +1,5 @@
-%h1 Your PMs
-
-= link_to 'New Private message', new_private_message_path
+%h1=ta(:index,:private_message)
+= link_to ta(:write,:private_message), new_private_message_path
 %table.persmsgs
   - @private_messages.each do |pm|
     %tr

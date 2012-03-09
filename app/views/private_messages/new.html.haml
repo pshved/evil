@@ -1,5 +1,3 @@
-%h1 New private_message
-
+%h1=ta(:write,:private_message)
 = render 'form'
-
-= link_to 'All messages', private_messages_path
+= link_to ta(:all,:private_message), private_messages_path
