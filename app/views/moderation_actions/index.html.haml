@@ -1,13 +1,14 @@
-%h1 Moderation History
+%h1=ta(:index,:moderation_action)
 %ul
   -@moderation_actions.each do |ma|
     %li
-      - user_link ma.user
-      has deleted
+      = ta(:deletion,:moderation_action)
       = link_to "post \##{ma.post.id}", post_path(ma.post)
-      at
+      = ta(:committed_by,:moderation_action)
+      - user_link ma.user
+      = t(:at)
       ="#{user_time ma.created_at}."
-      Reason:
+      = ta(:reason,:moderation_action)
       = ma.reason
 
 %p

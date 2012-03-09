@@ -198,4 +198,9 @@ class Posts < ActiveRecord::Base
     end
   end
 
+  # This is not the same as updated_at... when a post is shown/hidden by a user, its update mark is changed.  We should refactor it later.
+  def edited_at
+    text_container ? text_container.updated_at : updated_at
+  end
+
 end

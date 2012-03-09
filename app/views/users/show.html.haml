@@ -1,0 +1,16 @@
+%p{'id'=>'notice'}=notice
+%p
+  %b=label :user, :login
+  =@user.login
+%p
+  %b=label :user, :email
+  =t('Hidden')
+-if permitted_to? :create, :private_messages
+  %p=link_to ta('write',:private_message), new_private_message_path(:to => @user)
+-else
+  %p
+    = link_to t('Log in'), login_path
+    = ta(:log_in_to_write,:private_message)
+-if permitted_to? :edit, @user
+  =link_to t('Edit'), edit_user_path(@user)
+

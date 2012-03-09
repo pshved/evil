@@ -11,25 +11,25 @@
 <body>
 
   <div id="user-nav">
-    <%= link_to_unless_current "Home", root_path  %>  |
-    <%= link_to_unless_current "New thread", new_thread_path %>  |
+    <%= link_to_unless_current t("Home"), root_path  %>  |
+    <%= link_to_unless_current ta(:create,:thread), new_thread_path %>  |
     <% if current_user %>
-      <%= link_to "Logout", logout_path  %> |
-      <%= link_to_unless_current "Edit profile", edit_user_path(current_user.to_param)  %> |
-      <%= link_to_unless_current "Private Msgs.", private_messages_path  %> |
+      <%= link_to t("Log out"), logout_path  %> |
+      <%= link_to_unless_current ta(:index_edit,:user), edit_user_path(current_user.to_param)  %> |
+      <%= link_to_unless_current ta('index.no_new',:private_message), private_messages_path  %> |
     <% else %>
-      <%= link_to_unless_current "Register", new_user_path  %>  |
-      <%= link_to "Login", login_path  %> |
-      Edit profile |
-      Private Msgs |
+      <%= link_to_unless_current ta(:register,:user), new_user_path  %>  |
+      <%= link_to t("Log in"), login_path  %> |
+      <%= ta('index_edit',:user) %> |
+      <%= ta('index.no_new',:private_message) %> |
     <% end %>
     <% if permitted_to? :manage, :admin_specials %>
-      <%= link_to_unless_current "Admin settings", admin_index_path %> |
+      <%= link_to_unless_current t('index.admin'), admin_index_path %> |
     <% end %>
-    <%= link_to_unless_current "View settings", view_settings_path  %> |
-    <%= link_to_unless_current "Latest Messages", latest_posts_path  %> |
+    <%= link_to_unless_current ta(:index,:presentation), view_settings_path  %> |
+    <%= link_to_unless_current ta(:latest,:post), latest_posts_path  %> |
     <%= link_to_unless_current "RSS", latest_posts_path(:format => :rss)  %> |
-    <%= link_to_unless_current "Moderation Log", moderation_actions_path()  %> |
+    <%= link_to_unless_current ta(:index,:moderation_action), moderation_actions_path()  %> |
   </div>
   <%= render :partial => 'activities/stats' %>
 

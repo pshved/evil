@@ -1,0 +1,12 @@
+= form_for(@user_session) do |f|
+  = error_messages_for @user_session.errors, :user_session
+  %div{'class'=>'field'}
+    =f.label :login
+    %br/
+    =f.text_field :login
+  %div{'class'=>'field'}
+    = f.label :password
+    %br/
+    = f.password_field :password
+  %div{'class'=>'actions'}
+    = f.submit
