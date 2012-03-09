@@ -9,9 +9,41 @@ ru:
       last: "Конец"
       truncate: "+++"
   To Somebody: "Кому-то"
+  Log out: "Выход"
   recaptcha:
     prompt: 'Докажи, что ты не робот, решив капчу:'
     errors:
       recaptcha_unavailable: 'Каптча не сработала.  Реши-ка ещё загадку!'
       verification_failed: 'Да ты же робот!  Старайся получше!'
   signatures_are_hidden: Пользователь имеет подпись, но её отображение запрещено в настройках.
+  # Some models are "activemodel" rather than "activerecord" models
+  activemodel:
+    models:
+      loginpost: "сообщение"
+    attributes:
+      loginpost:
+        title: "Заголовок"
+        reply: "Ответить"
+        name: "Имя"
+        autologin: "Залогиниться"
+  activerecord:
+    models:
+      posts: "сообщение"
+      session: "вход"
+    attributes:
+      post:
+        title: "заголовок"
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+  # Unlike in models, when altering helpers, you sohuld specify the exact case
+  helpers:
+    submit:
+      posts:
+        create: "Отправить сообщение"
+      loginpost:
+        create: "Отправить сообщение"
+  errors:
+    credentials: "Неправильный логин/пароль"
+    blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"
+    enter_password: "Введите пароль!"

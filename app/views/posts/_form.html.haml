@@ -1,13 +1,13 @@
 = form_for @post do |f|
   - if @post.text_container.errors.any?
     %div#error_explanation
-      %h2="#{pluralize(@post.text_container.errors.count, "error")} prohibited this post from being saved:"
+      %h2= t 'activerecord.errors.template.header', :count => @post.text_container.errors.count, :model => t(:post)
       %ul
         - @post.text_container.errors.full_messages.each do |msg|
           %li=msg
   - if @post.errors.any?
     %div#error_explanation
-      %h2="#{pluralize(@post.errors.count, "error")} prohibited this post from being saved:"
+      %h2= t 'activerecord.errors.template.header', :count => @post.errors.count, :model => t(:post)
       %ul
         - @post.errors.full_messages.each do |msg|
           %li=msg

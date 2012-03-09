@@ -17,3 +17,15 @@ en:
       recaptcha_unavailable: 'Captcha timeout.  Try again please'
       verification_failed: 'You are a robot, not a human.  Try harder!'
   signatures_are_hidden: The user has a signature, but you turned them off in your presentation settings!
+  # ActiveRecord template
+  activerecord:
+    errors:
+      template:
+        header:
+          one:   "1 error prohibited this %{model} from being saved"
+          other: "%{count} errors prohibited this %{model} from being saved"
+        body:    "There were problems with the following fields:"
+  errors:
+    credentials: "Invalid credentials"
+    blank_password: "can not be blank, because %{login} is already registered"
+    enter_password: "Enter password!"

@@ -24,4 +24,23 @@ module ApplicationHelper
   def user_time(time)
     current_presentation.tz.utc_to_local(time).strftime("%d.%m.%Y %H:%M")
   end
+
+  # Restore good ol' error messages.  Model is a lowercase string.
+  # TODO: join several error objects
+  def error_messages_for(error_object, model)
+    capture_haml(error_object, model) do |error_object, model|
+      if error_object.any?
+        haml_tag 'div#error_explanation' do
+          # We don't know if it's an activerecord or a 
+          model_trd = I18n.t("activerecord.models.#{model}", :defaults => "activemodel.models.#{model}").humanize
+          haml_tag 'h2',t('activerecord.errors.template.header', :count => error_object.count, :model => model_trd)
+          haml_tag 'ul' do
+            error_object.full_messages.each do |msg|
+              haml_tag 'li',msg
+            end
+          end
+        end
+      end
+    end
+  end
 end
