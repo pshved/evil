@@ -34,12 +34,14 @@ ru:
       posts: "сообщение"
       session: "вход"
       user: "пользователь"
+      user_session: "сессия"
     attributes:
       post:
         title: "заголовок"
       user_session:
         login: "Имя"
         password: "Пароль"
+        new: "Войти"
       user:
         login: "Логин"
         password: "Пароль"
@@ -62,6 +64,8 @@ ru:
         create: "Отправить сообщение"
       loginpost:
         create: "Отправить сообщение"
+      user_session:
+        create: "Войти"
   errors:
     credentials: "Неправильный логин/пароль"
     blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"
