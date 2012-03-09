@@ -53,6 +53,8 @@ ru:
       private_message:
         write: "Написать приватку"
         log_in_to_write: "чтобы написать приватку"
+      thread:
+        create: "Новый тред"
   # Unlike in models, when altering helpers, you sohuld specify the exact case
   helpers:
     submit:
