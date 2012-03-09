@@ -19,6 +19,9 @@
       - user_link @post.user, @post.unreg_name
       =t("at")
       = user_time @post.created_at
+      -if @post.created_at != @post.edited_at
+        =ta(:last_edit,:post)
+        = user_time @post.edited_at
 %div.post-body
   -# Note that we do not strip the post in DB, but rather do it in the view
   != @post.filtered_body.strip
