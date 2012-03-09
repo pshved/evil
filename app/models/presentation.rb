@@ -17,6 +17,7 @@ class Presentation < ActiveRecord::Base
                      :threadpage_size => 50,
                      :highlight_self => true,
                      :hide_signatures => false,
+                     :smooth_threshold => 10,
                      # Updated_at is very important for caching.  It serves as a cache key for all guest users.
                      # The default presentation may change either at server restart or when admin adjusts the configuration.  We account for both, whichever happens last.
                      :updated_at => [Configurable.maximum('updated_at'),DEFAULT_PRESENTATION_MTIME].max

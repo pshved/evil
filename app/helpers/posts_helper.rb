@@ -137,50 +137,55 @@ module PostsHelper
     buf << %Q(</span>) if post.deleted
   end
 
-  def fast_showhide(post,tree,thread_hides,buf = '')
+  def fast_showhide(post,tree,thread_info,buf = '')
     # Post hidden mark and hide/show modifier
     # NOTE: the attrs to hidden_by are ignored for the FasterPost, but they're left for compatibility with the usual Posts.
     # For FasterPost, :user => current_user has already been applied in the fetching sql, so we do not specify it here
-    hidden = post.hidden_by?(:user => current_user, :thread_hides => thread_hides, :show_all => @show_all_posts) 
-    # Unfortunately, we can't use permissions here (until we optimize them)
-    #if permitted_to? :toggle_showhide, :posts
-    buf << ' '
-    fast_hide_prepared = fast_hide {[t("Show subtree"), t("Hide subtree")]}
-    if tree[post.id] && !tree[post.id].empty?
-      if hidden 
-        fast_hide_prepared[buf,post,true]
-      else
-        fast_hide_prepared[buf,post,false]
+    hidden = post.hidden_by?(:user => current_user, :thread_info => thread_info, :show_all => @show_all_posts) 
+    # Because showhide does not have any effect in single-post view, do not display this all
+    unless @show_all_posts
+      # Unfortunately, we can't use permissions here (until we optimize them)
+      buf << ' '
+      fast_hide_prepared = fast_hide {[t("Show subtree"), t("Hide subtree")]}
+      if tree[post.id] && !tree[post.id].empty?
+        if hidden
+          fast_hide_prepared[buf,post,true]
+        else
+          fast_hide_prepared[buf,post,false]
+        end
       end
     end
     return !hidden
   end
 
   # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
-  def fast_generic_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
+  def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)
     # If start is nil, then we're printing the index, and skip the post itself.
     unless_deleted(start){fast_print(start,tz,buf)} if start
     # Show if post is hidden, and display the toggle
-    post_shown = fast_showhide(start,tree,hides,buf)
-    unless post_shown
+    post_shown = fast_showhide(start,tree,info,buf)
+    unless post_shown || @show_all_posts
       buf << ' ' << t('Hidden')
       return buf
     end
     kids = tree[start.id]
     return buf unless kids
-    buf << %Q(<ul>\n)
+    # If this node is smoothed, do not insert a new level of the list, just continue the parent's
+    smoothed = (info[start.id] || {})[:smoothed]
+    buf << %Q(<ul>\n) unless smoothed
     kids.each do |child|
       unless_deleted child do
         buf << %Q(<li>)
-        fast_generic_tree(buf,tree,child,hides,tz)
+        buf << "^ " if smoothed
+        fast_generic_tree(buf,tree,child,info,tz)
         buf << %Q(</li>\n)
       end
     end
-    buf << %Q(</ul>\n)
+    buf << %Q(</ul>\n) unless smoothed
   end
 
-  def fast_tree(buf,tree,start,hides = {}, tz = DEFAULT_TZ)
-    prepped = fast_generic_tree(buf,tree,start,hides,tz)
+  def fast_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)
+    prepped = fast_generic_tree(buf,tree,start,info,tz)
     post_span_replace(@post,prepped)
   end
 
@@ -203,7 +208,7 @@ module PostsHelper
     thread_key = key_of thr
     user_key = current_user ? key_of(current_user) : 'guest'
     presentation_key = key_of presentation
-    cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}-global:#{config_mtime}"
+    cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}-global:#{config_mtime}-#{@show_all_posts}"
     logger.debug "Tree for key: '#{cache_key}'"
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
