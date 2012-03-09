@@ -9,7 +9,10 @@ ru:
       last: "Конец"
       truncate: "+++"
   To Somebody: "Кому-то"
-  Log out: "Выход"
+  Log out: "Выйти"
+  Log in: "Войти"
+  Back: "Назад"
+  Hidden: "Скрыто"
   recaptcha:
     prompt: 'Докажи, что ты не робот, решив капчу:'
     errors:
@@ -30,12 +33,26 @@ ru:
     models:
       posts: "сообщение"
       session: "вход"
+      user: "пользователь"
     attributes:
       post:
         title: "заголовок"
       user_session:
         login: "Имя"
         password: "Пароль"
+      user:
+        login: "Логин"
+        password: "Пароль"
+        password_confirmation: "Подтверждение пароля"
+        current_password: "Текущий пароль"
+        email: "Почта"
+        signature_body: "Подпись"
+        current_signature: "Текущая подпись"
+        new: "Новый пользователь"
+        edit: "Редактировать профиль"
+      private_message:
+        write: "Написать приватку"
+        log_in_to_write: "чтобы написать приватку"
   # Unlike in models, when altering helpers, you sohuld specify the exact case
   helpers:
     submit:

@@ -43,4 +43,9 @@ module ApplicationHelper
       end
     end
   end
+
+  # Translate model attribute
+  def ta(attrib,model)
+    I18n.t("activerecord.attributes.#{model}.#{attrib}", :defaults => "activemodel.attributes.#{model}.#{attrib}")
+  end
 end

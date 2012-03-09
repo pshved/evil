@@ -1,12 +1,8 @@
 = form_for(@user) do |f|
-  -if @user.errors.any?
-    %div#error_explanation
-      %h2= t 'activerecord.errors.template.header', :count => @user.errors.count, :model => :user
-      %ul
-        -@user.errors.full_messages.each do |msg|
-          %li= msg
+  =error_messages_for @user.errors, 'user'
   -if @user.persisted?
-    = "Modify user #{@user.login}"
+    = f.label :login
+    = @user.login
     %br/
   -else
     %div.field
@@ -30,7 +26,7 @@
     = f.label :signature_body
     = f.text_area :signature_body, :cols => 50, :rows => 7
   %div
-    Current signature:
+    =t(:'current_signature', :scope => 'activerecord.attributes.user')
     %br/
     != @user.formatted_signature
   - if !current_user && captcha_enabled
