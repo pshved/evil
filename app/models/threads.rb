@@ -81,6 +81,9 @@ class Threads < ActiveRecord::Base
   protected
   def compute_thread(posts_assoc = posts)
     # Build if not cached
+    raw_list = posts_assoc
+    idmap = posts_assoc.inject({}){|acc,p| acc[p.id] = p; acc}
+    # Build id => children mapping, and order it as in threads
     ordered = posts_assoc.group_by &:parent_value
     ordered.each do |parent_id,children|
       children.sort_by!(&:created_at).reverse!
@@ -90,36 +93,68 @@ class Threads < ActiveRecord::Base
     # compute raw id tree
     idtree = ordered.inject({}) {|acc,kv| acc[kv[0]] = kv[1].map &:id ; acc}
 
-    # This is not used _now_, but we may need it later
-    # Compute id => subtree height hash
-    #def compute_height(tree,node, c = {})
-    #  return c[node] if c[node]
-    #  if !node || !tree[node] || tree[node].empty?
-    #    c[node] = 1
-    #  else
-    #    c[node] = 1 + tree[node].map {|kid| compute_height(tree,kid)}.max
-    #  end
-    #end
-    #subtree_heights = idtree.inject({}){|acc,kv| acc[kv[0]] = compute_height(idtree,kv[0]); acc }
-
-    # Compute hides.  In the hash specified as the 3rd param the nodes that should be hidden will appear
-    def compute_hides(tree,node,r,threshold,value,current = 1)
-      return true  if current > threshold
-      return false if !node || !tree[node]
-      # Compute for kids (do not forget that we're to upload r here
-      # NOTE the absence of short-circuit evaluation, as we do not want first children to prevent the late from being folded
-      big_subtree = tree[node].inject(false) {|acc,kid| acc | compute_hides(tree,kid,r,threshold,value,current + 1)}
-      if current == value && big_subtree
-        r[node] = true
-      end
-      big_subtree
-    end
-    hides = {}
+    # Compute thread information.  Keys are IDs, values are hashes with the following info:
+    # { :latest => id, # id of the latest post in the subthread of the node
+    #   :hidden => true, # whether the subtherad is automatically hidden based on hide threshold/value
+    #   :smoothed => true, # whether this node should be displayed at the same level as its parent, based on smooth threshold value
+    # }
+    thread_info = {}
     # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
     threshold = presentation.autowrap_thread_threshold
     value = presentation.autowrap_thread_value
-    compute_hides(idtree,idtree[nil][0],hides,threshold,value)
-    r_hides = hides
+    smooth_threshold = presentation.smooth_threshold
+    smooth_threshold = nil if smooth_threshold.blank?
+    # NOTE: these are local variables, and they won't work within "def", so we pass them as local
+
+    # Walks the tree, and returns the information about the subthread, which is a hash:
+    # { :latest_id => ID of the latest post,
+    #   :latest_mtime => modification time of the latest post,
+    #   :height => height of the subtree
+    def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,depth = 0)
+      depth += 1
+      return {:height => 0} unless node
+
+      # The walking function is organized as follows:
+      # 1. Collect information from the children
+      # 2. Compute and upload the information about the current node
+      # 3. Prepare the return value for the parent
+
+      # 1. Collect information from children
+      kids = tree[node] || []
+      kids_info = kids.map {|child| walk(child,tree,idmap,thread_info,threshold,value,smooth_threshold,depth)}
+      # Generalize the information
+      r = {}
+      r[:height] = ( kids_info.map{|ki| ki[:height]}.max || 0)
+      kids_info.each do |ki|
+        if r[:latest_mtime].nil? || r[:latest_mtime] < ki[:latest_mtime]
+          r[:latest_mtime] = ki[:latest_mtime]
+          r[:latest_id] = ki[:latest_id]
+        end
+      end
+
+      # 2. Compute and upload the information about the current node
+      # Check if the thread should be hidden
+      hidden = threshold && depth && ((depth + r[:height]) > threshold) && (depth == value)
+      # Check if the thread should be smoothed
+      smoothed = smooth_threshold && (depth >= smooth_threshold) && (kids.length == 0)
+
+      thread_info[node] = {:latest => r[:latest_id], :hidden => hidden, :smoothed => smoothed}
+
+      # 3. Prepare the return value for the parent
+      created_at = idmap[node].created_at
+      if r[:latest_mtime].nil? || r[:latest_mtime] < created_at
+        r[:latest_mtime] = created_at
+        r[:latest_id] = node
+      end
+      r[:height] += 1
+
+      r
+    end
+    # Do the walk
+    walk(idtree[nil][0],idtree,idmap,thread_info,threshold,value,smooth_threshold)
+
+    # For backward compatibility, let's return hides
+    r_hides = thread_info.inject({}){|acc,kv| acc[kv[0]] = !kv[1] || kv[1][:hidden]; acc}
 
     return r_subtree, r_hides
   end
