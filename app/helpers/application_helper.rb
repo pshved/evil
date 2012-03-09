@@ -45,7 +45,7 @@ module ApplicationHelper
   end
 
   # Translate model attribute
-  def ta(attrib,model)
-    I18n.t("activerecord.attributes.#{model}.#{attrib}", :defaults => "activemodel.attributes.#{model}.#{attrib}")
+  def ta(attrib,model,options = {})
+    I18n.t("activerecord.attributes.#{model}.#{attrib}",{:defaults => "activemodel.attributes.#{model}.#{attrib}"}.merge(options))
   end
 end

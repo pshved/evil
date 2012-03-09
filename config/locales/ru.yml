@@ -66,6 +66,25 @@ ru:
         msg_body: "Сообщение"
       thread:
         create: "Новый тред"
+      presentation:
+        threadpage_size: "Показывать последних веток"
+        time_zone: "Часовой пояс"
+        name: "Название профиля настроек"
+        highlight_self: "Подсвечивать своё имя в индексе"
+        hide_signatures: "Не показывать ничьи подписи"
+        autowrap_thread_value: "Глубина сообщения, с которого будет скрыт свёрнутый тред"
+        autowrap_thread_threshold: "Глубина треда, который будет свёрнут"
+        edit: "Редактировать профиль настроек '%{name}'"
+        edit_site_wide: "Редактировать глобальный профиль настроек"
+        edit_local: "Редактировать локальный профиль настроек"
+        create: "Создать профиль настроек"
+        current: "Текущий"
+        use: "Использовать этот"
+        clone: "Копировать"
+        default: "Стандартный"
+        make_default: "Сделать стандартным"
+        index: "Настройки отображения"
+        manually_hidden: "Вручную скрытые треды"
   # Unlike in models, when altering helpers, you sohuld specify the exact case
   helpers:
     submit:

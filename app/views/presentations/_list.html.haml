@@ -2,17 +2,17 @@
   %ul
     -@presentations.each do |p|
       %li
-        =link_to_unless_current "Edit view '#{p.name}'", edit_presentation_path(p)
+        =link_to_unless_current ta(:edit,:presentation,:name => p.name), edit_presentation_path(p)
         (
         -if p == current_presentation
-          Current
+          =ta(:current,:presentation)
         -else
-          =link_to "Use", use_presentation_path(p)
+          =link_to ta(:use,:presentation), use_presentation_path(p)
         |
-        =link_to "Clone", clone_presentation_path(p)
+        =link_to ta(:clone,:presentation), clone_presentation_path(p)
         |
         -if current_user.default_presentation == p
-          Default
+          =ta(:default,:presentation)
         -else
-          =link_to "Make default", make_default_presentation_path(p)
+          =link_to ta(:make_default,:presentation), make_default_presentation_path(p)
         )
