@@ -154,7 +154,7 @@ class Threads < ActiveRecord::Base
     walk(idtree[nil][0],idtree,idmap,thread_info,threshold,value,smooth_threshold)
 
     # For backward compatibility, let's return hides
-    r_hides = thread_info.inject({}){|acc,kv| acc[kv[0]] = !kv[1] || kv[1][:hidden]; acc}
+    r_hides = thread_info
 
     return r_subtree, r_hides
   end
