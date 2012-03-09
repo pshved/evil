@@ -170,15 +170,18 @@ module PostsHelper
     end
     kids = tree[start.id]
     return buf unless kids
-    buf << %Q(<ul>\n)
+    # If this node is smoothed, do not insert a new level of the list, just continue the parent's
+    smoothed = (info[start.id] || {})[:smoothed]
+    buf << %Q(<ul>\n) unless smoothed
     kids.each do |child|
       unless_deleted child do
         buf << %Q(<li>)
+        buf << "^ " if smoothed
         fast_generic_tree(buf,tree,child,info,tz)
         buf << %Q(</li>\n)
       end
     end
-    buf << %Q(</ul>\n)
+    buf << %Q(</ul>\n) unless smoothed
   end
 
   def fast_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)

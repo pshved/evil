@@ -117,7 +117,6 @@ class Posts < ActiveRecord::Base
 
   # Check if the post was hidden by the current user
   def self.hidden_by?(id, userhide, opts = {})
-    puts "UHIDE: #{id}, #{userhide}, #{opts.inspect}"
     # If we're in the single-post view, just show everything
     return false if opts[:show_all]
     # Otherwise, take into account the following: user's hides, thread auto-hides

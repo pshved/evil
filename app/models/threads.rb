@@ -96,7 +96,7 @@ class Threads < ActiveRecord::Base
     # Compute thread information.  Keys are IDs, values are hashes with the following info:
     # { :latest => id, # id of the latest post in the subthread of the node
     #   :hidden => true, # whether the subtherad is automatically hidden based on hide threshold/value
-    #   :smoothed => true, # whether this node should be displayed at the same level as its parent, based on smooth threshold value
+    #   :smoothed => true, # whether the *children* of this node should be displayed at the same level as it, based on smooth threshold value
     # }
     thread_info = {}
     # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
@@ -110,7 +110,7 @@ class Threads < ActiveRecord::Base
     # { :latest_id => ID of the latest post,
     #   :latest_mtime => modification time of the latest post,
     #   :height => height of the subtree
-    def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,depth = 0)
+    def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,depth = 0,is_an_only_child = false)
       depth += 1
       return {:height => 0} unless node
 
@@ -121,7 +121,7 @@ class Threads < ActiveRecord::Base
 
       # 1. Collect information from children
       kids = tree[node] || []
-      kids_info = kids.map {|child| walk(child,tree,idmap,thread_info,threshold,value,smooth_threshold,depth)}
+      kids_info = kids.map {|child| walk(child,tree,idmap,thread_info,threshold,value,smooth_threshold,depth,kids.length == 1)}
       # Generalize the information
       r = {}
       r[:height] = ( kids_info.map{|ki| ki[:height]}.max || 0)
@@ -136,7 +136,8 @@ class Threads < ActiveRecord::Base
       # Check if the thread should be hidden
       hidden = threshold && depth && ((depth + r[:height]) > threshold) && (depth == value)
       # Check if the thread should be smoothed
-      smoothed = smooth_threshold && (depth >= smooth_threshold) && (kids.length == 0)
+      # We smooth a thread if the thread is deep enough, if the thread has an only kid, and if the thread is an only child.
+      smoothed = smooth_threshold && (depth >= smooth_threshold) && (kids.length == 1) && is_an_only_child
 
       thread_info[node] = {:latest => r[:latest_id], :hidden => hidden, :smoothed => smoothed}
 
