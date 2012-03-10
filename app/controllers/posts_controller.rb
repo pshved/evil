@@ -90,12 +90,8 @@ class PostsController < ApplicationController
   def toggle_showhide
     @post.toggle_showhide(current_user,current_presentation)
     @post.save
-    # TODO: add Ajax here.  For now, redirects back.
-    begin
-      redirect_to :back
-    rescue ActionController::RedirectBackError
-      redirect_to @post
-    end
+    # TODO: add Ajax here.  For now, redirects to the post at the index page
+    redirect_to root_path(:anchor => @post.id)
   end
 
   def latest
