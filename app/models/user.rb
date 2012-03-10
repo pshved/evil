@@ -61,7 +61,8 @@ class User < ActiveRecord::Base
   end
 
   #Hidden posts
-  has_and_belongs_to_many :hidden_posts, :class_name => 'Posts', :join_table => 'hidden_posts_users', :association_foreign_key => 'posts_id'
+  has_many :hide_actions, :class_name => 'HiddenPostsUsers'
+  has_many :hidden_posts, :class_name => 'Posts', :through => :hide_actions
 
   # Signature
   belongs_to :signature, :autosave => true, :class_name => 'TextContainer', :foreign_key => 'signature'

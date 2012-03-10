@@ -171,17 +171,17 @@ module PostsHelper
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
     @_post_fast_hidden_bar = proc do |buf,p,info,tz|
-      buf << %Q(<div class="hidden-bar">)
       replies = info[:size]-1
-      buf << s1 << replies.to_s << s2
       if replies > 0
+        buf << %Q(<div class="hidden-bar">)
+        buf << s1 << replies.to_s << s2
         latest_subthread_post = info[:latest]
         fast_link[buf,latest_subthread_post,time_for_header(latest_subthread_post.created_at,tz)]
         buf << s3
         fast_print_username(buf,p)
-        buf << ''
+        buf << '.'
+        buf << "</div>"
       end
-      buf << "</div>"
     end
   end
 

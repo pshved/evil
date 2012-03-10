@@ -88,7 +88,7 @@ class PostsController < ApplicationController
   end
 
   def toggle_showhide
-    @post.toggle_showhide(current_user)
+    @post.toggle_showhide(current_user,current_presentation)
     @post.save
     # TODO: add Ajax here.  For now, redirects back.
     begin

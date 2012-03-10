@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120309154232) do
+ActiveRecord::Schema.define(:version => 20120310083919) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -38,9 +38,10 @@ ActiveRecord::Schema.define(:version => 20120309154232) do
 
   add_index "configurables", ["name"], :name => "index_configurables_on_name"
 
-  create_table "hidden_posts_users", :id => false, :force => true do |t|
+  create_table "hidden_posts_users", :force => true do |t|
     t.integer "user_id"
     t.integer "posts_id"
+    t.enum    "action",   :limit => [:show, :hide]
   end
 
   add_index "hidden_posts_users", ["posts_id"], :name => "index_hidden_posts_users_on_posts_id"

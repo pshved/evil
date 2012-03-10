@@ -116,14 +116,14 @@ class Posts < ActiveRecord::Base
   end
 
   # Check if the post was hidden by the current user
-  def self.hidden_by?(id, userhide, opts = {})
+  def self.hidden_by?(id, userhide_action, opts = {})
     # If we're in the single-post view, just show everything
     return false if opts[:show_all]
     # Otherwise, take into account the following: user's hides, thread auto-hides
     post_info = (opts[:thread_info] || {})[id] || {}
     hidden = false
     # User's own settings override all
-    hidden ||= userhide
+    return HiddenPostsUsers.need_hide(userhide_action) if userhide_action
     # Now moderator's settings follow
     # TODO
     # Now thread's auto-folding works (site-wide threshold)
@@ -131,14 +131,26 @@ class Posts < ActiveRecord::Base
     hidden
   end
   def hidden_by?(opts = {})
-    userhide = opts[:user] ? opts[:user].hidden_posts.exists?(self.id) : nil
+    userhide = nil
+    if opts[:user] && (uha = opts[:user].hide_actions.where(['posts_id = ?',self.id]).first)
+      userhide = uha.action
+    end
     Posts.hidden_by?(id,userhide,opts)
   end
-  def toggle_showhide(user)
-    if hidden_by?(:user => user)
-      user.hidden_posts.delete self
+  def toggle_showhide(user,presentation)
+    # We should check if the user hides the thread with his or her settings
+    # TODO refactor thread queries
+    Threads.settings_for = user
+    pthr = thread
+    pthr.presentation = presentation
+    #
+    hidden = hidden_by?(:user => user, :thread_info => pthr.hides_fast)
+    if hide_assoc = user.hide_actions.where(['posts_id = ?',self.id]).first
+      # Alter the hide association
+      hide_assoc.action = HiddenPostsUsers.inverse_hidden(hidden)
+      hide_assoc.save
     else
-      user.hidden_posts << self
+      HiddenPostsUsers.create(:user_id => user.id, :posts_id => self.id, :action => HiddenPostsUsers.inverse_hidden(hidden))
     end
   end
 
