@@ -14,7 +14,7 @@ class FasterPost < ActiveRecord::Base
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
-  %w(title unreg_name user_login empty_body parent_id created_at hidden body body_filter cache_timestamp).each {|m| send :define_method, m.to_sym do
+  %w(title unreg_name user_login empty_body parent_id created_at hide_action body body_filter cache_timestamp).each {|m| send :define_method, m.to_sym do
     read_attribute_before_type_cast(m)
   end}
 
@@ -39,7 +39,7 @@ class FasterPost < ActiveRecord::Base
   end
 
   def hidden_by?(opts = {})
-    Posts.hidden_by?(id,hidden,opts)
+    Posts.hidden_by?(id,hide_action,opts)
   end
 
   # Since YAML is stateless, we may cache the records we load
@@ -88,7 +88,7 @@ class FasterPost < ActiveRecord::Base
 
   # TODO: make it DRY with Threads model!
   def self.latest(length,settings_for,load_deleted = true)
-    FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.posts_id as hidden, body_items.body as body, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp,
+    FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.action as hide_action, body_items.body as body, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp,
       deleted
     from posts
     join text_containers on posts.text_container_id = text_containers.id

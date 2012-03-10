@@ -13,7 +13,10 @@ ru:
   Log out: "Выйти"
   Log in: "Войти"
   Back: "Назад"
-  Hidden: "Скрыто"
+  Hidden: "Свёрнуто"
+  Replies: "Ответов"
+  Latest Reply: "последний"
+  From: "от"
   Home: "На главную"
   Edit: "Редактировать"
   index:
