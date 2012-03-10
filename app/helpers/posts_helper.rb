@@ -17,7 +17,7 @@ module PostsHelper
     md3 = md[3]
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
-    @_post_fast_link = proc {|buf,p| buf << md1 << p.id.to_s << md2 << h(p.title.strip) << md3}
+    @_post_fast_link = proc {|buf,p,title_override| buf << md1 << p.id.to_s << md2 << (title_override || h(p.title.strip)) << md3}
 
   end
 
@@ -88,6 +88,23 @@ module PostsHelper
     post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,%Q(<!--post:#{post.id}--><span class="this-post-oneline">))
   end
 
+  def fast_print_username(buf,post)
+    # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
+    # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
+    if this_login = post.user_login
+      # Highlight message, if necessary
+      if should_highlight[this_login]
+        buf << %Q(<span class="post-self">)
+      else
+        buf << %Q(<span class="post-user">)
+      end
+      fast_user[buf,this_login]
+      buf << %Q(</span>)
+    else
+      buf << %Q(<span class="post-unreg">) << (post.unreg_name || "NIL") << %Q(</span>)
+    end
+  end
+
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
   def fast_print(post, tz, buf = '')
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
@@ -116,20 +133,7 @@ module PostsHelper
       buf << ' <span class="post-clicks">(' << post.clicks.to_s  << ")</span>"
     end
     buf << ' - '
-    # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
-    # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
-    if this_login = post.user_login
-      # Highlight message, if necessary
-      if should_highlight[this_login]
-        buf << %Q(<span class="post-self">)
-      else
-        buf << %Q(<span class="post-user">)
-      end
-      fast_user[buf,this_login]
-      buf << %Q(</span>)
-    else
-      buf << %Q(<span class="post-unreg">) << (post.unreg_name || "NIL") << %Q(</span>)
-    end
+    fast_print_username(buf,post)
     buf << " (#{post.host}) "
     buf << %Q(<span class="post-timestamp">) << time_for_header(post.created_at,tz) << %Q(</span>)
 
@@ -158,6 +162,29 @@ module PostsHelper
     return !hidden
   end
 
+  def fast_hidden_bar
+    return @_post_fast_hidden_bar if @_post_fast_hidden_bar
+
+    s1 = "#{t('Hidden')}. #{t('Replies')}: "
+    s2 = " #{t('Latest Reply')}: "
+    s3 = " #{t('From')} "
+
+    # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
+    @_post_fast_hidden_bar = proc do |buf,p,info,tz|
+      buf << %Q(<div class="hidden-bar">)
+      replies = info[:size]-1
+      buf << s1 << replies.to_s << s2
+      if replies > 0
+        latest_subthread_post = info[:latest]
+        fast_link[buf,latest_subthread_post,time_for_header(latest_subthread_post.created_at,tz)]
+        buf << s3
+        fast_print_username(buf,p)
+        buf << ''
+      end
+      buf << "</div>"
+    end
+  end
+
   # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
   def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)
     # If start is nil, then we're printing the index, and skip the post itself.
@@ -165,7 +192,8 @@ module PostsHelper
     # Show if post is hidden, and display the toggle
     post_shown = fast_showhide(start,tree,info,buf)
     unless post_shown || @show_all_posts
-      buf << ' ' << t('Hidden')
+      # Show that the post is hidden, and the info about the subthread
+      fast_hidden_bar[buf,start,(info[start.id] || {}),tz]
       return buf
     end
     kids = tree[start.id]

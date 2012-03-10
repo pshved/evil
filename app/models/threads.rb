@@ -94,9 +94,10 @@ class Threads < ActiveRecord::Base
     idtree = ordered.inject({}) {|acc,kv| acc[kv[0]] = kv[1].map &:id ; acc}
 
     # Compute thread information.  Keys are IDs, values are hashes with the following info:
-    # { :latest => id, # id of the latest post in the subthread of the node
+    # { :latest => post, # the latest post in the subthread of the node
     #   :hidden => true, # whether the subtherad is automatically hidden based on hide threshold/value
     #   :smoothed => true, # whether the *children* of this node should be displayed at the same level as it, based on smooth threshold value
+    #   :size => N, # How many posts are there, in the subthread
     # }
     thread_info = {}
     # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
@@ -110,9 +111,10 @@ class Threads < ActiveRecord::Base
     # { :latest_id => ID of the latest post,
     #   :latest_mtime => modification time of the latest post,
     #   :height => height of the subtree
+    #   :size => number of nodes in the subtree
     def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,depth = 0,is_an_only_child = false)
       depth += 1
-      return {:height => 0} unless node
+      return {:height => 0, :size => 0} unless node
 
       # The walking function is organized as follows:
       # 1. Collect information from the children
@@ -138,8 +140,10 @@ class Threads < ActiveRecord::Base
       # Check if the thread should be smoothed
       # We smooth a thread if the thread is deep enough, if the thread has an only kid, and if the thread is an only child.
       smoothed = smooth_threshold && (depth >= smooth_threshold) && (kids.length == 1) && is_an_only_child
+      # Sum the size
+      size = kids_info.inject(1) {|acc,ki| acc + (ki[:size] || 0)}
 
-      thread_info[node] = {:latest => r[:latest_id], :hidden => hidden, :smoothed => smoothed}
+      thread_info[node] = {:latest => idmap[r[:latest_id]], :hidden => hidden, :smoothed => smoothed, :size => size}
 
       # 3. Prepare the return value for the parent
       created_at = idmap[node].created_at
@@ -148,6 +152,7 @@ class Threads < ActiveRecord::Base
         r[:latest_id] = node
       end
       r[:height] += 1
+      r[:size] = size
 
       r
     end
