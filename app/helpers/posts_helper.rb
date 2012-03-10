@@ -179,7 +179,7 @@ module PostsHelper
         latest_subthread_post = info[:latest]
         fast_link[buf,latest_subthread_post,time_for_header(latest_subthread_post.created_at,tz)]
         buf << s3
-        fast_print_username(buf,p)
+        fast_print_username(buf,latest_subthread_post)
         buf << '.'
         buf << "</div>"
       end
