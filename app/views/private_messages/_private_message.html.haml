@@ -1,6 +1,7 @@
 -# just a shorthand
 - pm = private_message
-= user_time pm.created_at
+- if pm.persisted?
+  = user_time pm.created_at
 %br/
 - if current_user == pm.sender_user
   -# If this is a preview of a message with an incorrect user name, we should show something else
@@ -14,5 +15,5 @@
 - else
   ="#{ta(:sender,:private_message)}:"
   = link_to pm.sender_user.name, pm.sender_user
-  = link_to ta(:reply_box,:private_message), new_private_message_path(:to => pm.recipient_user.login, :replyto => pm.stamp)
+  = link_to ta(:reply_box,:private_message), new_private_message_path(:to => pm.sender_user.login, :replyto => pm.stamp)
   %div.msgfrom!=private_message.filtered_body

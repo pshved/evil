@@ -8,6 +8,8 @@ class User < ActiveRecord::Base
     find_last_by_login(login)
   end
 
+  has_many :private_messages
+
   attr_accessor :current_password
 
   # For use in form
