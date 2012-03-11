@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120311193152) do
+ActiveRecord::Schema.define(:version => 20120311211646) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -122,6 +122,7 @@ ActiveRecord::Schema.define(:version => 20120311193152) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "user_id"
+    t.boolean  "unread",            :default => false
   end
 
   add_index "private_messages", ["recipient_user_id"], :name => "index_private_messages_on_recipient_user_id"

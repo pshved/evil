@@ -42,7 +42,8 @@ class PrivateMessage < ActiveRecord::Base
   # After a private message was successfully created, create and save a paired message.
   # To avoid recursion, the new message is guarded with a :skip_counterpart flag
   attr_accessor :skip_counterpart
-  def save_dupe
+  # By default, the counterpart is unread.  However, this may be overridden
+  def save_dupe(set_unread = true)
     # We do not know if the message was loaded from a database or has just been created.  In both cases, parameters that originate from the db are available at this point, so let's use them.
     PrivateMessage.create({
       :skip_counterpart => true,
@@ -51,6 +52,7 @@ class PrivateMessage < ActiveRecord::Base
       :recipient_user_login => recipient_user.login,
       :msg_body => body,
       :reply_to_stamp => (reply_to ? reply_to.stamp : nil),
+      :unread => set_unread,
       :created_at => created_at})
   end
   after_create do
@@ -62,7 +64,7 @@ class PrivateMessage < ActiveRecord::Base
   # Call this method to convert messages from the old format (one message per two users)
   def create_duplicate
     self.user ||= sender_user
-    save && save_dupe
+    save && save_dupe(false)
   end
 
   # Return query template for all messages sent to/received by a given user.  You should finalize the query by applying .all or something like this to the returned object.

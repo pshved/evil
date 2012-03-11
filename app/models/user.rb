@@ -9,6 +9,7 @@ class User < ActiveRecord::Base
   end
 
   has_many :private_messages
+  has_many :unread_messages, :class_name => 'PrivateMessage', :conditions => {:unread => true}
 
   attr_accessor :current_password
 

@@ -10,6 +10,9 @@ class PrivateMessagesController < ApplicationController
   # GET /private_messages.json
   def index
     @private_messages = PrivateMessage.all_for(current_user).page(params[:page])
+    # To show that the user has viewed these messages, mark them as read
+    # We can't do this in a separate thread, because we should show that the messages are read at once
+    @private_messages.where('unread').update_all 'unread = false'
 
     respond_to do |format|
       format.html # index.html.erb
