@@ -95,10 +95,10 @@ SMILE_REGISTRY = {
   ":APPL"     => { :html => make_smiley("appl.gif")},
   ":BAN"      => { :html => make_smiley("ban.gif")},
   ":BEE"      => { :html => make_smiley("bee.gif")},
-  ":BIS"      => { :html => make_smiley("bis.gif")},
   ":ZLOBA"    => { :html => make_smiley("blya.gif")},
   ":BORED"    => { :html => make_smiley("bored.gif")},
   ":BOTAT"    => { :html => make_smiley("botat.gif")},
+  ":BIS"      => { :html => make_smiley("bis.gif")},
   ":COMP"     => { :html => make_smiley("comp.gif")},
   ":CRAZY"    => { :html => make_smiley("crazy.gif")},
   ":DEVIL"    => { :html => make_smiley("devil.gif")},
@@ -126,8 +126,8 @@ SMILE_REGISTRY = {
   ":WAVE"     => { :html => make_smiley("wave.gif")},
   ":COWARD"   => { :html => make_smiley("coward.gif")},
   ":DRAZNIT"  => { :html => make_smiley("draznit.gif")},
-  ":ROLLEYES" => { :html => make_smiley("rolleyes.gif")},
   ":PLOHO"    => { :html => make_smiley("blevalyanaeto.gif")},
+  ":ROLLEYES" => { :html => make_smiley("rolleyes.gif")},
   ":}"        => { :html => make_smiley("icqbig.gif")},
 }
 

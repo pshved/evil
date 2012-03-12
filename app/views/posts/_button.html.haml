@@ -1,5 +1,5 @@
 -if btr = BUTTON_REGISTRY[button]
-  %button{:type => 'button', :class => 'style', :name => btr[:name], :accesskey => btr[:accesskey], :title => btr[:title], :onclick => btr[:onclick]}
+  %button{:type => 'button', :class => 'style', :name => btr[:name], :accesskey => btr[:accesskey], :title => btr[:title], :onclick => btr[:onclick], :tabindex => 5}
     -if btr[:html]
       !=btr[:html]
     -else

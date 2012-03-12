@@ -75,6 +75,10 @@ ru:
         login: "Имя"
         password: "Пароль"
         new: "Войти"
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+        new: "Войти"
       user:
         login: "Логин"
         password: "Пароль"
@@ -124,6 +128,7 @@ ru:
         make_default: "Сделать стандартным"
         index: "Настройки отображения"
         manually_hidden: "Вручную скрытые треды"
+        local_help: "Локальный профиль настроек будет сохранён у Вас в cookies.\nКак только Вы залогинитесь, этот профиль будет импортирован в Ваш аккаунт"
       moderation_action:
         index: "Журнал модерации"
         deletion: "Удаление"

@@ -126,3 +126,18 @@ span.post-oneline
   margin-bottom: 15px;
 }
 
+// Toolbar
+.toolbar button {
+  background-color: #DDDDDD;
+  border: 0 none;
+  color: #222222;
+  font-size: 70%;
+  font-weight: normal;
+}
+
+// Smileys
+#smiles {
+  padding: 3px;
+  position: absolute;
+  right: 1%;
+}
