@@ -5,7 +5,9 @@
   <%= stylesheet_link_tag    "application" %>
   <%= javascript_include_tag "application" %>
   <!-- include controller-specific javascript -->
-  <%= javascript_include_tag params[:controller] %>
+  <% if %w(posts).include? params[:controller] %>
+    <%= javascript_include_tag params[:controller] %>
+  <% end %>
   <%= csrf_meta_tags %>
 </head>
 <body>
