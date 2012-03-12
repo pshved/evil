@@ -15,12 +15,14 @@ ru:
   Login: "Вход"
   You have logged in as: "Вы вошли в конференцию как"
   Back: "Назад"
-  Hidden: "Свёрнуто"
-  Replies: "Ответов"
-  Latest Reply: "последний"
+  Hidden: "свёрнуто"
+  Replies: "ответов"
+  Latest Reply: "последний ответ"
   From: "от"
   Home: "На главную"
   Edit: "Редактировать"
+  Show subtree: Развернуть ветку
+  Hide subtree: Скрыть ветку
   activity:
     hosts: хосты
     clicks: хиты

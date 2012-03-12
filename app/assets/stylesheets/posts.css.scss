@@ -4,7 +4,24 @@
 
 .post-oneline a {
   text-decoration: none;
+  font-size: 111%;
 }
+
+// Due to caching, when highlighting a post in a large thread, we can't just make it not <a> tag.  Instead, we adjust the stype of the wrapping <span> so that the link doesn't look like one.  Do not try to change this, please.
+span.this-post-oneline a
+{
+  font-size: 111%;
+  font-size: 111%;
+  font-weight: bold;
+  text-decoration: none;
+  color: #000;
+  &:visited {}
+  &:hover {
+    background-color: #fff;
+    color: #000;
+  }
+}
+
 
 /* User tags in posts */
 
@@ -20,6 +37,26 @@ span.user-other a {
 
 /* note that user-unreg doesn't have <a>! */
 span.user-unreg {
+  font-weight: bold;
+}
+
+/* Posts hidde/show button */
+.post-header .action {
+  color: #900000;
+  &:visited {
+    color: #900000;
+  }
+}
+
+/* Posts hidden/closed information bar */
+.hidden-bar {
+  font-size: 87%;
+}
+.hidden-bar .action {
+  color: #900000;
+}
+
+.hidden-bar .count {
   font-weight: bold;
 }
 
@@ -39,19 +76,6 @@ span.post-oneline
 
 .post-oneline a
 {
-}
-
-// Due to caching, when highlighting a post in a large thread, we can't just make it not <a> tag.  Instead, we adjust the stype of the wrapping <span> so that the link doesn't look like one.  Do not try to change this, please.
-span.this-post-oneline a
-{
-  font-weight: bold;
-  text-decoration: none;
-  color: #000;
-  &:visited {}
-  &:hover {
-    background-color: #fff;
-    color: #000;
-  }
 }
 
 .post-deleted

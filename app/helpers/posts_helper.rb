@@ -45,7 +45,7 @@ module PostsHelper
     return @_post_fast_hide if @_post_fast_hide
     # Render a test link with placeholders
     magic = 47382929372 # Beware! should not be equal to a post id!
-    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic)
+    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic), :class => 'action'
 
     # We abuse that, in HTML, link address is before the text.
     md = /^(.*)#{magic}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
@@ -168,21 +168,22 @@ module PostsHelper
   def fast_hidden_bar
     return @_post_fast_hidden_bar if @_post_fast_hidden_bar
 
-    s1 = "#{t('Hidden')}. #{t('Replies')}: "
-    s2 = " #{t('Latest Reply')}: "
+    s1 = %Q[<span class="action">#{t('Hidden')}</span>: (#{t('Replies')}: ]
+    s2 = ", #{t('Latest Reply')}: "
     s3 = " #{t('From')} "
+    s4 = ")"
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
     @_post_fast_hidden_bar = proc do |buf,p,info,tz|
       replies = info[:size]-1
       if replies > 0
         buf << %Q(<div class="hidden-bar">)
-        buf << s1 << replies.to_s << s2
+        buf << s1 << %Q(<span class="count">) << replies.to_s << %Q(</span>) << s2
         latest_subthread_post = info[:latest]
         fast_link[buf,latest_subthread_post,time_for_header(latest_subthread_post.created_at,tz)]
         buf << s3
         fast_print_username(buf,latest_subthread_post)
-        buf << '.'
+        buf << s4
         buf << "</div>"
       end
     end
