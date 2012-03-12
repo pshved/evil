@@ -17,6 +17,13 @@ body {
   padding: 0;
 }
 
+a {
+  &:visited {
+    color: #000088;
+  }
+}
+
+
 span.h
 {
   font-size: 4;

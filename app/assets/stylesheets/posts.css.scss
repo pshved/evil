@@ -1,3 +1,28 @@
+.post-header a {
+  text-decoration: underline;
+}
+
+.post-oneline a {
+  text-decoration: none;
+}
+
+/* User tags in posts */
+
+span.user-self a {
+  font-weight: bold;
+  color: red;
+}
+
+span.user-other a {
+  color: #207025;
+  font-weight: bold;
+}
+
+/* note that user-unreg doesn't have <a>! */
+span.user-unreg {
+  font-weight: bold;
+}
+
 div.post-children
 {
 	padding: 4px 0 2px 10px;
@@ -27,17 +52,6 @@ span.this-post-oneline a
     background-color: #fff;
     color: #000;
   }
-}
-
-span.post-unreg
-{
-  font-weight: bold;
-}
-
-span.post-self a
-{
-  font-weight: bold;
-  color: red;
 }
 
 .post-deleted

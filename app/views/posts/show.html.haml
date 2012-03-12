@@ -5,7 +5,7 @@
     %span.deleted-mark=ta(:deleted,:post)
 =render @post
 =render 'signature'
-%div.thread-tree
+%div.threads
   = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
 -unless @post.deleted
   %div
