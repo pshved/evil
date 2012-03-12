@@ -4,8 +4,8 @@
   <title><%= Configurable[:site_title] %></title>
   <%= stylesheet_link_tag    "application" %>
   <%= javascript_include_tag "application" %>
-  <!-- TODO: only include when needed -->
-  <%= javascript_include_tag "posts" %>
+  <!-- include controller-specific javascript -->
+  <%= javascript_include_tag params[:controller] %>
   <%= csrf_meta_tags %>
 </head>
 <body>
