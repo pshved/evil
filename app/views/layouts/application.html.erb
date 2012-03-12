@@ -16,7 +16,11 @@
     <% if current_user %>
       <%= link_to t("Log out"), logout_path  %> |
       <%= link_to_unless_current ta(:index_edit,:user), edit_user_path(current_user.to_param)  %> |
-      <%= link_to_unless_current ta('index.no_new',:private_message), private_messages_path  %> |
+      <% if current_user.unread_messages.empty? %>
+        <%= link_to_unless_current ta('index.no_new',:private_message), private_messages_path  %> |
+      <% else %>
+        <%= link_to_unless_current ta('index.some_new',:private_message, :count => current_user.unread_messages.length), private_messages_path, :class => 'unread-pm' %> |
+      <% end %>
     <% else %>
       <%= link_to_unless_current ta(:register,:user), new_user_path  %>  |
       <%= link_to t("Log in"), login_path  %> |

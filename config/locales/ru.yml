@@ -89,7 +89,8 @@ ru:
         msg_body: "Сообщение"
         index:
           no_new: "Приват"
-          some_new: ""
+          some_new: "Приват(%{count})"
+          title: "Личные сообщения"
       thread:
         create: "Новый тред"
       presentation:

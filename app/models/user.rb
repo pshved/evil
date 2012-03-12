@@ -8,6 +8,9 @@ class User < ActiveRecord::Base
     find_last_by_login(login)
   end
 
+  has_many :private_messages
+  has_many :unread_messages, :class_name => 'PrivateMessage', :conditions => {:unread => true}
+
   attr_accessor :current_password
 
   # For use in form
