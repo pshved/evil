@@ -68,6 +68,7 @@ div.post-children
 div.post-body
 {
 	padding: 0px 0 10px 0px;
+  margin-bottom: 10px;
 }
 
 span.post-oneline
@@ -83,21 +84,45 @@ span.post-oneline
   text-decoration: line-through;
 }
 
-// Post's header in single-post view
-.post-header .title
-{
-  font-weight: bold;
+// Single-post view
+#mainpost {
+  padding: 5px 15px;
 }
 
-.post-header .tools
+.after-post {
+  padding: 5px;
+}
+
+// Post's header in single-post view
+.post-intro {
+  padding-left: -10px;
+  margin-left: -10px;
+}
+
+.post-intro .tools
 {
   float: right;
   text-align: right;
+  margin: 10px;
 }
 
 .deleted-mark
 {
   color: red;
   font-weight: bold;
+}
+
+// Post title
+.post-title
+{
+  margin-top: 10px;
+  font-size: 120%;
+  font-weight: bold;
+}
+
+// Signature
+.signature {
+  margin-top: 25px;
+  margin-bottom: 15px;
 }
 

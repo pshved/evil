@@ -1,17 +1,12 @@
-%div.post-intro
-  = ta(:header,:post)
-  = link_to "\##{@post.id}", post_path(@post)
-  -if @post.deleted
-    %span.deleted-mark=ta(:deleted,:post)
 =render @post
-=render 'signature'
-%div.threads
-  = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
--unless @post.deleted
-  %div
-    = render :partial => 'loginpost'
--else
-  %div.hint
-    =ta('noreply.deleted',:post)
+%div.after-post
+  %div.threads
+    = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
+  -unless @post.deleted
+    %div
+      = render :partial => 'loginpost'
+  -else
+    %div.hint
+      =ta('noreply.deleted',:post)
 
 

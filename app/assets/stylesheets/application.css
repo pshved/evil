@@ -17,6 +17,10 @@ body {
   padding: 0;
 }
 
+#main {
+  margin: 7px;
+}
+
 a {
   &:visited {
     color: #000088;
