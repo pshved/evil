@@ -51,6 +51,7 @@ ru:
     models:
       posts: "сообщение"
       post: "сообщение"
+      presentation: "настройки отображения"
       session: "вход"
       user: "пользователь"
       user_session: "сессия"

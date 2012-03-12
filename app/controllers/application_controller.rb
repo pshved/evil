@@ -80,7 +80,7 @@ class ApplicationController < ActionController::Base
 
   # Global admin config modification time
   def config_mtime
-    Configurable.maximum('updated_at')
+    @config_max ||= Configurable.maximum('updated_at')
   end
   helper_method :config_mtime
 
