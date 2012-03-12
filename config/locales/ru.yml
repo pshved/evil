@@ -23,6 +23,9 @@ ru:
   Edit: "Редактировать"
   Show subtree: Развернуть ветку
   Hide subtree: Скрыть ветку
+  copyright: Конференция основана на движке Evil (клон движка WWWConf); участвовать в разработке можно
+  here: здесь
+  Page: Страница
   activity:
     hosts: хосты
     clicks: хиты

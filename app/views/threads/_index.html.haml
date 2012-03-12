@@ -6,4 +6,6 @@
       %li{:class => cycle('odd','even')}= render :partial => 'posts/subtree', :locals => {:post => nil, :thread => t, :fast => true, :current_presentation => current_presentation_cache}
     - else
       %li= render :partial => 'posts/subtree', :locals => {:post => t.head, :thread => t}
-=paginate @threads
+%div.pager
+  ="#{t(:Page).humanize}: "
+  =paginate @threads

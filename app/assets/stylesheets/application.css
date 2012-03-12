@@ -99,3 +99,20 @@ span.inquote
   color: red;
   font-weight: bold;
 }
+
+#footer {
+}
+
+#footer .copyright {
+  font-size: 7pt;
+  margin: 10px;
+  text-align: center;
+}
+
+.pager {
+  margin-left: 10px;
+  margin-top: 5px;
+}
+.pager > nav {
+  display: inline;
+}
