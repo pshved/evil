@@ -45,7 +45,7 @@ module PostsHelper
     return @_post_fast_hide if @_post_fast_hide
     # Render a test link with placeholders
     magic = 47382929372 # Beware! should not be equal to a post id!
-    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic)
+    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic), :class => 'action'
 
     # We abuse that, in HTML, link address is before the text.
     md = /^(.*)#{magic}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
@@ -90,19 +90,21 @@ module PostsHelper
   end
 
   def fast_print_username(buf,post)
+    # NOTE: keep this in sync with user_link in application_helper.rb!
+
     # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
     # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
     if this_login = post.user_login
       # Highlight message, if necessary
       if should_highlight[this_login]
-        buf << %Q(<span class="post-self">)
+        buf << %Q(<span class="user-self">)
       else
-        buf << %Q(<span class="post-user">)
+        buf << %Q(<span class="user-other">)
       end
       fast_user[buf,this_login]
       buf << %Q(</span>)
     else
-      buf << %Q(<span class="post-unreg">) << (post.unreg_name || "NIL") << %Q(</span>)
+      buf << %Q(<span class="user-unreg">) << (post.unreg_name || "NIL") << %Q(</span>)
     end
   end
 
@@ -166,21 +168,22 @@ module PostsHelper
   def fast_hidden_bar
     return @_post_fast_hidden_bar if @_post_fast_hidden_bar
 
-    s1 = "#{t('Hidden')}. #{t('Replies')}: "
-    s2 = " #{t('Latest Reply')}: "
+    s1 = %Q[<span class="action">#{t('Hidden')}</span>: (#{t('Replies')}: ]
+    s2 = ", #{t('Latest Reply')}: "
     s3 = " #{t('From')} "
+    s4 = ")"
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
     @_post_fast_hidden_bar = proc do |buf,p,info,tz|
       replies = info[:size]-1
       if replies > 0
         buf << %Q(<div class="hidden-bar">)
-        buf << s1 << replies.to_s << s2
+        buf << s1 << %Q(<span class="count">) << replies.to_s << %Q(</span>) << s2
         latest_subthread_post = info[:latest]
         fast_link[buf,latest_subthread_post,time_for_header(latest_subthread_post.created_at,tz)]
         buf << s3
         fast_print_username(buf,latest_subthread_post)
-        buf << '.'
+        buf << s4
         buf << "</div>"
       end
     end
@@ -189,13 +192,17 @@ module PostsHelper
   # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
   def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)
     # If start is nil, then we're printing the index, and skip the post itself.
-    unless_deleted(start){fast_print(start,tz,buf)} if start
-    # Show if post is hidden, and display the toggle
-    post_shown = fast_showhide(start,tree,info,buf)
-    unless post_shown || @show_all_posts
-      # Show that the post is hidden, and the info about the subthread
-      fast_hidden_bar[buf,start,(info[start.id] || {}),tz]
-      return buf
+    if start
+      buf << %Q(<div class="post-header">)
+      unless_deleted(start){fast_print(start,tz,buf)}
+      # Show if post is hidden, and display the toggle
+      post_shown = fast_showhide(start,tree,info,buf)
+      buf << %Q(</div>)
+      unless post_shown || @show_all_posts
+        # Show that the post is hidden, and the info about the subthread
+        fast_hidden_bar[buf,start,(info[start.id] || {}),tz]
+        return buf
+      end
     end
     kids = tree[start.id]
     return buf unless kids

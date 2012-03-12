@@ -1,0 +1,16 @@
+%div.login-bar
+  - if current_user
+    %span.prompt="#{t("Login")}:"
+    ="#{t("You have logged in as")} "
+    -user_link current_user
+  - else
+    = form_for(@user_session_inline) do |f|
+      %span.prompt="#{t("Login")}:"
+      %span{'class'=>'field'}
+        =f.label :login
+        =f.text_field :login, :size => 15
+      %span{'class'=>'field'}
+        = f.label :password
+        = f.password_field :password, :size => 15
+      %span{'class'=>'actions'}
+        = f.submit

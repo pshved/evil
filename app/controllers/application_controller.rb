@@ -80,8 +80,15 @@ class ApplicationController < ActionController::Base
 
   # Global admin config modification time
   def config_mtime
-    Configurable.maximum('updated_at')
+    @config_max ||= Configurable.maximum('updated_at')
   end
   helper_method :config_mtime
+
+  # Since we display login at every page, add a filter that fills it up
+  before_filter :new_session_if_unreg, :unless => proc {current_user}
+  def new_session_if_unreg
+    # The name is different from @user_session because we want to save markup in heaader on login errors.
+    @user_session_inline = UserSession.new
+  end
 
 end

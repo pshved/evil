@@ -6,7 +6,7 @@
 %div
   = render :partial => 'form'
 
-%div.thread-tree
+%div.threads
   = render :partial => 'subtree', :locals => {:post => @thread.head}
 
 

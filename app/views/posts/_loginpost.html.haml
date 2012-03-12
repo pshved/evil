@@ -10,7 +10,7 @@
   -# Other error messages (are there any?)
   =error_messages_for @loginpost.errors, 'posts'
   -# Now the form itself
-  %table{:border=>0, :cellspacing => 0, :cellpadding => 3}
+  %table{:border=>0, :cellspacing => 0, :cellpadding => 3, :align => 'center'}
     -# Do not show "reply to" if we are creating a new thread
     -if @loginpost.reply_to
       %tr
@@ -39,9 +39,9 @@
     %tr
       %td{:align => 'center'}=f.label :title
       %td
-        =f.text_field 'title', :size => 88
+        =f.text_field 'title', :size => 88, :tabindex => 1
     %tr
-      %td{:colspan => 2}
+      %td{:colspan => 2, :class => 'toolbar', :align=>'center'}
         - buttons = [%w(b i u q pic url h s sup sub strike), %w(color red pre center tex tub spoiler hr smile)]
         - buttons.each do |row|
           - row.each do |btn|
@@ -51,12 +51,15 @@
     %tr
       %td{:colspan => 2, :align => :center}
         -# Older browsers may not support getElementById... so KISS me!
-        =f.text_area 'body', :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('loginpost_body');"
-
-  -# Display captcha
-  - if !current_user && captcha_enabled
-    =t :'recaptcha.prompt'
-    = captcha_tags
-  = f.submit 'Preview'
-  = f.submit
+        =f.text_area 'body', :tabindex => 2, :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('loginpost_body');"
+    %tr
+      %td{:colspan => 2, :align => :center}
+        = f.submit 'Preview', :tabindex => 4
+        = f.submit :tabindex => 3
+    %tr
+      %td{:colspan => 2, :align => :center}
+        -# Display captcha
+        - if !current_user && captcha_enabled
+          =t :'recaptcha.prompt'
+          = captcha_tags
 

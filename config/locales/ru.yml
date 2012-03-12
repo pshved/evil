@@ -12,13 +12,23 @@ ru:
   To Somebody: "Кому-то"
   Log out: "Выйти"
   Log in: "Войти"
+  Login: "Вход"
+  You have logged in as: "Вы вошли в конференцию как"
   Back: "Назад"
-  Hidden: "Свёрнуто"
-  Replies: "Ответов"
-  Latest Reply: "последний"
+  Hidden: "свёрнуто"
+  Replies: "ответов"
+  Latest Reply: "последний ответ"
   From: "от"
   Home: "На главную"
   Edit: "Редактировать"
+  Show subtree: Развернуть ветку
+  Hide subtree: Скрыть ветку
+  copyright: Конференция основана на движке Evil (клон движка WWWConf); участвовать в разработке можно
+  here: здесь
+  Page: Страница
+  activity:
+    hosts: хосты
+    clicks: хиты
   index:
     admin: "Админка"
   recaptcha:
@@ -41,6 +51,7 @@ ru:
     models:
       posts: "сообщение"
       post: "сообщение"
+      presentation: "настройки отображения"
       session: "вход"
       user: "пользователь"
       user_session: "сессия"
@@ -50,7 +61,7 @@ ru:
         title: "заголовок"
         edit: "Редактирование сообщения"
         latest: "Последние сообщения"
-        header: "Открыто сообщение"
+        header: "Сообщение"
         deleted: "УДАЛЕНО!"
         cant_edit: "(Не редактируется)"
         sent_by: "Отправлено пользователем"
@@ -60,6 +71,10 @@ ru:
         xml:
           title: "Свежие сообщения на %{site_title}"
           description: "Поток самый последних сообщений, которые размещены на %{site_title}"
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+        new: "Войти"
       user_session:
         login: "Имя"
         password: "Пароль"
@@ -113,6 +128,7 @@ ru:
         make_default: "Сделать стандартным"
         index: "Настройки отображения"
         manually_hidden: "Вручную скрытые треды"
+        local_help: "Локальный профиль настроек будет сохранён у Вас в cookies.\nКак только Вы залогинитесь, этот профиль будет импортирован в Ваш аккаунт"
       moderation_action:
         index: "Журнал модерации"
         deletion: "Удаление"
