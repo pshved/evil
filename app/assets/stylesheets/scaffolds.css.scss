@@ -1,9 +1,13 @@
 body {
   background-color: #fff;
-  color: #333;
+  color: #000;
   font-family: verdana, arial, helvetica, sans-serif;
   font-size: 13px;
-  line-height: 18px; }
+  line-height: 18px;
+  border: 0 none;
+  margin: 0;
+  padding: 0;
+}
 
 p, ol, ul, td {
   font-family: verdana, arial, helvetica, sans-serif;
@@ -27,13 +31,11 @@ div {
   &.field, &.actions {
     margin-bottom: 10px; } }
 
-#notice {
-  color: green; }
-
 .field_with_errors {
   padding: 2px;
   background-color: red;
-  display: table; }
+  display: table;
+}
 
 #error_explanation {
   width: 450px;

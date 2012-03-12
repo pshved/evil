@@ -12,6 +12,8 @@ ru:
   To Somebody: "Кому-то"
   Log out: "Выйти"
   Log in: "Войти"
+  Login: "Вход"
+  You have logged in as: "Вы вошли в конференцию как"
   Back: "Назад"
   Hidden: "Свёрнуто"
   Replies: "Ответов"
@@ -19,6 +21,9 @@ ru:
   From: "от"
   Home: "На главную"
   Edit: "Редактировать"
+  activity:
+    hosts: хосты
+    clicks: хиты
   index:
     admin: "Админка"
   recaptcha:

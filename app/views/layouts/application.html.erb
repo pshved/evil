@@ -10,7 +10,8 @@
 </head>
 <body>
 
-  <div id="user-nav">
+<div id="user-nav" class="header">
+  <div class="menu">
     <%= link_to_unless_current t("Home"), root_path  %>  |
     <%= link_to_unless_current ta(:create,:thread), new_thread_path %>  |
     <% if current_user %>
@@ -33,11 +34,29 @@
     <%= link_to_unless_current ta(:index,:presentation), view_settings_path  %> |
     <%= link_to_unless_current ta(:latest,:post), latest_posts_path  %> |
     <%= link_to_unless_current "RSS", latest_posts_path(:format => :rss)  %> |
-    <%= link_to_unless_current ta(:index,:moderation_action), moderation_actions_path()  %> |
+    <% if permitted_to? :index, :moderation_actions %>
+      <%= link_to_unless_current ta(:index,:moderation_action), moderation_actions_path()  %>
+    <% else %>
+      <%= ta(:index,:moderation_action) %>
+    <% end %>
   </div>
-  <%= render :partial => 'activities/stats' %>
 
-  <p id="notice"><%= notice %></p>
+  <div class="info">
+    <div class="left">
+      <%= render :partial => 'user_sessions/login_bar' %>
+    </div>
+    <div class="right">
+      <%= render :partial => 'activities/stats' %>
+    </div>
+    <div style="clear: both; height: 0px; overflow: hidden;">
+      <br>
+    </div>
+  </div>
+</div>
+
+<% unless (notice_text = notice).blank? %>
+  <div id="notice"><span><%= notice %></span></div>
+<% end %>
 
 <%= yield %>
 

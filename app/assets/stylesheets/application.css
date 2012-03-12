@@ -20,6 +20,55 @@ span.inquote
 /*TODO*/
 }
 
+/* Main application layout */
+
+.header {
+  font-family: Verdana,Arial;
+  font-size: 70%;
+  margin: 0;
+  padding: -10px;
+}
+
+.menu {
+  background-color: #E1E1E1;
+  padding: 2px;
+  text-align: center;
+}
+
+.info {
+  background-color: #E1E1E1;
+  margin: 0;
+  padding: 10px;
+}
+
+.info .left {
+  float: left;
+  width: 60%;
+}
+
+.info .right {
+  float: right;
+  text-align: right;
+  width: 30%;
+}
+
+/* Notifications bar */
+
+#notice {
+  color: green;
+  margin-left: 15%;
+  margin-right: 15%;
+  margin-top: .5em;
+  padding: 3px;
+  text-align: center;
+  border: 2px dashed green;
+}
+
+#notice span {
+  text-align: center;
+}
+
+
 .unread-pm
 {
   color: red;
