@@ -75,10 +75,6 @@ ru:
         login: "Имя"
         password: "Пароль"
         new: "Войти"
-      user_session:
-        login: "Имя"
-        password: "Пароль"
-        new: "Войти"
       user:
         login: "Логин"
         password: "Пароль"
@@ -138,6 +134,12 @@ ru:
         is: "Активность "
         during: "за последние"
         minutes: "минут"
+  authlogic:
+    attributes:
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+        new: "Войти"
   # Unlike in models, when altering helpers, you sohuld specify the exact case
   helpers:
     submit:

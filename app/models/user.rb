@@ -1,5 +1,7 @@
 class User < ActiveRecord::Base
-  acts_as_authentic
+  acts_as_authentic do |config|
+    config.validates_format_of_login_field_options :with => /.*/
+  end
   # Login uniqueness
   validates_uniqueness_of :login
   # Since login is unique anyway, redefine the activerecord's auto-generated finder
