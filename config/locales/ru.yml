@@ -21,6 +21,7 @@ ru:
   From: "от"
   Home: "На главную"
   Edit: "Редактировать"
+  Showing: "Показано %{threads} тредов"
   Show subtree: Развернуть ветку
   Hide subtree: Скрыть ветку
   copyright: Конференция основана на движке Evil (клон движка WWWConf); участвовать в разработке можно
@@ -71,10 +72,6 @@ ru:
         xml:
           title: "Свежие сообщения на %{site_title}"
           description: "Поток самый последних сообщений, которые размещены на %{site_title}"
-      user_session:
-        login: "Имя"
-        password: "Пароль"
-        new: "Войти"
       user_session:
         login: "Имя"
         password: "Пароль"
@@ -138,6 +135,12 @@ ru:
         is: "Активность "
         during: "за последние"
         minutes: "минут"
+  authlogic:
+    attributes:
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+        new: "Войти"
   # Unlike in models, when altering helpers, you sohuld specify the exact case
   helpers:
     submit:

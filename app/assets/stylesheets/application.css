@@ -122,3 +122,16 @@ span.inquote
 .pager > nav {
   display: inline;
 }
+
+.info .pager {
+  display: inline;
+  margin-left: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding: 0;
+}
+.info .pager > nav {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
