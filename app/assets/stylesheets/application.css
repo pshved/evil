@@ -19,6 +19,8 @@ body {
 
 #main {
   margin: 7px;
+  /* Extended margin to get rid of strange horizontal scrollbar */
+  margin-right: 12px;
 }
 
 a {
