@@ -1,3 +1,4 @@
 %h1=ta(:write,:private_message)
-= render 'form'
-= link_to ta(:all,:private_message), private_messages_path
+%div.persmsgs
+  = render 'form'
+  = link_to ta(:all,:private_message), private_messages_path
