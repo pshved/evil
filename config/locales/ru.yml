@@ -48,6 +48,8 @@ ru:
     moderation:
       removed: Сообщение удалено.  Обычные пользователи и гости его не увидят.
       cantedit:  Невозможно удалить сообщение.  Попробуйте его отредактировать.
+    private_message:
+      sent:  Личное сообщение отправлено
   # Some models are "activemodel" rather than "activerecord" models
   activemodel:
     models:
