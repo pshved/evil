@@ -38,6 +38,16 @@ ru:
       recaptcha_unavailable: 'Каптча не сработала.  Реши-ка ещё загадку!'
       verification_failed: 'Да ты же робот!  Старайся получше!'
   signatures_are_hidden: Пользователь имеет подпись, но её отображение запрещено в настройках.
+  notice:
+    session:
+      login: Вы вошли в конференцию.
+      logout: Вы успешно™ вышли.
+    preview: Это всего лишь предварительный просмотр!  Изменения НЕ сохранены!
+    posted: Сообщение отправлено.
+    edited: Сообщение изменено.
+    moderation:
+      removed: Сообщение удалено.  Обычные пользователи и гости его не увидят.
+      cantedit:  Невозможно удалить сообщение.  Попробуйте его отредактировать.
   # Some models are "activemodel" rather than "activerecord" models
   activemodel:
     models:

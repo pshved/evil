@@ -54,7 +54,7 @@ class PrivateMessagesController < ApplicationController
     else
       respond_to do |format|
         if @private_message.save
-          format.html { redirect_to private_messages_path, notice: 'Private message was successfully created.' }
+          format.html { redirect_to private_messages_path, notice: t('private_message.sent') }
           format.json { render json: @private_message, status: :created, location: @private_message }
         else
           format.html { render action: "new" }

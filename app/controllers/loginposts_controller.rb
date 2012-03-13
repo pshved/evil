@@ -13,7 +13,7 @@ class LoginpostsController < ApplicationController
       @post = @loginpost.post
       puts @post.body
       respond_to do |format|
-        flash[:notice] = 'This is a preview only!'
+        flash[:notice] = t('notice.preview')
         format.html { render action: "new" }
       end
     else
@@ -22,7 +22,7 @@ class LoginpostsController < ApplicationController
         if @loginpost.valid? && captcha_ok? && @loginpost.save
           # TODO: oops, race condition between post save and logging in!
           @loginpost.log_in_if_necessary
-          format.html { redirect_to @loginpost.saved_post, notice: 'Post was successfully created.' }
+          format.html { redirect_to @loginpost.saved_post, notice: t('notice.posted') }
         else
           @post = @loginpost.post
           format.html { render action: "new" }
