@@ -190,10 +190,12 @@ module PostsHelper
   end
 
   # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
-  def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)
+  def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, smoothed = false)
     # If start is nil, then we're printing the index, and skip the post itself.
     if start
       buf << %Q(<div class="post-header">)
+      # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
+      buf << "^ " if smoothed
       unless_deleted(start){fast_print(start,tz,buf)}
       # Show if post is hidden, and display the toggle
       post_shown = fast_showhide(start,tree,info,buf)
@@ -212,8 +214,7 @@ module PostsHelper
     kids.each do |child|
       unless_deleted child do
         buf << %Q(<li>)
-        buf << "^ " if smoothed
-        fast_generic_tree(buf,tree,child,info,tz)
+        fast_generic_tree(buf,tree,child,info,tz,smoothed)
         buf << %Q(</li>\n)
       end
     end
