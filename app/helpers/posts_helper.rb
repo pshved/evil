@@ -175,7 +175,8 @@ module PostsHelper
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
     @_post_fast_hidden_bar = proc do |buf,p,info,tz|
-      replies = info[:size]-1
+      # Tree may come without info (see "latest posts," for instance)
+      replies = (info[:size] || 1) - 1
       if replies > 0
         buf << %Q(<div class="hidden-bar">)
         buf << s1 << %Q(<span class="count">) << replies.to_s << %Q(</span>) << s2
