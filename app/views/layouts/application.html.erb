@@ -46,9 +46,12 @@
   <div class="info">
     <div class="left">
       <%= render :partial => 'user_sessions/login_bar' %>
-      <% if @threads && !params[:page].blank? %>
+      <% if @threads %>
         <div class="pager">
-        <%= "#{t(:Page).humanize}: "%><%=paginate(@threads) %>
+          <%= "#{t(:Showing, :threads => @threads.count).humanize}."%>
+          <% if !params[:page].blank? %>
+            <%= "#{t(:Page).humanize}: "%><%=paginate(@threads) %>
+          <% end %>
         </div>
       <% end %>
     </div>
