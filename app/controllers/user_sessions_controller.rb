@@ -33,7 +33,7 @@ class UserSessionsController < ApplicationController
           # We do not "dup" this view to never see it again as an unreg.  This prevents polluting accounts with views if you login frequently, and were unlucky to modify user settings.
           local_view.attach_to(current_user)
         end
-        format.html { redirect_to root_url, notice: 'Successfully logged in.' }
+        format.html { redirect_to root_url, notice: t('notice.session.login') }
         format.json { render json: @user_session, status: :created, location: @user_session }
       else
         format.html { render action: "new" }
@@ -48,7 +48,7 @@ class UserSessionsController < ApplicationController
     @user_session = UserSession.find(params[:id])
     @user_session.destroy
 
-    flash[:notice] = 'Successfully logged out'
+    flash[:notice] = t('notice.session.logout')
     respond_to do |format|
       format.html { redirect_to root_url }
       format.json { head :ok }

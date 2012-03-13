@@ -43,7 +43,7 @@ class PostsController < ApplicationController
 
     respond_to do |format|
       if @post.save
-        format.html { redirect_to @post, notice: 'Post was successfully created.' }
+        format.html { redirect_to @post, notice: t('notice.posted') }
         format.json { render json: @post, status: :created, location: @post }
       else
         format.html { render action: "new" }
@@ -60,13 +60,13 @@ class PostsController < ApplicationController
       # This is a preview, validate and show it
       @post.valid?
       respond_to do |format|
-        flash[:notice] = 'This is a preview only!'
+        flash[:notice] = t('notice.preview')
         format.html { render action: "edit" }
       end
     else
       respond_to do |format|
         if @post.update_attributes(params[:posts])
-          format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
+          format.html { redirect_to @post, notice: t('notice.edited') }
           format.json { head :ok }
         else
           format.html { render action: "edit" }
@@ -121,11 +121,11 @@ class PostsController < ApplicationController
         @post.hide_kids(current_user,"Belongs to subthread of a removed #{post_url(@post)} due to Remove SPAM!")
       end
       respond_to do |format|
-        format.html { redirect_to @post, notice: "The post and its subthread has been removed.  Regular users will not see it." }
+        format.html { redirect_to @post, notice: t('notice.moderation.removed') }
       end
     else
       respond_to do |format|
-        format.html { render action: "edit", notice: "Can't delete post; try to edit it?" }
+        format.html { render action: "edit", notice: t('notice.moderation.cantedit') }
       end
     end
   end

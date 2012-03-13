@@ -17,6 +17,18 @@ en:
       recaptcha_unavailable: 'Captcha timeout.  Try again please'
       verification_failed: 'You are a robot, not a human.  Try harder!'
   signatures_are_hidden: The user has a signature, but you turned them off in your presentation settings!
+  notice:
+    session:
+      login: You have successfully logged in.
+      logout: You have successfully logged out.
+    preview: This is a preview only!  Changes are NOT saved!
+    posted: 'Post was successfully created.'
+    edited: Post has successfully been updated.
+    moderation:
+      removed: "The post and its subthread has been removed.  Regular users will not see it."
+      cantedit: "Can't delete post; try to edit it?"
+    private_message:
+      sent:  'Private message was successfully created.'
   # ActiveRecord template
   activerecord:
     errors:
