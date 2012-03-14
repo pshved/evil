@@ -11,7 +11,7 @@ class TextContainer < ActiveRecord::Base
   end
 
   # Filters the string given the context and this container's filtering setting
-  def filter_item(txt,context = nil)
+  def self.filter(txt,filter,context = nil)
     case filter
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)
@@ -20,11 +20,33 @@ class TextContainer < ActiveRecord::Base
     end
   end
 
+  # Cached filter
+  def self.filter_cached(txt,filter,cache_id,cache_index,cache_key,context = nil)
+    Rails.cache.fetch("tc-#{cache_id}[#{cache_index}]+#{cache_key}") do
+      filter(txt,filter,context = nil)
+    end
+  end
+
+  def filter_item(txt,context = nil)
+    TextContainer.filter(txt,filter,context)
+  end
+
+  def filter_item_cached(txt,index,context = nil)
+    if @unsaved_texts
+      # There are unsaved items.  We do not cache them!
+      TextContainer.filter(txt,filter,context)
+    else
+      TextContainer.filter_cached(txt,filter,id,index,updated_at,context)
+    end
+  end
+
   def filtered(context = nil)
     f = _items
-    f.map do |txt|
-      filter_item(txt,context)
+    r = []
+    f.each_with_index do |txt,i|
+      r << filter_item_cached(txt,i,context)
     end
+    r
   end
 
   def add_revision(*texts)
@@ -48,6 +70,22 @@ class TextContainer < ActiveRecord::Base
     else
       # If the new revisions are not going to be saved, store them locally, and flush at save
       @unsaved_texts = texts.dup
+    end
+  end
+
+  # A more convenient method to mutate the container
+  # NOTE that you can't add [] method as well, because ActiveRecord uses it for something
+  def []=(index,val)
+    raise "Set up TextContainer before mutation!" if arity.nil?
+    raise "Trying to mutate at #{index} when the arity is #{arity}" if arity <= index
+    if @unsaved_texts
+      # If we have already started the mutation, then we can directly alter the container
+      @unsaved_texts[index] = val
+    else
+      # Start the mutation with the altered container
+      new_items = _items.dup
+      new_items[index] = val
+      _add_revs(false,*new_items)
     end
   end
 

@@ -10,6 +10,9 @@ class PrivateMessagesController < ApplicationController
   # GET /private_messages.json
   def index
     @private_messages = PrivateMessage.all_for(current_user).page(params[:page])
+    # To show that the user has viewed these messages, mark them as read
+    # We can't do this in a separate thread, because we should show that the messages are read at once
+    @private_messages.where('unread').update_all 'unread = false'
 
     respond_to do |format|
       format.html # index.html.erb
@@ -51,7 +54,7 @@ class PrivateMessagesController < ApplicationController
     else
       respond_to do |format|
         if @private_message.save
-          format.html { redirect_to private_messages_path, notice: 'Private message was successfully created.' }
+          format.html { redirect_to private_messages_path, notice: t('private_message.sent') }
           format.json { render json: @private_message, status: :created, location: @private_message }
         else
           format.html { render action: "new" }

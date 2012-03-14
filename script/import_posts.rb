@@ -30,7 +30,16 @@ def make_post(params)
   p = Posts.find_by_back(params[:id])
   p ||= Posts.new
   # Now, set its attrs
-  p.assign_attributes(:user => nil, :unreg_name => params[:login], :host => (params[:host] || 'localhost') )
+  p.assign_attributes(:user => nil, :host => (params[:host] || 'localhost') )
+  if params[:unreg_name]
+    p.unreg_name = params[:unreg_name]
+  elsif params[:user_name]
+    if u = User.where(:login => params[:user_name]).first
+      p.user = u
+    else
+    p.user = User.create(:login => params[:user_name],:password => 'students', :password_confirmation => 'students', :email => "mail#{params[:user_name]}@example.com")
+    end
+  end
   p.text_container = TextContainer.make(params[:title],params[:body])
   # Set up HTML (raw) filter, so that boardtags are not applied
   p.text_container.filter = :html
@@ -55,6 +64,7 @@ def try_download_post(post_id)
   doc = XML::HTMLParser.string(suc, :options =>  XML::HTMLParser::Options::RECOVER).parse
   # Find the title
   title = doc.find(%Q(/html/body/div[@align="CENTER"]/big))[1].inner_xml
+  title.gsub!(/<span class="lre"\/>/,'')
   title = title.slice(0..95)
   puts "Title: #{title}"
   # Find the body (if any)
@@ -68,7 +78,7 @@ def try_download_post(post_id)
   end
   # Find the parent.  First, locate the post's node in the tree
   this_node = doc.find(%Q(//b/span[@class="subject"]))[0]
-  parent_node = this_node.parent.parent.parent.parent.prev.attributes['id']
+  parent_node = this_node.parent.parent.parent.parent.parent.prev.attributes['id']
   if parent_node
     parent_node =~ /m([0-9]+)/
     parent_node = $1.to_i
@@ -78,23 +88,49 @@ def try_download_post(post_id)
   # Reg name
   # xml instead of html!
   unreg_name = doc.find(%Q(/html/body/div[@align="CENTER"]/span[@class="unreg"]))[0]
-  unreg_name = doc.find(%Q(/html/body/div[@align="CENTER"]/a[@class="nn"]))[0] unless unreg_name
+  user_name = doc.find(%Q(/html/body/div[@align="CENTER"]/a[@class="nn"]))[0]
 
-  unreg_name = unreg_name.inner_xml
+  unreg_name = unreg_name.inner_xml if unreg_name
+  puts "UUUUUUUUUUU"
+  puts user_name.inspect
+  unless user_name.nil? || user_name.empty?
+    begin
+      md = CGI::unescape(user_name.attributes['href']).match(/uinfo=(.*)/)
+      user_name = md[1]
+    rescue
+      unreg_name = user_name.content
+      user_name = nil
+  puts "Rescued to #{unreg_name}"
+    end
+  else
+    user_name = nil
+  end
 
   # Timestamp and host
-  ts_and_host_str = this_node.parent.parent.parent.find(%Q(span[@class="reg" or @class="unr"]))[0].next
-  tahs = ts_and_host_str.content.inspect
+  host_str = this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"]))[0]
+  puts this_node.parent.inspect
+  puts this_node.parent.parent.inspect
+  puts this_node.parent.parent.parent.inspect
+  puts this_node.parent.parent.parent.parent.inspect
+  puts this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"])).inspect
+  puts this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"]))[0].inspect
+  puts this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"]))[0].parent.inspect
+  puts this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"]))[0].parent.next.inspect
+  puts this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"]))[0].parent.next.next.inspect
+  host_str = host_str.parent.next.next
+  host_str = host_str.content
+  ts_str =   this_node.parent.parent.parent.parent.find(%Q(//span[@class="reg" or @class="unr"]))[0].parent.next.next.next.next
+  ts_str = ts_str.content
 
-  puts "TAHS: #{tahs}"
+  puts "TAHS: #{ts_str} ++ #{host_str}"
 
-  tahs =~ /\((.*)\) — (.*)/ or raise "Can't match regexp with '#{tahs}'"
+  host_str =~ /\((.*)\) —/ or raise "Can't match regexp with '#{host_str}'"
 
   host = $1
-  timestamp = DEFAULT_TZ.local_to_utc(DateTime.strptime($2, '%d/%m/%Y %H:%M'))
+  timestamp = DEFAULT_TZ.local_to_utc(DateTime.strptime(ts_str, '%d/%m/%Y %H:%M'))
 
   # Now compose and convert the post
-  to_save, post = make_post(:parent_id => parent_node, :title => title, :body => body, :id => post_id, :login => unreg_name, :host => host)
+  to_save, post = make_post(:parent_id => parent_node, :title => title, :body => body, :id => post_id, :user_name => user_name, :unreg_name => unreg_name, :host => host)
   begin
     to_save.save!
   rescue => e

@@ -1,6 +1,7 @@
 ru:
   hello: "Preved!"
   is_invalid: "неверен"
+  at: "в"
   views:
     pagination:
       previous: "&lt; Раньше"
@@ -9,3 +10,164 @@ ru:
       last: "Конец"
       truncate: "+++"
   To Somebody: "Кому-то"
+  Log out: "Выйти"
+  Log in: "Войти"
+  Login: "Вход"
+  You have logged in as: "Вы вошли в конференцию как"
+  Back: "Назад"
+  Hidden: "свёрнуто"
+  Replies: "ответов"
+  Latest Reply: "последний ответ"
+  From: "от"
+  Home: "На главную"
+  Edit: "Редактировать"
+  Showing: "Показано %{threads} тредов"
+  Show subtree: Развернуть ветку
+  Hide subtree: Скрыть ветку
+  copyright: Конференция основана на движке Evil (клон движка WWWConf); участвовать в разработке можно
+  here: здесь
+  Page: Страница
+  activity:
+    hosts: хосты
+    clicks: хиты
+  index:
+    admin: "Админка"
+  recaptcha:
+    prompt: 'Докажи, что ты не робот, решив капчу:'
+    errors:
+      recaptcha_unavailable: 'Каптча не сработала.  Реши-ка ещё загадку!'
+      verification_failed: 'Да ты же робот!  Старайся получше!'
+  signatures_are_hidden: Пользователь имеет подпись, но её отображение запрещено в настройках.
+  notice:
+    session:
+      login: Вы вошли в конференцию.
+      logout: Вы успешно™ вышли.
+    preview: Это всего лишь предварительный просмотр!  Изменения НЕ сохранены!
+    posted: Сообщение отправлено.
+    edited: Сообщение изменено.
+    moderation:
+      removed: Сообщение удалено.  Обычные пользователи и гости его не увидят.
+      cantedit:  Невозможно удалить сообщение.  Попробуйте его отредактировать.
+    private_message:
+      sent:  Личное сообщение отправлено
+  # Some models are "activemodel" rather than "activerecord" models
+  activemodel:
+    models:
+      loginpost: "сообщение"
+    attributes:
+      loginpost:
+        title: "Заголовок"
+        reply: "Ответить"
+        name: "Имя"
+        autologin: "Залогиниться"
+  activerecord:
+    models:
+      posts: "сообщение"
+      post: "сообщение"
+      presentation: "настройки отображения"
+      session: "вход"
+      user: "пользователь"
+      user_session: "сессия"
+      private_message: "личное сообщение"
+    attributes:
+      post:
+        title: "заголовок"
+        edit: "Редактирование сообщения"
+        latest: "Последние сообщения"
+        header: "Сообщение"
+        deleted: "УДАЛЕНО!"
+        cant_edit: "(Не редактируется)"
+        sent_by: "Отправлено пользователем"
+        last_edit: "Изменено в"
+        noreply:
+          deleted: "Нельзя отвечать на удалённые сообщения"
+        xml:
+          title: "Свежие сообщения на %{site_title}"
+          description: "Поток самый последних сообщений, которые размещены на %{site_title}"
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+        new: "Войти"
+      user:
+        login: "Логин"
+        password: "Пароль"
+        password_confirmation: "Подтверждение пароля"
+        current_password: "Текущий пароль"
+        email: "Почта"
+        signature_body: "Подпись"
+        current_signature: "Текущая подпись"
+        new: "Новый пользователь"
+        edit: "Редактировать профиль"
+        register: "Регистрация"
+        index_edit: "Профиль"
+      private_message:
+        write: "Написать приватку"
+        log_in_to_write: "чтобы написать приватку"
+        all: "Все сообщения"
+        index: "Личные сообщения"
+        write_box: "[Написать]"
+        reply_box: "[Ответить]"
+        sender: "От"
+        to: "Кому"
+        recipient_user_login: "Получатель"
+        msg_body: "Сообщение"
+        index:
+          no_new: "Приват"
+          some_new: "Приват(%{count})"
+          title: "Личные сообщения"
+      thread:
+        create: "Новый тред"
+      presentation:
+        threadpage_size: "Показывать последних веток"
+        time_zone: "Часовой пояс"
+        name: "Название профиля настроек"
+        highlight_self: "Подсвечивать своё имя в индексе"
+        hide_signatures: "Не показывать ничьи подписи"
+        autowrap_thread_value: "Глубина сообщения, с которого будет скрыт свёрнутый тред"
+        autowrap_thread_threshold: "Глубина треда, который будет свёрнут"
+        smooth_threshold: "Сглаживать треды с глубины"
+        edit: "Редактировать профиль настроек '%{name}'"
+        edit_site_wide: "Редактировать глобальный профиль настроек"
+        edit_local: "Редактировать локальный профиль настроек"
+        create: "Создать профиль настроек"
+        current: "Текущий"
+        use: "Использовать этот"
+        clone: "Копировать"
+        default: "Стандартный"
+        make_default: "Сделать стандартным"
+        index: "Настройки отображения"
+        manually_hidden: "Вручную скрытые треды"
+        local_help: "Локальный профиль настроек будет сохранён у Вас в cookies.\nКак только Вы залогинитесь, этот профиль будет импортирован в Ваш аккаунт"
+      moderation_action:
+        index: "Журнал модерации"
+        deletion: "Удаление"
+        committed_by: "совершено ползователем"
+        reason: "причина"
+      activity:
+        is: "Активность "
+        during: "за последние"
+        minutes: "минут"
+  authlogic:
+    attributes:
+      user_session:
+        login: "Имя"
+        password: "Пароль"
+        new: "Войти"
+  # Unlike in models, when altering helpers, you sohuld specify the exact case
+  helpers:
+    submit:
+      posts:
+        create: "Отправить сообщение"
+      loginpost:
+        create: "Отправить сообщение"
+      user_session:
+        create: "Войти"
+  errors:
+    credentials: "Неправильный логин/пароль"
+    blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"
+    enter_password: "Введите пароль!"
+  moderation:
+    spam:
+      confirm: "Вы точно уверены, что хотите удалить этот пост как СПАМ?"
+      button: "SPAM!"
+

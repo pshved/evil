@@ -5,6 +5,8 @@ authorization do
     # TODO : web interface?
     has_permission_on :threads, :to => :list
     has_permission_on :posts, :to => :read
+    # See the posts feed
+    has_permission_on :posts, :to => :latest
 
     # Creation block.  Disable if you want.
     has_permission_on :threads, :to => :create
@@ -16,6 +18,13 @@ authorization do
     has_permission_on :users, :to => :create
     # May view other's profiles
     has_permission_on :users, :to => :read
+    # Unreg users can create and edit local presentations
+    # Technically, nothing prevents them from accessing other unreg users' views, except for the long random cookie key
+    has_permission_on :presentations, :to => [:create, :update], :join_by => :and do
+      if_attribute :user => is { nil }
+      if_attribute :cookie_key => is_not { nil }
+      if_attribute :global => is_not { true }
+    end
   end
 
   role :banned do
@@ -37,13 +46,22 @@ authorization do
 
     # Presentations are aready tied to the current_user as an owner, so there's no need to check attributes
     has_permission_on :presentations, :to => :index
-    # However, user can't reply to others' messages
-    has_permission_on :presentations, :to => :create do
+    has_permission_on :presentations, :to => [:create, :update], :join_by => :and do
       if_attribute :user => is { user }
+      if_attribute :global => is_not { true }
     end
 
     # Show/hide posts
     has_permission_on :posts, :to => :toggle_showhide
+
+    # Read information about moderation actions
+    has_permission_on :moderation_actions, :to => :list
+
+    # Users can see hidden posts if their message count is big enough
+    # TODO: when you'll implement this, add a dummy method "exp_requirement" to Posts model, and make it return a const from initializers
+    #has_permission_on :posts, :to => :see_deleted do
+      #if_attribute :exp_requirement => lte { user.message_count }
+    #end
   end
 
   role :user do
@@ -66,7 +84,11 @@ authorization do
 
   role :moderator do
     includes :user
-    has_permission_on :threads, :to => :manage
+
+    # Moderators can hide posts (hidden posts are visible only to very mature users; unregs and search robots do not see them)
+    has_permission_on :posts, :to => :remove
+    # Moderators can see hidden posts
+    has_permission_on :posts, :to => :see_deleted
   end
 
   role :admin do
@@ -76,6 +98,14 @@ authorization do
 
     # Manage site-wide configuration options
     has_permission_on :admin_configurables, :to => :manage
+    has_permission_on :admin_specials, :to => :manage
+    has_permission_on :presentations, :to => :edit_default
+    has_permission_on :presentations, :to => [:update,:create] do
+      if_attribute :global => is { true }
+    end
+
+    # Admins can also remove posts permanently
+    has_permission_on :posts, :to => [:manage, :remove]
   end
 end
 

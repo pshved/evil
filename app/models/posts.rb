@@ -23,6 +23,16 @@ class Posts < ActiveRecord::Base
   # Check that there's no two imported posts with the same ID (not strict because we may want to return a value to an importer)
   validates_uniqueness_of :back, :unless => proc {|p| p.back.blank?}
 
+  # This checks that you are not replying to a closed thread, or to a deleted post
+  validate :replies_to_open?
+
+  # Check if the username and password are valid.  These are either valid credentials for a registred user, or a password-less
+  def replies_to_open?
+    if parent && parent.deleted
+      errors.add(:base, "You can't reply to a deleted post!")
+    end
+  end
+
   # Other validations
   extend PostValidators
   validates_post_attrs
@@ -55,7 +65,6 @@ class Posts < ActiveRecord::Base
 
   # Update whether the post is empty (needed for optimization)
   def renew_emptiness
-    debugger
     self.empty_body = body.strip.blank?
     true
   end
@@ -67,13 +76,20 @@ class Posts < ActiveRecord::Base
 
 
   # Post fields accessors
+  # All textual fields are stored in the text container.  We should create one before accessing them
+  private
+  def ensure_container
+    self.text_container ||= TextContainer.make('','') # Smile! ^_^
+    self.text_container
+  end
+  public
 
   def title
-    text_container.body[0]
+    ensure_container.body[0]
   end
 
   def body
-    text_container.body[1]
+    ensure_container.body[1]
   end
 
   # Post's body after the proper filter application
@@ -100,55 +116,59 @@ class Posts < ActiveRecord::Base
   end
 
   # Check if the post was hidden by the current user
-  def hidden_by?(opts = {})
-    user = opts[:user]
-    thread_hides = opts[:thread_hides] || {}
+  def self.hidden_by?(id, userhide_action, opts = {})
+    # If we're in the single-post view, just show everything
+    return false if opts[:show_all]
+    # Otherwise, take into account the following: user's hides, thread auto-hides
+    post_info = (opts[:thread_info] || {})[id] || {}
     hidden = false
     # User's own settings override all
-    if user
-      hidden ||= user.hidden_posts.exists?(self.id)
-    end
+    return HiddenPostsUsers.need_hide(userhide_action) if userhide_action
     # Now moderator's settings follow
     # TODO
     # Now thread's auto-folding works (site-wide threshold)
-    hidden ||= (!opts[:show_all] && thread_hides[self.id])
+    hidden ||= post_info[:hidden]
     hidden
   end
-  def toggle_showhide(user)
-    if hidden_by?(:user => user)
-      user.hidden_posts.delete self
+  def hidden_by?(opts = {})
+    userhide = nil
+    if opts[:user] && (uha = opts[:user].hide_actions.where(['posts_id = ?',self.id]).first)
+      userhide = uha.action
+    end
+    Posts.hidden_by?(id,userhide,opts)
+  end
+  def toggle_showhide(user,presentation)
+    # We should check if the user hides the thread with his or her settings
+    # TODO refactor thread queries
+    Threads.settings_for = user
+    pthr = thread
+    pthr.presentation = presentation
+    #
+    hidden = hidden_by?(:user => user, :thread_info => pthr.hides_fast)
+    if hide_assoc = user.hide_actions.where(['posts_id = ?',self.id]).first
+      # Alter the hide association
+      hide_assoc.action = HiddenPostsUsers.inverse_hidden(hidden)
+      hide_assoc.save
     else
-      user.hidden_posts << self
+      HiddenPostsUsers.create(:user_id => user.id, :posts_id => self.id, :action => HiddenPostsUsers.inverse_hidden(hidden))
     end
   end
 
   # Editing posts and revisions
-  def maybe_new_revision_for_edit
-    @editing = true 
-  end
-
   def title=(title)
-    @unsaved_title = title.dup
+    ensure_container[0] = title
   end
 
   def body=(body)
-    @unsaved_body = body
+    ensure_container[1] = body
   end
 
   before_validation do
-    self.text_container = TextContainer.make('','') unless self.text_container
+    ensure_container
     true
   end
 
-  before_validation do
-    if @editing
-      text_container.add_revision(@unsaved_title,@unsaved_body)
-      @editing = false
-    end
-    true
-  end
-
-  # TODO: I don't understand why it's needeed with :autosave...
+  # Belongs_to associations, unlike has_one, need to be saved explicitly
   before_save do
     text_container.save
   end
@@ -170,6 +190,33 @@ class Posts < ActiveRecord::Base
 
   def user_login
     user.nil??  nil : user.login
+  end
+
+  # This procedure recursively removes the kids of the post, but doesn't remove the post itself.
+  def hide_kids(moderator,reason)
+    this_thread = self.thread.build_subtree_fast
+    # Get the IDs of the whole subtree
+    queue = [self.id]
+    to_remove = []
+    while not queue.empty?
+      puts "ITER: #{queue.inspect} --- #{to_remove.inspect}"
+      last = queue.shift
+      to_remove << last
+      queue += (this_thread[last] || []).map(&:id)
+    end
+    # The first item of to_remove array is our post which we shouldn't remove.
+    to_remove.shift
+    # Now remove them with a single SQL
+    ActiveRecord::Base.connection.execute(%Q{UPDATE posts SET deleted = true WHERE id in (#{to_remove.join(',')})})
+    # And insert moderation comments
+    to_remove.each do |rm_id|
+      ModerationAction.create(:post_id => rm_id, :user => moderator, :reason => reason)
+    end
+  end
+
+  # This is not the same as updated_at... when a post is shown/hidden by a user, its update mark is changed.  We should refactor it later.
+  def edited_at
+    text_container ? text_container.updated_at : updated_at
   end
 
 end

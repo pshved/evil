@@ -1,8 +1,38 @@
 %div#mainpost
-  %center
-    %div.post-title
-      = @post.title
+  %div.post-intro
+    %div.tools
+      -# Check for persistence: we can't perform any of the actions on posts that are not saved (in preview, for instance)
+      - if @post.persisted?
+        -# Post Editing link (moved here from index to make it faster)
+        - if permitted_to? :edit, @post
+          = link_to t("Edit"), edit_post_path(@post)
+          %br/
+        - else
+          =ta(:cant_edit,:post)
+        -# Moderation
+        - if permitted_to? :remove, @post
+          = link_to t('moderation.spam.button'), remove_post_path(@post), :confirm => t('moderation.spam.confirm')
+    - if @post.persisted?
+      = ta(:header,:post)
+      = link_to "\##{@post.id}", post_path(@post)
+      -if @post.deleted
+        %span.deleted-mark=ta(:deleted,:post)
+    %div.author
+      =ta(:sent_by,:post)
+      - user_link @post.user, @post.unreg_name
+      %small="(#{@post.host})"
+      - if @post.persisted?
+        =t("at")
+        = user_time @post.created_at
+        -if @post.created_at != @post.edited_at
+          =ta(:last_edit,:post)
+          = user_time @post.edited_at
+  %div.post-title
+    = @post.title
   %div.post-body
     -# Note that we do not strip the post in DB, but rather do it in the view
-    != @post.filtered_body.strip
+    - unless (pb = @post.filtered_body.strip).blank?
+      %hr/
+      !=pb
+  =render 'posts/signature'
 

@@ -1,22 +1,29 @@
 = form_for(@presentation) do |f|
-  -if @presentation.errors.any?
-    %div{id=>"error_explanation"}
-      %h2
-        =pluralize(@presentation.errors.count, "error")
-        prohibited this presentation from being saved:
-      %ul
-        -@presentation.errors.full_messages.each do |msg|
-          %li= msg
+  =error_messages_for @presentation.errors, :presentation
+  = f.hidden_field :global
   %div.field
     = f.label :threadpage_size
     = f.number_field :threadpage_size
   %div.field
     = f.label :time_zone
     = f.time_zone_select :time_zone, /Minsk|Moscow|Petersburg|Volgograd|Ekaterinburg|Novosibirsk|Krasnoyarsk|Irkutsk|Yakutsk|Vladivostok/, :default => "Europe/Moscow", :model => TZInfo::Timezone
-  %div.hiddenthreads
-    Hidden threads:
-    %ul
-      - current_user.hidden_posts.each do |p|
-        %li= link_to p.title, p
+  %div.field
+    = f.label :highlight_self
+    = f.check_box :highlight_self
+  %div.field
+    = f.label :hide_signatures
+    = f.check_box :hide_signatures
+  %div.field
+    = f.label :autowrap_thread_threshold
+    = f.number_field :autowrap_thread_threshold
+  %div.field
+    = f.label :autowrap_thread_value
+    = f.number_field :autowrap_thread_value
+  %div.field
+    = f.label :smooth_threshold
+    = f.number_field :smooth_threshold
+  %div.field
+    = f.label :name
+    = f.number_field :name
   %div.actions
     = f.submit

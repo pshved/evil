@@ -1,12 +1,8 @@
 = form_for(@user) do |f|
-  -if @user.errors.any?
-    %div#error_explanation
-      %h2="#{pluralize(@user.errors.count, "error")} prohibited this user from being saved"
-      %ul
-        -@user.errors.full_messages.each do |msg|
-          %li= msg
+  =error_messages_for @user.errors, 'user'
   -if @user.persisted?
-    = "Modify user #{@user.login}"
+    = f.label :login
+    = @user.login
     %br/
   -else
     %div.field
@@ -26,5 +22,15 @@
     = f.label :email
     = f.text_field :email
     Write some crap here, no e-mail will be sent anyway!
+  %div.field
+    = f.label :signature_body
+    = f.text_area :signature_body, :cols => 50, :rows => 7
+  %div
+    =t(:'current_signature', :scope => 'activerecord.attributes.user')
+    %br/
+    != @user.formatted_signature
+  - if !current_user && captcha_enabled
+    =t :'recaptcha.prompt'
+    = captcha_tags
   %div.actions
     =f.submit

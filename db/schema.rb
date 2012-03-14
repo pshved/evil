@@ -11,7 +11,16 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120214191724) do
+ActiveRecord::Schema.define(:version => 20120311211646) do
+
+  create_table "activities", :force => true do |t|
+    t.string   "host"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "activities", ["created_at"], :name => "index_activities_on_created_at"
+  add_index "activities", ["host"], :name => "index_activities_on_host"
 
   create_table "clicks", :primary_key => "post_id", :force => true do |t|
     t.integer "clicks",     :default => 0
@@ -29,9 +38,10 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
 
   add_index "configurables", ["name"], :name => "index_configurables_on_name"
 
-  create_table "hidden_posts_users", :id => false, :force => true do |t|
+  create_table "hidden_posts_users", :force => true do |t|
     t.integer "user_id"
     t.integer "posts_id"
+    t.enum    "action",   :limit => [:show, :hide]
   end
 
   add_index "hidden_posts_users", ["posts_id"], :name => "index_hidden_posts_users_on_posts_id"
@@ -47,6 +57,17 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
 
   add_index "imports", ["post_id"], :name => "index_imports_on_post_id"
 
+  create_table "moderation_actions", :force => true do |t|
+    t.integer  "post_id"
+    t.integer  "user_id"
+    t.string   "reason"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "moderation_actions", ["post_id"], :name => "index_moderation_actions_on_post_id"
+  add_index "moderation_actions", ["user_id"], :name => "index_moderation_actions_on_user_id"
+
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
     t.integer  "text_container_id"
@@ -60,6 +81,7 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
     t.string   "marks"
     t.string   "back"
     t.boolean  "empty_body"
+    t.boolean  "deleted",           :default => false
   end
 
   add_index "posts", ["back"], :name => "index_posts_on_back"
@@ -73,9 +95,22 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
     t.integer  "user_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "time_zone",       :default => "Europe/Moscow"
+    t.string   "time_zone",                 :default => "Europe/Moscow"
+    t.string   "name"
+    t.datetime "accessed_at"
+    t.boolean  "highlight_self",            :default => true
+    t.string   "cookie_key"
+    t.boolean  "hide_signatures",           :default => false
+    t.boolean  "global",                    :default => false
+    t.integer  "autowrap_thread_threshold", :default => 100
+    t.integer  "autowrap_thread_value",     :default => 100
+    t.integer  "smooth_threshold",          :default => 10
   end
 
+  add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"
+  add_index "presentations", ["global"], :name => "index_presentations_on_global"
+  add_index "presentations", ["name"], :name => "index_presentations_on_name"
+  add_index "presentations", ["user_id", "name"], :name => "index_presentations_on_user_id_and_name"
   add_index "presentations", ["user_id"], :name => "index_presentations_on_user_id"
 
   create_table "private_messages", :force => true do |t|
@@ -86,6 +121,8 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
     t.string   "stamp"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "user_id"
+    t.boolean  "unread",            :default => false
   end
 
   add_index "private_messages", ["recipient_user_id"], :name => "index_private_messages_on_recipient_user_id"
@@ -93,6 +130,7 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
   add_index "private_messages", ["sender_user_id"], :name => "index_private_messages_on_sender_user_id"
   add_index "private_messages", ["stamp"], :name => "index_private_messages_on_stamp"
   add_index "private_messages", ["text_container_id"], :name => "index_private_messages_on_text_container_id"
+  add_index "private_messages", ["user_id"], :name => "index_private_messages_on_user_id"
 
   create_table "roles", :force => true do |t|
     t.string   "name"
@@ -149,7 +187,11 @@ ActiveRecord::Schema.define(:version => 20120214191724) do
     t.string   "persistence_token"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "demo",              :default => false
+    t.boolean  "demo",                    :default => false
+    t.integer  "default_presentation_id"
+    t.integer  "signature"
   end
+
+  add_index "users", ["signature"], :name => "index_users_on_signature"
 
 end

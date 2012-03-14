@@ -44,7 +44,8 @@ class UsersController < ApplicationController
     @user = User.new(params[:user])
 
     respond_to do |format|
-      if @user.save
+      # Do not check captcha on validation failure: user should be able to first complete the form correctly without solving the captcha.
+      if @user.valid? && captcha_ok?(:model => @user) && @user.save
         flash[:notice] = 'Registration successful'
         format.html { redirect_to @user, notice: 'User was successfully created.' }
         format.json { render json: @user, status: :created, location: @user }

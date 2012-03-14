@@ -1,3 +1,28 @@
 // Place all the styles related to the threads controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+.threads > li.odd {
+/* background color for the odd threads is the same */
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+.threads > li.even {
+  background-color: #E9E9E9;
+  border-bottom: 1px solid #CCCCCC;
+  border-top: 1px solid #CCCCCC;
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+ul.threads, .threads ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.threads li {
+  margin: 0;
+  padding: 1px 0 1px 25px;
+}
+

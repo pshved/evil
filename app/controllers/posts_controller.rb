@@ -1,8 +1,10 @@
 class PostsController < ApplicationController
-  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide]
-  before_filter :find_thread, :only => [:edit, :update, :show]
+  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
+  before_filter :find_thread, :only => [:edit, :update, :show, :remove]
   before_filter :init_loginpost, :only => [:edit, :update]
 
+  # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
+  before_filter :trick_authorization, :only => [:latest]
   filter_access_to :all, :attribute_check => true, :model => Posts
 
   # GET /posts/1
@@ -41,7 +43,7 @@ class PostsController < ApplicationController
 
     respond_to do |format|
       if @post.save
-        format.html { redirect_to @post, notice: 'Post was successfully created.' }
+        format.html { redirect_to @post, notice: t('notice.posted') }
         format.json { render json: @post, status: :created, location: @post }
       else
         format.html { render action: "new" }
@@ -53,15 +55,23 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
-    @post.maybe_new_revision_for_edit
-
-    respond_to do |format|
-      if @post.update_attributes(params[:posts])
-        format.html { redirect_to @post, notice: 'Posts was successfully updated.' }
-        format.json { head :ok }
-      else
+    if params[:commit] == 'Preview'
+      @post.assign_attributes(params[:posts])
+      # This is a preview, validate and show it
+      @post.valid?
+      respond_to do |format|
+        flash[:notice] = t('notice.preview')
         format.html { render action: "edit" }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
+      end
+    else
+      respond_to do |format|
+        if @post.update_attributes(params[:posts])
+          format.html { redirect_to @post, notice: t('notice.edited') }
+          format.json { head :ok }
+        else
+          format.html { render action: "edit" }
+          format.json { render json: @post.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
@@ -78,13 +88,45 @@ class PostsController < ApplicationController
   end
 
   def toggle_showhide
-    @post.toggle_showhide(current_user)
+    @post.toggle_showhide(current_user,current_presentation)
     @post.save
-    # TODO: add Ajax here.  For now, redirects back.
-    begin
-      redirect_to :back
-    rescue ActionController::RedirectBackError
-      redirect_to @post
+    # TODO: add Ajax here.  For now, redirects to the post at the index page
+    redirect_to root_path(:anchor => @post.id)
+  end
+
+  def latest
+    # Get threads for the latest
+    length = params[:number].blank? ? POST_FEED_LENGTH : params[:number].to_i
+    # This fetches bodies as well, but they're rendered only at the view
+    @posts = FasterPost.latest(length,current_user,permitted_to?(:see_deleted,:posts))
+
+    respond_to do |format|
+      format.html # latest.html.erb
+      format.rss { render :layout => false }
+    end
+  end
+
+  # This action doesn't permanently remove the post from database.  It hides the post, so that it can be only viewed by very few users.
+  # This action will be used by moderators to remove posts and spam.
+  def remove
+    # Remove post, and if it was an only post in a thread, remove the thread as well.
+    # The post and the thread have already been found in the filters
+    @post.deleted = true
+    # NOTE that the thread will be updated at the @post.save due to a wisely specified :autosave attribute at association, and the caches will be rebuilt.
+    if @post.save
+      # The post was deleted, add a record to the moderation log
+      ModerationAction.create(:post => @post, :user => current_user, :reason => 'Remove SPAM')
+      # This post may have children.  Remove them as well in a separate thread.
+      spawn do
+        @post.hide_kids(current_user,"Belongs to subthread of a removed #{post_url(@post)} due to Remove SPAM!")
+      end
+      respond_to do |format|
+        format.html { redirect_to @post, notice: t('notice.moderation.removed') }
+      end
+    else
+      respond_to do |format|
+        format.html { render action: "edit", notice: t('notice.moderation.cantedit') }
+      end
     end
   end
 
@@ -95,7 +137,13 @@ class PostsController < ApplicationController
   def find_thread
     Threads.settings_for = current_user
     @thread = @post.thread
+    @thread.presentation = current_presentation
   end
   def init_loginpost
+  end
+  @@fake_posts = nil
+  def trick_authorization
+    @posts = @@fake_posts if @@fake_posts
+    @posts = @@fake_posts = Posts.find(:first)
   end
 end

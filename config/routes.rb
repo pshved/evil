@@ -9,7 +9,11 @@ Zlo::Application.routes.draw do
   resources :users
   resources :posts, :path => 'p' do
     member do
-      get :toggle_showhide
+      get :toggle_showhide, :remove
+    end
+    collection do
+      get :latest
+      match 'latest/:number' => 'posts#latest'
     end
   end
   resources :private_messages, :path => 'persmsg'
@@ -17,7 +21,22 @@ Zlo::Application.routes.draw do
   resources :loginposts, :only => [:create]
 
   # User's view settings
-  resources :presentations
+  resources :presentations do
+    member do
+      get :use, :clone, :make_default
+    end
+    collection do
+      get :edit_local
+      get :edit_default
+    end
+  end
+
+  namespace :admin do
+    # Configurable_engine is already included here via its own routes
+    get 'index' => 'specials#index'
+  end
+
+  resources :moderation_actions, :path => 'moder'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

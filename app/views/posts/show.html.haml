@@ -1,14 +1,12 @@
-%p
-  Showing post
-  -# Post Editing link (moved here from index to make it faster)
-  - if permitted_to? :edit, @post
-    = link_to t("Edit"), edit_post_path(@post)
-  - else
-    (Edit forbidden)
 =render @post
-%div.thread-tree
-  = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
-%div
-  = render :partial => 'loginpost'
+%div.after-post
+  %div.threads
+    = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
+  -unless @post.deleted
+    %div
+      = render :partial => 'loginpost'
+  -else
+    %div.hint
+      =ta('noreply.deleted',:post)
 
 

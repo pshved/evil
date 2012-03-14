@@ -1,3 +1,12 @@
-%h1 Editing presentation
+%h1=ta(:index,:presentation)
+= render 'list'
+%h2
+  =ta(:edit,:presentation,:name => @presentation.name)
 = render 'form'
+-if current_user
+  %div.hiddenthreads
+    =ta(:manually_hidden,:presentation)
+    %ul
+      - current_user.hidden_posts.each do |p|
+        %li= link_to p.title, p
 

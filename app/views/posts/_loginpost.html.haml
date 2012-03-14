@@ -1,58 +1,65 @@
-= form_for @loginpost do |f|
+-# the name of the form is used in post.js tag editor!  Do not change!
+= form_for @loginpost, :html => {:name => 'postform'} do |f|
   = f.hidden_field :reply_to
   -# Error messages for the validated post
-  - if @loginpost.saved_post && @loginpost.saved_post.errors.any?
-    %div#error_explanation
-      %h2="#{pluralize(@loginpost.saved_post.errors.count, "error")} prohibited this post from being saved:"
-      %ul
-        - @loginpost.saved_post.errors.full_messages.each do |msg|
-          %li=msg
+  - if @loginpost.saved_post
+    =error_messages_for @loginpost.saved_post.errors, 'posts'
   -# Error messages for the login form
-  - if @loginpost.session && @loginpost.session.errors.any?
-    %div#error_explanation
-      %h2="#{pluralize(@loginpost.session.errors.count, "error")} prohibited this post from being saved:"
-      %ul
-        - @loginpost.session.errors.full_messages.each do |msg|
-          %li=msg
+  - if @loginpost.session
+    =error_messages_for @loginpost.session.errors, 'session'
   -# Other error messages (are there any?)
-  - if @loginpost.errors.any?
-    %div#error_explanation
-      %h2="#{pluralize(@loginpost.errors.count, "error")} prohibited this post from being saved:"
-      %ul
-        - @loginpost.errors.full_messages.each do |msg|
-          %li=msg
-  %table{:border=>0, :cellspacing => 0, :cellpadding => 3}
-    %tr
-      %td{:colspan => 2, :align => "center"}
-        %big
-          %a{:name => 'reply'}Reply
-    %tr
-      %td{:colspan => 2}
-        %hr{:align => 'center', :width => '80%', :noshade => true}
+  =error_messages_for @loginpost.errors, 'posts'
+  -# Now the form itself
+  %table{:border=>0, :cellspacing => 0, :cellpadding => 3, :align => 'center'}
+    -# Do not show "reply to" if we are creating a new thread
+    -if @loginpost.reply_to
+      %tr
+        %td{:colspan => 2, :align => "center"}
+          %big
+            %a{:name => 'reply'}=f.label :reply
+      %tr
+        %td{:colspan => 2}
+          %hr{:align => 'center', :width => '80%', :noshade => true}
     %tr
       %td{:align => 'center'}
-        %b Name:
+        %b=f.label :name
       - if current_user
         %td{:align => 'left'}
           %span.postform-login= current_user.login
-          %span.postform-logout=link_to 'Log out', logout_path
+          %span.postform-logout=link_to t('Log out'), logout_path
       - else
         = f.fields_for :session do |sf|
           %td{:align => 'left'}
             =sf.text_field 'login', :size => 22
-            %b Password:
+            %b=sf.label :password
             =sf.password_field 'password', :size => 22
-            %b Autologin:
+            %b=f.label :autologin
             -# Note that this is not "remember me" session attribute.  It's whether we log in or just use the credentials for one-time posting.  Note the f instead of sf!
             =f.check_box 'autologin'
     %tr
-      %td{:align => 'center'}Topic:
+      %td{:align => 'center'}=f.label :title
       %td
-        =f.text_field 'title', :size => 88
+        =f.text_field 'title', :size => 88, :tabindex => 1
+    %tr
+      %td{:colspan => 2, :class => 'toolbar', :align=>'center'}
+        - buttons = [%w(b i u q pic url h s sup sub strike), %w(color red pre center tex tub spoiler hr smile)]
+        - buttons.each do |row|
+          - row.each do |btn|
+            = render :partial => 'posts/button', :locals => {:button => btn}
+          %br/
+        = render :partial => 'posts/smiles'
     %tr
       %td{:colspan => 2, :align => :center}
-        =f.text_area 'body', :cols => 75, :rows => 12
-
-  = f.submit 'Preview'
-  = f.submit
+        -# Older browsers may not support getElementById... so KISS me!
+        =f.text_area 'body', :tabindex => 2, :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('loginpost_body');"
+    %tr
+      %td{:colspan => 2, :align => :center}
+        = f.submit 'Preview', :tabindex => 4
+        = f.submit :tabindex => 3
+    %tr
+      %td{:colspan => 2, :align => :center}
+        -# Display captcha
+        - if !current_user && captcha_enabled
+          =t :'recaptcha.prompt'
+          = captcha_tags
 

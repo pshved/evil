@@ -1,11 +1,12 @@
-%h1 Editing post
+%h1=ta(:edit,:post)
 
 =render @post
+=render 'signature'
 
 %div
   = render :partial => 'form'
 
-%div.thread-tree
+%div.threads
   = render :partial => 'subtree', :locals => {:post => @thread.head}
 
 

@@ -1,0 +1,15 @@
+%h1=ta(:index,:moderation_action)
+%ul
+  -@moderation_actions.each do |ma|
+    %li
+      = ta(:deletion,:moderation_action)
+      = link_to "post \##{ma.post.id}", post_path(ma.post)
+      = ta(:committed_by,:moderation_action)
+      - user_link ma.user
+      = t(:at)
+      ="#{user_time ma.created_at}."
+      = ta(:reason,:moderation_action)
+      = ma.reason
+
+%p
+  =paginate @moderation_actions

@@ -1,0 +1,8 @@
+%div.activity
+  =ta(:is,:activity)
+  %span.hosts{:title => t('activity.hosts')}=hosts_activity
+  %span.clicks{:title => t('activity.clicks')}=clicks_activity
+  =ta(:during,:activity)
+  =Configurable[:activity_minutes]
+  -# TODO: utilize pluralization from Russian Gem
+  =ta(:minutes,:activity)

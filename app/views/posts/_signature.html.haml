@@ -1,0 +1,9 @@
+-if @post.user
+  -signature = @post.user.formatted_signature
+  -unless signature.blank?
+    %div.signature
+      -if current_presentation.hide_signatures
+        %div.no=t :signatures_are_hidden
+      -else
+        !=signature
+
