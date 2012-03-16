@@ -17,6 +17,7 @@ TagConversions = [
   ['color',    proc {|inner,color| %Q(<span style="color:#{color}">#{inner}</span>)}],
   # Links are also created when user posts an URL in the body of their post.  It also should set the same $c attribute!
   ['url',      proc {|inner,url| $c.sign[:url] = true;  %Q(<a href="#{url}" target=_blank>#{inner}</a>)}],
+  # [pic] is checked for when converting URLs in the post body, FIXME
   ['pic',      proc {|inner| $c.sign[:pic] = true;  %Q(<img class="imgtag" src="#{inner}"/>)}],
   ['hr',       proc {|| %Q(<hr/>)}],
   ['tab',      proc {|| %Q(&nbsp;)*9}],
@@ -27,6 +28,7 @@ TagConversions = [
   ['sub',      proc {|inner| %Q(<sub>#{inner}</sub>)}],
   ['sup',      proc {|inner| %Q(<sup>#{inner}</sup>)}],
   # [tex] is handled in the parser
+  # [tub] is checked for when converting URLs in the post body, FIXME
   ['tub',      proc {|inner| $c.sign[:vid] = true;  %Q(<iframe class="youtube-player" type="text/html" width="640" height="390" src="http://www.youtube.com/embed/#{inner}?iv_load_policy=3&rel=0&fs=1" frameborder="0"></iframe>)}],
   ['spoiler',  proc{|inner| %Q(<span style="spoiler">#{inner}</span>)}],
 ]
@@ -173,7 +175,7 @@ module RegexpConvertNode
       # The regexp should detect URLs with ports, and do not include the trailing punctuation in 'http://ya.ru.' or 'http://ya.ru/url/.'
       # The beginning and the end contain lookahead assumptions to rule out converting links that are inside URL tags.
       # Match:  not-tag     protocol           // path                         country     ( port(if any), the rest, last should be an alnum) if any
-      if md = (/(?<!\[url=)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&\@:]*[a-z0-9_\-\/#\@:])?(?!\])/im.match(to_convert))
+      if md = (/(?<!\[url=|\[pic\]|\[tub.)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&\@:!]*[a-z0-9_\-\/#\@:!])?(?!\])/im.match(to_convert))
         result << h(md.pre_match) << %Q(<a href="#{md[0].html_safe}">#{h md[0]}</a>)
         to_convert = md.post_match
         # Set post's attribute.  Do not forget to sync with [url] tag callback!
