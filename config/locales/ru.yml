@@ -22,8 +22,8 @@ ru:
   Home: "На главную"
   Edit: "Редактировать"
   Showing: "Показано %{threads} тредов"
-  Show subtree: Развернуть ветку
-  Hide subtree: Скрыть ветку
+  Show subtree: Развернуть
+  Hide subtree: Свернуть
   copyright: Конференция основана на движке Evil (клон движка WWWConf); участвовать в разработке можно
   here: здесь
   Page: Страница
