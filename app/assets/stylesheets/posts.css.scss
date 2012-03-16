@@ -27,8 +27,12 @@ span.this-post-oneline a
 
 /* User tags in posts */
 
-span.user-self a {
+.post-header span.user-self a {
   font-size: 133%;
+}
+/* however, when we should post author, we don't want it to be very visible */
+.user-self a {
+  font-size: 100%;
   font-weight: bold;
   color: red;
 }
@@ -100,6 +104,7 @@ span.post-oneline
 
 // Post's header in single-post view
 .post-intro {
+  font-size: 80%;
   padding-left: -10px;
   margin-left: -10px;
 }
@@ -115,6 +120,10 @@ span.post-oneline
 {
   color: red;
   font-weight: bold;
+}
+
+.edited-at {
+  font-style: italic;
 }
 
 // Post title

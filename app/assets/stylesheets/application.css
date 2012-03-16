@@ -17,6 +17,7 @@ body {
 
 #main {
   margin: 7px;
+  margin-top: 0;
   /* Extended margin to get rid of strange horizontal scrollbar */
   margin-right: 12px;
 }
@@ -48,6 +49,11 @@ span.inquote
   font-size: 70%;
   margin: 0;
   padding: -10px;
+}
+
+.menu a:visited {
+  /* override color of the visited links */
+  color: #0000FF;
 }
 
 .menu {
