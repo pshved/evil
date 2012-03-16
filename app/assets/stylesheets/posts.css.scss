@@ -27,18 +27,23 @@ span.this-post-oneline a
 
 /* User tags in posts */
 
+/* users names are bigger in post headers */
 .post-header span.user-self a {
   font-size: 133%;
 }
-/* however, when we should post author, we don't want it to be very visible */
+/* however, when we show post author, we don't want it to be very visible */
 .user-self a {
   font-size: 100%;
   font-weight: bold;
   color: red;
 }
 
-span.user-other a {
+/* Ditto for the other users */
+.post-header span.user-other a {
   font-size: 133%;
+}
+
+.user-other a {
   color: #207025;
   font-weight: bold;
 }
@@ -59,6 +64,8 @@ span.user-unreg {
 
 /* Posts hidden/closed information bar */
 .hidden-bar {
+  margin-top: 4px;
+  margin-bottom: 2px;
   font-size: 75%;
 }
 .hidden-bar .action {
