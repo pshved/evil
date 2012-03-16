@@ -9,9 +9,7 @@
 body {
   background-color: #F0F0F0;
   color: #000;
-  font-family: verdana, arial, helvetica, sans-serif;
-  font-size: 13px;
-  line-height: 18px;
+  /* No default size or anything! */
   border: 0 none;
   margin: 0;
   padding: 0;
@@ -23,10 +21,8 @@ body {
   margin-right: 12px;
 }
 
-a {
-  &:visited {
-    color: #000088;
-  }
+a:visited {
+  color: #000088;
 }
 
 
