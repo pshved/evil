@@ -23,7 +23,7 @@ class TextContainer < ActiveRecord::Base
   # Cached filter
   def self.filter_cached(txt,filter,cache_id,cache_index,cache_key,context = nil)
     Rails.cache.fetch("tc-#{cache_id}[#{cache_index}]+#{cache_key}") do
-      filter(txt,filter,context = nil)
+      filter(txt,filter,context)
     end
   end
 
