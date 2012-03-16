@@ -1,17 +1,19 @@
+.post-header {
+  font-size: 75%;
+}
 .post-header a {
   text-decoration: underline;
 }
 
 .post-oneline a {
   text-decoration: none;
-  font-size: 111%;
+  font-size: 133%;
 }
 
 // Due to caching, when highlighting a post in a large thread, we can't just make it not <a> tag.  Instead, we adjust the stype of the wrapping <span> so that the link doesn't look like one.  Do not try to change this, please.
 span.this-post-oneline a
 {
-  font-size: 111%;
-  font-size: 111%;
+  font-size: 133%;
   font-weight: bold;
   text-decoration: none;
   color: #000;
@@ -26,17 +28,20 @@ span.this-post-oneline a
 /* User tags in posts */
 
 span.user-self a {
+  font-size: 133%;
   font-weight: bold;
   color: red;
 }
 
 span.user-other a {
+  font-size: 133%;
   color: #207025;
   font-weight: bold;
 }
 
 /* note that user-unreg doesn't have <a>! */
 span.user-unreg {
+  font-size: 133%;
   font-weight: bold;
 }
 

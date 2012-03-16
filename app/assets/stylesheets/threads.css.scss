@@ -2,7 +2,7 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 .threads > li.odd {
-/* background color for the odd threads is the same */
+/* background color for the odd threads "falls through" from the <body>'s background.  That's why we don't set it here, unlike the even. */
   margin-left: -10px;
   margin-right: -10px;
 }
