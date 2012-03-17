@@ -11,6 +11,7 @@ class Posts < ActiveRecord::Base
   belongs_to :parent, :class_name => 'Posts', :inverse_of => :children
   has_many :children, :class_name => 'Posts', :foreign_key => 'parent_id'
 
+  # Do NOT auto-save clicks!  We do not caches to be invalidated constantly.
   has_one :click, :foreign_key => 'post_id'
 
   validates_presence_of :thread, :strict => true
@@ -174,7 +175,7 @@ class Posts < ActiveRecord::Base
   end
 
   def click!(user = nil, rq = '127.0.0.1')
-    # If post has not been clicked, assume that the previous clicker was the authos
+    # If post has not been clicked, assume that the previous clicker was the author
     build_click(:last_click => Click.clicker(self.user,rq)) unless click
     click.click! user,rq
   end
