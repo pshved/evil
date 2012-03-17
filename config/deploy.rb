@@ -30,7 +30,7 @@ after 'deploy:update_code', 'deploy:chown'
 namespace :deploy do
   desc "Changes group to www-data"
   task :chown, :roles => [ :app, :db, :web ] do
-    run "chown -R #{user}:www-data #{deploy_to}"
+    run "chown -R #{user}:www-data #{deploy_to} || true"
   end
 end
 set :group_writable, true
