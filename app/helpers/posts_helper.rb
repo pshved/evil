@@ -140,6 +140,7 @@ module PostsHelper
     buf << ' - '
     fast_print_username(buf,post)
     buf << " (#{post.host}) "
+    buf << ' - '
     buf << %Q(<span class="post-timestamp">) << time_for_header(post.created_at,tz) << %Q(</span>)
 
     # See the opening tag the end of the function
