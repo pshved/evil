@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120311211646) do
+ActiveRecord::Schema.define(:version => 20120317202746) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -105,6 +105,7 @@ ActiveRecord::Schema.define(:version => 20120311211646) do
     t.integer  "autowrap_thread_threshold", :default => 100
     t.integer  "autowrap_thread_value",     :default => 100
     t.integer  "smooth_threshold",          :default => 10
+    t.boolean  "plus",                      :default => false
   end
 
   add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"

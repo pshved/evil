@@ -1,8 +1,8 @@
 %h1=ta(:latest,:post)
 %ul
-  - tz = current_presentation.tz
+  - presentation = current_presentation
   - @posts.each do |p|
     - unless_deleted p do
       %li
-        != fast_tree('',{},p,{},tz)
+        != fast_tree_presentation('',{},p,{},presentation)
 
