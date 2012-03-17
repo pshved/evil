@@ -109,7 +109,7 @@ module PostsHelper
   end
 
   # Print raw html (no ERB or HAML!) for a line of this post.  User view settings are ignored for now
-  def fast_print(post, tz, buf = '')
+  def fast_print(post, tz, buf = '', view_opts = {})
     # We'll use string as a "StringBuffer", appending to a mutable string instead of concatenation
 
     # Some users may view deleted posts (if they're privileged enough).
@@ -125,7 +125,9 @@ module PostsHelper
     if post.empty_body?
       buf << ' (-)'
     else
-      buf << ' (+)'
+      if view_opts[:plus]
+        buf << ' (+)'
+      end
     end
     # (url)/(pic) marks
     post.marks.each do |mark|
@@ -191,13 +193,13 @@ module PostsHelper
   end
 
   # This yields HTML code for the tree that starts with the +start+ post, but doesn't highlight the current post.
-  def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, smoothed = false)
+  def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, view_opts = {})
     # If start is nil, then we're printing the index, and skip the post itself.
     if start
       buf << %Q(<div class="post-header">)
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
-      buf << "^ " if smoothed
-      unless_deleted(start){fast_print(start,tz,buf)}
+      buf << "^ " if view_opts[:smoothed]
+      unless_deleted(start){fast_print(start,tz,buf,view_opts)}
       # Show if post is hidden, and display the toggle
       post_shown = fast_showhide(start,tree,info,buf)
       buf << %Q(</div>)
@@ -215,16 +217,21 @@ module PostsHelper
     kids.each do |child|
       unless_deleted child do
         buf << %Q(<li>)
-        fast_generic_tree(buf,tree,child,info,tz,smoothed)
+        fast_generic_tree(buf,tree,child,info,tz,view_opts.merge(:smoothed => smoothed))
         buf << %Q(</li>\n)
       end
     end
     buf << %Q(</ul>\n) unless smoothed
   end
 
-  def fast_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ)
-    prepped = fast_generic_tree(buf,tree,start,info,tz)
+  def fast_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, view_opts = {})
+    prepped = fast_generic_tree(buf,tree,start,info,tz,view_opts)
     post_span_replace(@post,prepped)
+  end
+
+  def fast_tree_presentation(buf,tree,start,info = {}, presentation = nil)
+    return fast_tree(buf,tree,start,info) unless presentation
+    fast_tree buf,tree,start,info,presentation.tz, :plus => presentation.plus
   end
 
   # A convenience helper to get a cache-stamp of something.  This "something" usually has a modification time accessible via "updated_at" and an id.
@@ -251,7 +258,7 @@ module PostsHelper
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
       logger.debug "Tree for key: '#{cache_key}' miss!"
-      fast_generic_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz)
+      fast_generic_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz,{:plus => presentation.plus})
     end
     # Replace current post
     post_span_replace(@post,prepped)
