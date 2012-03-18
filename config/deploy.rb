@@ -38,9 +38,9 @@ set :group_writable, true
 set :use_sudo, false
 
 # Clear cache at deployment
-after 'deploy:update_code', 'clear_cache'
+after 'deploy', 'clear_cache'
 task :clear_cache do
-  run "RAILS_ENV=production rake cache:clear"
+  run "cd #{current_path} && RAILS_ENV=production rake cache:clear"
 end
 
 after 'deploy:update_code', 'deploy:symlink_cfg'
