@@ -32,6 +32,7 @@ span.this-post-oneline a
 }
 /* however, when we show post author, we don't want it to be very visible */
 .user-self a {
+  text-decoration: none;
   font-size: 100%;
   font-weight: bold;
   color: red;
@@ -43,12 +44,14 @@ span.this-post-oneline a
 }
 
 .user-other a {
+  text-decoration: none;
   color: #207025;
   font-weight: bold;
 }
 
 /* note that user-unreg doesn't have <a>! */
 span.user-unreg {
+  text-decoration: none;
   font-size: 133%;
   font-weight: bold;
 }
