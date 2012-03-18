@@ -96,13 +96,13 @@ span.inquote
 }
 
 
-.unread-pm
+a.unread-pm
 {
   color: red;
   font-weight: bold;
 }
 /* Even if we have already visited the unread pms link, it should be read anyway! */
-.unread-pm:visited
+a.unread-pm:visited
 {
   color: red;
   font-weight: bold;

@@ -114,6 +114,7 @@ ru:
         index:
           no_new: "Приват"
           some_new: "Приват(%{count})"
+          some_new_msg: "У Вас есть %{count} новых личных сообщений!"
           title: "Личные сообщения"
       thread:
         create: "Новый тред"

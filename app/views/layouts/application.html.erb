@@ -54,6 +54,9 @@
           <% end %>
         </div>
       <% end %>
+      <% if current_user && !current_user.unread_messages.empty? %>
+        <%= link_to_unless_current ta('index.some_new_msg',:private_message, :count => current_user.unread_messages.length), private_messages_path, :class => 'unread-pm' %>
+      <% end %>
     </div>
     <div class="right">
       <%= render :partial => 'activities/stats' %>
