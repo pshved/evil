@@ -37,6 +37,12 @@ set :group_writable, true
 # Do not need sudo, as our user is ok without that.
 set :use_sudo, false
 
+# Clear cache at deployment
+after 'deploy:update_code', 'clear_cache'
+task :clear_cache do
+  run "RAILS_ENV=production rake cache:clear"
+end
+
 after 'deploy:update_code', 'deploy:symlink_cfg'
 namespace :deploy do
   desc "Symlinks config files"
