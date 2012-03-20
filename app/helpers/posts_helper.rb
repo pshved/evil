@@ -212,14 +212,18 @@ module PostsHelper
     end
     kids = tree[start.id]
     return buf unless kids
-    # If this node is smoothed, do not insert a new level of the list, just continue the parent's
+    # If this node is smoothed, do not insert a new level of the list, just continue the parent's.
     smoothed = (info[start.id] || {})[:smoothed]
+    # For that, we should close the <li> tag (if we have any kids).  Otherwise, we open a new level of the list, and close it after we lay out the children.
+    # Recursive Requirement: if this thread is smoothed, then fast_generic_tree returns with a closed <li> tag.  Otherwise, it returns with an opened <li> tag!
+    buf << %Q(</li>\n) if smoothed
     buf << %Q(<ul>\n) unless smoothed
     kids.each do |child|
       unless_deleted child do
         buf << %Q(<li>)
         fast_generic_tree(buf,tree,child,info,tz,view_opts.merge(:smoothed => smoothed))
-        buf << %Q(</li>\n)
+        # See Recursive Requirement above for use of "smoothed" here
+        buf << %Q(</li>\n) unless smoothed
       end
     end
     buf << %Q(</ul>\n) unless smoothed
