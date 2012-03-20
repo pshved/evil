@@ -38,7 +38,7 @@ set :group_writable, true
 set :use_sudo, false
 
 # Clear cache at deployment
-after 'deploy', 'clear_cache'
+after 'deploy:restart', 'clear_cache'
 task :clear_cache do
   run "cd #{current_path} && RAILS_ENV=production rake cache:clear"
 end
