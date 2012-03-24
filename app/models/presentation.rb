@@ -73,7 +73,7 @@ class Presentation < ActiveRecord::Base
   def attach_to(target_user)
     self.cookie_key = nil
     self.user = target_user
-    if target_user.presentations.where(['name = ?', self.name]).first
+    if target_user && target_user.presentations.where(['name = ?', self.name]).first
       self.name = unique_name('local')
     end
     save
