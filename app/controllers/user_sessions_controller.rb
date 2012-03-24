@@ -31,7 +31,8 @@ class UserSessionsController < ApplicationController
         # If user has logged in, and there was a cookie-stored session, copy it to the user's
         if local_view = Presentation.from_cookies(cookies)
           # We do not "dup" this view to never see it again as an unreg.  This prevents polluting accounts with views if you login frequently, and were unlucky to modify user settings.
-          local_view.attach_to(current_user)
+          # NOTE that current_user does NOT work here!  We have just saved the session, and "current_user" returns the previous userr!
+          local_view.attach_to(@user_session.user)
         end
         format.html { redirect_to root_url, notice: t('notice.session.login') }
         format.json { render json: @user_session, status: :created, location: @user_session }
