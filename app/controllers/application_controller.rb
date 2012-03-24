@@ -56,11 +56,11 @@ class ApplicationController < ActionController::Base
   end
 
   def captcha_enabled
-    not (Configurable[:recaptcha_public].blank? || Configurable[:recaptcha_private].blank?)
+    not (config_param(:recaptcha_public).blank? || config_param(:recaptcha_private).blank?)
   end
   helper_method :captcha_enabled
   def captcha_ok?(opts = {})
-    current_user || !captcha_enabled || verify_recaptcha({:model => @loginpost, :private_key => Configurable[:recaptcha_private]}.merge(opts))
+    current_user || !captcha_enabled || verify_recaptcha({:model => @loginpost, :private_key => config_param(:recaptcha_private)}.merge(opts))
   end
 
   # Activity metrics
@@ -74,13 +74,13 @@ class ApplicationController < ActionController::Base
     spawn do
       Activity.create(:host => gethostbyaddr(request.remote_ip))
       # Now cleanup all old activities (NOTE the usage of delete_all instead of destroy_all: we do not need to load them!)
-      Activity.delete_all(['created_at < ?', Time.now - Configurable[:activity_minutes].minutes])
+      Activity.delete_all(['created_at < ?', Time.now - config_param(:activity_minutes).minutes])
     end
   end
 
   # Global admin config modification time
   def config_mtime
-    @config_max ||= Configurable.maximum('updated_at')
+    @config_max ||= config_updated_at
   end
   helper_method :config_mtime
 
@@ -89,6 +89,23 @@ class ApplicationController < ActionController::Base
   def new_session_if_unreg
     # The name is different from @user_session because we want to save markup in heaader on login errors.
     @user_session_inline = UserSession.new
+  end
+
+  # Methods for configurable
+  public
+  def clear_config_cache
+    Rails.cache.clear
+  end
+  def config_param(param)
+    Rails.cache.fetch("config-#{param}", :expires_in => CONFG_CACHE_TIME) { Configurable[param] }
+  end
+  helper_method :config_param
+  # Get when the global config was updated
+  def self.config_updated_at
+    Rails.cache.fetch("config-updated-at", :expires_in => CONFG_CACHE_TIME) { Configurable.maximum('updated_at') }
+  end
+  def config_updated_at
+    ApplicationController.config_updated_at
   end
 
 end

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-  <title><%= Configurable[:site_title] %></title>
+  <title><%= config_param(:site_title) %></title>
   <%= stylesheet_link_tag    "application" %>
   <%= javascript_include_tag "application" %>
   <!-- include controller-specific javascript -->

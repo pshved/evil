@@ -21,7 +21,7 @@ class Presentation < ActiveRecord::Base
                      # Updated_at is very important for caching.  It serves as a cache key for all guest users.
                      # The default presentation may change either at server restart or when admin adjusts the configuration.  We account for both, whichever happens last.
                      # We use "compact" since the first value may be nil if there's no presentations yet.
-                     :updated_at => [Configurable.maximum('updated_at'),DEFAULT_PRESENTATION_MTIME].compact.max
+                     :updated_at => [ApplicationController.config_updated_at,DEFAULT_PRESENTATION_MTIME].compact.max
                     )
   end
 
