@@ -239,11 +239,6 @@ module PostsHelper
     fast_tree buf,tree,start,info,presentation.tz, :plus => presentation.plus
   end
 
-  # A convenience helper to get a cache-stamp of something.  This "something" usually has a modification time accessible via "updated_at" and an id.
-  def key_of(something)
-    "#{something.id}@#{something.updated_at}"
-  end
-
   # Returns the cached HTML for the tree of the "thr" thread.  Accounts for @post.
   def fast_tree_cache(thr,buf,start,presentation)
     # The wat a thread is displayed depends on many factors.
@@ -256,7 +251,7 @@ module PostsHelper
     # x what post we are showing (it's @post).  This will be replaces with a regexp-like kludge.
     # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
     thread_key = key_of thr
-    user_key = current_user ? key_of(current_user) : 'guest'
+    user_key = key_of(current_user,'guest')
     presentation_key = key_of presentation
     cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}-global:#{config_mtime}-#{@show_all_posts}"
     logger.debug "Tree for key: '#{cache_key}'"

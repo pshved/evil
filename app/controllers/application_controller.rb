@@ -34,16 +34,58 @@ class ApplicationController < ActionController::Base
   # Allow its use in views (moreover, it's unlikely we'll use it in the controller at all)
   helper_method :current_presentation
 
+  # A convenience helper to get a cache-stamp of something.  This "something" usually has a modification time accessible via "updated_at" and an id.
+  def key_of(something,ifnil = 'nil')
+    something ? "#{something.id}@#{something.updated_at}" : ifnil
+  end
+  helper_method :key_of
+
+  # A class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all informatio to have them rendered.
+  class CachedThread
+    attr_accessor :presentation, :id
+    # Given a "normal" thread, initialize
+    def initialize(thread)
+      self.id = thread.id
+    end
+    # If we are trying to access a missing method, we just forward it to the "read" thread
+    def method_missing(sym,*args)
+      @real_thread ||= Threads.find(id)
+      @real_thread.send(sym,*args)
+    end
+  end
+
+  class CachedThreadArray < Array
+    # Fake the thread object
+    attr_accessor :current_page, :num_pages, :limit_value
+    def initialize(array,cp,np,lv)
+      super(array.length)
+      self.current_page = cp
+      self.num_pages = np
+      self.limit_value = lv
+      array.each_with_index {|o,i| self[i]=o}
+    end
+  end
+
   # Threads controller action sub.  Used to display threads on the main page
+  # The job of this function is to fill the @threads array with indexes (TODO), and to preload the contents of these threads from cache.
   def prepare_threads
-    # Set up a "Global" view setting, so that the newly created threads comply to it
-    Threads.settings_for = current_user
-    @threads = Threads.order("created_at DESC").page(params[:page])
-    thread_page_size = current_presentation.threadpage_size
-    @threads = @threads.per(thread_page_size)
-    # Assign presentation to threads, so we know how to display them
+    # Try to see if this page for this user is already cached
     cpres = current_presentation
-    @threads.each {|t| t.presentation = cpres}
+    cache_key = "thread-list.view:#{key_of(cpres,'guest')}-page:#{params[:page]}-sortby:time"
+    # Don't know why but in the development environment this is _always_ a miss!
+    @threads = Rails.cache.fetch(cache_key, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
+      logger.info "Rebuilding threads for #{cache_key}"
+      # Set up a "Global" view setting, so that the newly created threads comply to it
+      Threads.settings_for = current_user
+      threads = Threads.order("created_at DESC").page(params[:page])
+      thread_page_size = current_presentation.threadpage_size
+      threads = threads.per(thread_page_size)
+      # Now convert them to cached entities
+      cached_threads = threads.map {|t| CachedThread.new(t)}
+      # Assign presentation to threads, so we know how to display them
+      cached_threads.each {|t| t.presentation = cpres}
+      CachedThreadArray.new(cached_threads,threads.current_page,threads.num_pages,threads.limit_value)
+    end
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end
