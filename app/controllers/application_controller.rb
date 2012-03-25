@@ -206,7 +206,10 @@ class ApplicationController < ActionController::Base
     spawn do
       Activity.create(:host => gethostbyaddr(request.remote_ip))
       # Now cleanup all old activities (NOTE the usage of delete_all instead of destroy_all: we do not need to load them!)
-      Activity.delete_all(['created_at < ?', Time.now - config_param(:activity_minutes).minutes])
+      # This happens only once per several seconds, since it blocks activity database.
+      Rails.cache.fetch('activity_delete', :expires_in => ACTIVITY_CACHE_TIME, :race_condition_ttl => 1.second) do
+        Activity.delete_all(['created_at < ?', Time.now - config_param(:activity_minutes).minutes])
+      end
     end
   end
 
