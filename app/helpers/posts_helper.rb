@@ -239,13 +239,20 @@ module PostsHelper
     fast_tree buf,tree,start,info,presentation.tz, :plus => presentation.plus
   end
 
-  # A convenience helper to get a cache-stamp of something.  This "something" usually has a modification time accessible via "updated_at" and an id.
-  def key_of(something)
-    "#{something.id}@#{something.updated_at}"
-  end
-
   # Returns the cached HTML for the tree of the "thr" thread.  Accounts for @post.
   def fast_tree_cache(thr,buf,start,presentation)
+    # This is not nice: we are using "respond_to?" instead of polymorphism: CachedThread objects do respond, and usual threads do not.  TODO: refactor this to a polymorphic call.
+    prepped = if thr.respond_to? :cached_html
+      # This block is what should render a single thread.  We should specify it here to adhere to MVC.
+      thr.cached_html(proc{|cached_thread| fast_usual_tree_cache(cached_thread,'',nil,cached_thread.presentation)},invalidated_index_pages?)
+    else
+      fast_usual_tree_cache(thr,buf,start,presentation)
+    end
+    # Replace current post's class
+    post_span_replace(@post,prepped)
+  end
+
+  def fast_usual_tree_cache(thr,buf,start,presentation)
     # The wat a thread is displayed depends on many factors.
     # - thread itself (identified by id and modification time);
     # - the user itself (his or her name may be colored), identified by id *and* modification time (think altnames!).  This implies that its roles are already accounted for.
@@ -256,7 +263,7 @@ module PostsHelper
     # x what post we are showing (it's @post).  This will be replaces with a regexp-like kludge.
     # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
     thread_key = key_of thr
-    user_key = current_user ? key_of(current_user) : 'guest'
+    user_key = key_of(current_user,'guest')
     presentation_key = key_of presentation
     cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}-global:#{config_mtime}-#{@show_all_posts}"
     logger.debug "Tree for key: '#{cache_key}'"
@@ -265,8 +272,6 @@ module PostsHelper
       logger.debug "Tree for key: '#{cache_key}' miss!"
       fast_generic_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz,{:plus => presentation.plus})
     end
-    # Replace current post
-    post_span_replace(@post,prepped)
   end
 
 end

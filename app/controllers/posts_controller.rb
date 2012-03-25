@@ -7,6 +7,8 @@ class PostsController < ApplicationController
   before_filter :trick_authorization, :only => [:latest]
   filter_access_to :all, :attribute_check => true, :model => Posts
 
+  before_filter :invalidate_index_pages, :only => [:update, :toggle_showhide, :remove]
+
   # GET /posts/1
   # GET /posts/1.json
   def show

@@ -1,8 +1,8 @@
 module ActivitiesHelper
   def hosts_activity
-    Activity.select('distinct host').count
+    Rails.cache.fetch('activity_hosts', :expires_in => ACTIVITY_CACHE_TIME) {Activity.select('distinct host').count}
   end
   def clicks_activity
-    Activity.select('host').count
+    Rails.cache.fetch('activity_clicks', :expires_in => ACTIVITY_CACHE_TIME) {Activity.select('host').count}
   end
 end

@@ -21,7 +21,7 @@ class Presentation < ActiveRecord::Base
                      # Updated_at is very important for caching.  It serves as a cache key for all guest users.
                      # The default presentation may change either at server restart or when admin adjusts the configuration.  We account for both, whichever happens last.
                      # We use "compact" since the first value may be nil if there's no presentations yet.
-                     :updated_at => [Configurable.maximum('updated_at'),DEFAULT_PRESENTATION_MTIME].compact.max
+                     :updated_at => [ApplicationController.config_updated_at,DEFAULT_PRESENTATION_MTIME].compact.max
                     )
   end
 
@@ -54,6 +54,8 @@ class Presentation < ActiveRecord::Base
   # Loads the presentation from cookies
   def self.from_cookies(cookies)
     key = cookies[:presentation_key]
+    # If nothing is recorded in cookies, then there's no presentation
+    return nil unless key
     # Global presentation has cookie_key and user_id equal to nil, but global is "true" for it.
     if r = Presentation.find_last_by_cookie_key_and_user_id_and_global(key,nil,false)
       # Technically, we need to update access time each time we load the presentation.  This would exhibit high load on the server.
@@ -64,7 +66,7 @@ class Presentation < ActiveRecord::Base
       end
       r
     else
-      # If there's no presentation in cookies, return nothing.  We'll get to the default presentation via controller's current_presentation
+      # Cookies don't contain a valid presentation index, return nothing.  We'll get to the default presentation via controller's current_presentation
       nil
     end
   end
@@ -73,7 +75,7 @@ class Presentation < ActiveRecord::Base
   def attach_to(target_user)
     self.cookie_key = nil
     self.user = target_user
-    if target_user.presentations.where(['name = ?', self.name]).first
+    if target_user && target_user.presentations.where(['name = ?', self.name]).first
       self.name = unique_name('local')
     end
     save

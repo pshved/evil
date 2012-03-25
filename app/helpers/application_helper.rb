@@ -1,6 +1,6 @@
 module ApplicationHelper
   def captcha_tags
-    recaptcha_tags :public_key => Configurable[:recaptcha_public]
+    recaptcha_tags :public_key => config_param(:recaptcha_public)
   end
 
   def view_settings_path
