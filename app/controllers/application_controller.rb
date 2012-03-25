@@ -40,15 +40,25 @@ class ApplicationController < ActionController::Base
   end
   helper_method :key_of
 
-  # A class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all informatio to have them rendered.
+  # A proxy class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all information to have them rendered.
   class CachedThread
-    attr_accessor :presentation, :id
+    attr_accessor :presentation, :id, :updated_at
     # Given a "normal" thread, initialize
     def initialize(thread)
       self.id = thread.id
+      self.updated_at = thread.updated_at
     end
+
+    attr_accessor :parent_index, :parent
+    # Get the HTML for this thread from cache.  The thread_renderer is a proc object that renders a thread if it's not found in cache.  This is used to render _all_ threads on the page!
+    def cached_html(thread_renderer)
+      parent.get_rendered(parent_index,thread_renderer)
+    end
+
     # If we are trying to access a missing method, we just forward it to the "read" thread
     def method_missing(sym,*args)
+      # You'll need it to see what things to build into the cached thread
+      #puts "DEBUG: CachedThread method_missing #{sym}"
       @real_thread ||= Threads.find(id)
       @real_thread.send(sym,*args)
     end
@@ -56,13 +66,54 @@ class ApplicationController < ActionController::Base
 
   class CachedThreadArray < Array
     # Fake the thread object
+
+    # These accessors are responsible for faking a paginatable object.  See Kaminari's paginate method to see what we're to fake
     attr_accessor :current_page, :num_pages, :limit_value
-    def initialize(array,cp,np,lv)
+
+    # This is an accessor to the thr
+    attr_accessor :cache_key
+
+    # Create the object
+    def initialize(array,cache_key,cp,np,lv)
       super(array.length)
       self.current_page = cp
       self.num_pages = np
       self.limit_value = lv
       array.each_with_index {|o,i| self[i]=o}
+      # Convey the index in the array to items
+      notify_children
+      # Save the cache key for threads preloading
+      self.cache_key = cache_key
+    end
+
+    private
+    def notify_children
+      # Convey the index in the array to items
+      self.each_with_index {|cached_thread,i| cached_thread.parent_index = i; cached_thread.parent = self}
+    end
+
+    public
+    def preloaded
+      ! self.rendered_threads.nil?
+    end
+    # Preload the layout of the threads to the cache.  The +renderer+ is a proc that takes a thread and returns HTML for it.
+    def preload(renderer)
+      @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
+        self.map {|cached_thread| renderer[cached_thread]}
+      end
+    end
+
+    def get_rendered(i,thread_renderer)
+      preload(thread_renderer)
+      @rendered_threads[i]
+    end
+
+    # Since Rails 3.1 freezes the objects returned by cache, we have to unfreeze them.  This unfreezes the array items by duplicating them.  Returns self.
+    def and_unfreeze_kids
+      self.map! &:dup
+      # Now the unfrozen kids point to the old, frozen parent.  Re-notify them.
+      notify_children
+      self
     end
   end
 
@@ -70,8 +121,9 @@ class ApplicationController < ActionController::Base
   # The job of this function is to fill the @threads array with indexes (TODO), and to preload the contents of these threads from cache.
   def prepare_threads
     # Try to see if this page for this user is already cached
+    # (see fast_tree_cache in PostsHelper for explanation of the cache key)
     cpres = current_presentation
-    cache_key = "thread-list.view:#{key_of(cpres,'guest')}-page:#{params[:page]}-sortby:time"
+    cache_key = "thread-list.page:#{params[:page]}-sortby:time-user:#{key_of(current_user,'guest')}-view:#{key_of(cpres,'guest')}-global:#{config_mtime}"
     # Don't know why but in the development environment this is _always_ a miss!
     @threads = Rails.cache.fetch(cache_key, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
       logger.info "Rebuilding threads for #{cache_key}"
@@ -84,8 +136,12 @@ class ApplicationController < ActionController::Base
       cached_threads = threads.map {|t| CachedThread.new(t)}
       # Assign presentation to threads, so we know how to display them
       cached_threads.each {|t| t.presentation = cpres}
-      CachedThreadArray.new(cached_threads,threads.current_page,threads.num_pages,threads.limit_value)
+      CachedThreadArray.new(cached_threads,cache_key,threads.current_page,threads.num_pages,threads.limit_value)
     end
+    # Since Rails 3.1 freezes the objects returned by cache, we have to unfreeze them...
+    @threads = @threads.dup.and_unfreeze_kids
+    # ^^^ We use "dup" to work-around the fact that Rails cache returns frozen objects.
+
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end

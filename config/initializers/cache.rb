@@ -6,5 +6,5 @@ CONFG_CACHE_TIME = 30.seconds
 
 # How the index page is cached
 INDEX_CACHE_TIME = 5.seconds
-INDEX_CACHE_UPDATE_TIME = 1.seconds
+INDEX_CACHE_UPDATE_TIME = 2.seconds
 

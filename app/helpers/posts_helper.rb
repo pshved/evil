@@ -241,6 +241,18 @@ module PostsHelper
 
   # Returns the cached HTML for the tree of the "thr" thread.  Accounts for @post.
   def fast_tree_cache(thr,buf,start,presentation)
+    # This is not nice: we are using "respond_to?" instead of polymorphism: CachedThread objects do respond, and usual threads do not.  TODO: refactor this to a polymorphic call.
+    prepped = if thr.respond_to? :cached_html
+      # This block is what should render a single thread.  We should specify it here to adhere to MVC.
+      thr.cached_html(proc{|cached_thread| fast_usual_tree_cache(cached_thread,'',nil,cached_thread.presentation)})
+    else
+      fast_usual_tree_cache(thr,buf,start,presentation)
+    end
+    # Replace current post's class
+    post_span_replace(@post,prepped)
+  end
+
+  def fast_usual_tree_cache(thr,buf,start,presentation)
     # The wat a thread is displayed depends on many factors.
     # - thread itself (identified by id and modification time);
     # - the user itself (his or her name may be colored), identified by id *and* modification time (think altnames!).  This implies that its roles are already accounted for.
@@ -260,8 +272,6 @@ module PostsHelper
       logger.debug "Tree for key: '#{cache_key}' miss!"
       fast_generic_tree(buf,thr.build_subtree_fast,thr.fast_head,thr.hides_fast,presentation.tz,{:plus => presentation.plus})
     end
-    # Replace current post
-    post_span_replace(@post,prepped)
   end
 
 end
