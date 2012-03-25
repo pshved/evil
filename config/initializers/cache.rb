@@ -5,6 +5,9 @@ THREAD_CACHE_TIME = 1.day
 CONFG_CACHE_TIME = 30.seconds
 
 # How the index page is cached
-INDEX_CACHE_TIME = 5.seconds
-INDEX_CACHE_UPDATE_TIME = 2.seconds
+#
+# These times show how fast the index will respond to the actions that modify how an index page looks.
+# The first shows for how long the thread is cached, the second should be greater than the time to update the page 
+INDEX_CACHE_TIME = 10.seconds
+INDEX_CACHE_UPDATE_TIME = 1.seconds
 

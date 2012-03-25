@@ -51,8 +51,9 @@ class ApplicationController < ActionController::Base
 
     attr_accessor :parent_index, :parent
     # Get the HTML for this thread from cache.  The thread_renderer is a proc object that renders a thread if it's not found in cache.  This is used to render _all_ threads on the page!
-    def cached_html(thread_renderer)
-      parent.get_rendered(parent_index,thread_renderer)
+    # If +force_reload+ is set, it forces to query the cache for each thread separately, and update those that are too old.  Most threads, however, will remain cached.
+    def cached_html(thread_renderer,force_reload = false)
+      parent.get_rendered(parent_index,thread_renderer,force_reload)
     end
 
     # If we are trying to access a missing method, we just forward it to the "read" thread
@@ -71,9 +72,9 @@ class ApplicationController < ActionController::Base
     attr_accessor :current_page, :num_pages, :limit_value
 
     # This is an accessor to the thr
-    attr_accessor :cache_key
+    attr_accessor :cache_key, :index_validator
 
-    # Create the object
+    # Create the object.  Index_validator should be inserted manually!
     def initialize(array,cache_key,cp,np,lv)
       super(array.length)
       self.current_page = cp
@@ -97,14 +98,21 @@ class ApplicationController < ActionController::Base
       ! self.rendered_threads.nil?
     end
     # Preload the layout of the threads to the cache.  The +renderer+ is a proc that takes a thread and returns HTML for it.
-    def preload(renderer)
-      @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
-        self.map {|cached_thread| renderer[cached_thread]}
+    def preload(renderer, force_reload = false)
+      if force_reload
+        @rendered_threads = self.map {|cached_thread| renderer[cached_thread]}
+        index_validator[] if index_validator
+      else
+        @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
+          r = self.map {|cached_thread| renderer[cached_thread]}
+          index_validator[] if index_validator
+          r
+        end
       end
     end
 
-    def get_rendered(i,thread_renderer)
-      preload(thread_renderer)
+    def get_rendered(i,thread_renderer,force_reload = false)
+      preload(thread_renderer,force_reload)
       @rendered_threads[i]
     end
 
@@ -124,8 +132,8 @@ class ApplicationController < ActionController::Base
     # (see fast_tree_cache in PostsHelper for explanation of the cache key)
     cpres = current_presentation
     cache_key = "thread-list.page:#{params[:page]}-sortby:time-user:#{key_of(current_user,'guest')}-view:#{key_of(cpres,'guest')}-global:#{config_mtime}"
-    # Don't know why but in the development environment this is _always_ a miss!
-    @threads = Rails.cache.fetch(cache_key, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
+    # If a threads cache is invalidated, then re-fetch it
+    load_threads = proc do
       logger.info "Rebuilding threads for #{cache_key}"
       # Set up a "Global" view setting, so that the newly created threads comply to it
       Threads.settings_for = current_user
@@ -138,13 +146,39 @@ class ApplicationController < ActionController::Base
       cached_threads.each {|t| t.presentation = cpres}
       CachedThreadArray.new(cached_threads,cache_key,threads.current_page,threads.num_pages,threads.limit_value)
     end
-    # Since Rails 3.1 freezes the objects returned by cache, we have to unfreeze them...
-    @threads = @threads.dup.and_unfreeze_kids
-    # ^^^ We use "dup" to work-around the fact that Rails cache returns frozen objects.
+    unless invalidated_index_pages? then
+      # Don't know why but in the development environment this is _always_ a miss!
+      @threads = Rails.cache.fetch(cache_key, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME,&load_threads)
+      # Since Rails 3.1 freezes the objects returned by cache, we have to unfreeze them...
+      @threads = @threads.dup.and_unfreeze_kids
+      # ^^^ We use "dup" to work-around the fact that Rails cache returns frozen objects.
+    else
+      @threads = load_threads[]
+    end
+
+    # Rails doesn't cache proc objects, so re-initialize it
+    @threads.index_validator = proc{ clear_index_invalidation }
 
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)
   end
+
+  # Invalidates index cache for a user.  This should be called from ALL actions that severely modify how an index page looks (i.e. thread folding/unfolding)
+  def invalidate_index_pages
+    return unless current_user
+    Rails.cache.write("invalidation.#{current_user.id}",true,:expires_in => INDEX_CACHE_TIME)
+    logger.info "Invalidated for #{current_user.login}"
+  end
+  def invalidated_index_pages?
+    return false unless current_user
+    Rails.cache.read("invalidation.#{current_user.id}")
+  end
+  def clear_index_invalidation
+    return unless current_user
+    Rails.cache.delete("invalidation.#{current_user.id}")
+    logger.info "Invalidation cleared for #{current_user.login}"
+  end
+  helper_method :invalidated_index_pages?
 
   public
   # TODO: demo version of 'permission denied page'

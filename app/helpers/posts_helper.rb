@@ -244,7 +244,7 @@ module PostsHelper
     # This is not nice: we are using "respond_to?" instead of polymorphism: CachedThread objects do respond, and usual threads do not.  TODO: refactor this to a polymorphic call.
     prepped = if thr.respond_to? :cached_html
       # This block is what should render a single thread.  We should specify it here to adhere to MVC.
-      thr.cached_html(proc{|cached_thread| fast_usual_tree_cache(cached_thread,'',nil,cached_thread.presentation)})
+      thr.cached_html(proc{|cached_thread| fast_usual_tree_cache(cached_thread,'',nil,cached_thread.presentation)},invalidated_index_pages?)
     else
       fast_usual_tree_cache(thr,buf,start,presentation)
     end
