@@ -110,6 +110,8 @@ class ApplicationController < ActionController::Base
     def preload(renderer, force_reload = false)
       if force_reload
         @rendered_threads = self.map {|cached_thread| renderer[cached_thread]}
+        # Save the updated thread selection to the cache
+        Rails.cache.write("#{cache_key}-html", @rendered_threads, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME)
         index_validator[] if index_validator
       else
         @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
