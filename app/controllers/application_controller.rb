@@ -23,11 +23,12 @@ class ApplicationController < ActionController::Base
     else
       if opts[:never_global]
         # If we do not want a global presentation (i.e. we create a new one for an unreg), we should clone it *and* reset if it's global
+        # NOTE: no need to cache here; it's a write operation
         p = Presentation.default.clone
         p.global = false
         p
       else
-        Presentation.default
+        Rails.cache.fetch('default_pres', :expires_in => CONFG_CACHE_TIME) {Presentation.default}
       end
     end
   end
