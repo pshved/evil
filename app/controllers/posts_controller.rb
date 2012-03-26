@@ -1,4 +1,6 @@
 class PostsController < ApplicationController
+  caches_action :index, :unless => proc {current_user}, :expires_in => UNREG_VIEW_CACHE_TIME, :cache_path => proc {"post_#{params[:id]}"}
+
   before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
   before_filter :find_thread, :only => [:edit, :update, :show, :remove]
   before_filter :init_loginpost, :only => [:edit, :update]

@@ -1,4 +1,7 @@
 class BackwardsController < ApplicationController
+
+  caches_action :index, :unless => proc {current_user}, :expires_in => UNREG_VIEW_CACHE_TIME, :cache_path => proc {"index_#{params[:page]}"}
+
   def index
     read = params[:read]
     index = !read
