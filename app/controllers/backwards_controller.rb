@@ -1,6 +1,8 @@
 class BackwardsController < ApplicationController
 
-  caches_action :index, :unless => proc {current_user}, :expires_in => UNREG_VIEW_CACHE_TIME, :cache_path => proc {"index_#{params[:page]}"}
+  # We cache both posts and the index, so we handle "read" here as well
+  caches_action :index, :unless => proc {current_user}, :cache_path => proc {"index_#{params[:page]}_#{params[:read]}"},
+    :expires_in => UNREG_VIEW_CACHE_TIME, :race_condition_ttl => UNREG_VIEW_CACHE_UPDATE_TIME
 
   def index
     read = params[:read]
