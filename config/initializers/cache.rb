@@ -10,6 +10,8 @@ CONFG_CACHE_TIME = 30.seconds
 # The first shows for how long the thread is cached, the second should be greater than the time to update the page 
 INDEX_CACHE_TIME = 6.seconds
 INDEX_CACHE_UPDATE_TIME = 4.seconds
+# For how long the whole index and posts HTMLs are cached for unregistered users
+UNREG_VIEW_CACHE_TIME = 3.seconds
 
 # Activity cache on the index page
 ACTIVITY_CACHE_TIME = 25.seconds
