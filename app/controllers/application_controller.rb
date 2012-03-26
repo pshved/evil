@@ -61,8 +61,16 @@ class ApplicationController < ActionController::Base
     def method_missing(sym,*args)
       # You'll need it to see what things to build into the cached thread
       #puts "DEBUG: CachedThread method_missing #{sym}"
-      @real_thread ||= Threads.find(id)
-      @real_thread.send(sym,*args)
+      real_thread.send(sym,*args)
+    end
+
+    private
+    # Load the real thread, and convey the presentation to it
+    def real_thread
+      return @real_thread if @real_thread
+      @real_thread = Threads.find(id)
+      @real_thread.presentation = self.presentation
+      @real_thread
     end
   end
 
@@ -133,18 +141,16 @@ class ApplicationController < ActionController::Base
     # (see fast_tree_cache in PostsHelper for explanation of the cache key)
     cpres = current_presentation
     cache_key = "thread-list.page:#{params[:page]}-sortby:time-user:#{key_of(current_user,'guest')}-view:#{key_of(cpres,'guest')}-global:#{config_mtime}"
+    Threads.settings_for = current_user
     # If a threads cache is invalidated, then re-fetch it
     load_threads = proc do
       logger.info "Rebuilding threads for #{cache_key}"
       # Set up a "Global" view setting, so that the newly created threads comply to it
-      Threads.settings_for = current_user
       threads = Threads.order("created_at DESC").page(params[:page])
       thread_page_size = current_presentation.threadpage_size
       threads = threads.per(thread_page_size)
       # Now convert them to cached entities
       cached_threads = threads.map {|t| CachedThread.new(t)}
-      # Assign presentation to threads, so we know how to display them
-      cached_threads.each {|t| t.presentation = cpres}
       CachedThreadArray.new(cached_threads,cache_key,threads.current_page,threads.num_pages,threads.limit_value)
     end
     unless invalidated_index_pages? then
@@ -156,6 +162,8 @@ class ApplicationController < ActionController::Base
     else
       @threads = load_threads[]
     end
+    # Assign presentation to threads, so the model now knows how to display them
+    @threads.each {|t| t.presentation = cpres}
 
     # Rails doesn't cache proc objects, so re-initialize it
     @threads.index_validator = proc{ clear_index_invalidation }
