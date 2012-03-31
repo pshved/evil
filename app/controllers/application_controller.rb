@@ -208,19 +208,19 @@ class ApplicationController < ActionController::Base
 
   # Activity metrics
   # Hint was given here: http://stackoverflow.com/a/9470559/158676
-  before_filter :log_request
+  # We use after filter in order to not delay the delievery of the data
+  after_filter :log_request
   protected
   # TODO: can't run without this!  Somehow init.rb is not included everywhere
   ActionController::Base.send :include, Spawn
   # Spawn another thread that will log the proper request
   def log_request
-    spawn do
-      Activity.create(:host => gethostbyaddr(request.remote_ip))
-      # Now cleanup all old activities (NOTE the usage of delete_all instead of destroy_all: we do not need to load them!)
-      # This happens only once per several seconds, since it blocks activity database.
-      Rails.cache.fetch('activity_delete', :expires_in => ACTIVITY_CACHE_TIME, :race_condition_ttl => ACTIVITY_CACHE_TIME) do
-        Activity.delete_all(['created_at < ?', Time.now - config_param(:activity_minutes).minutes])
-      end
+    # We could use "spawn", but instead we just write, because spawn-ing would cause another DB connection to appear, and we don't want that.
+    Activity.create(:host => gethostbyaddr(request.remote_ip))
+    # Now cleanup all old activities (NOTE the usage of delete_all instead of destroy_all: we do not need to load them!)
+    # This happens only once per several seconds, since it blocks activity database.
+    Rails.cache.fetch('activity_delete', :expires_in => ACTIVITY_CACHE_TIME, :race_condition_ttl => ACTIVITY_CACHE_TIME) do
+      Activity.delete_all(['created_at < ?', Time.now - config_param(:activity_minutes).minutes])
     end
   end
 
