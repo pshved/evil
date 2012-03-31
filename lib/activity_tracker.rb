@@ -1,18 +1,19 @@
 class ActivityTracker
-  def initialize(tick, period, width = ACTIVITY_CACHE_WIDTH, scope = 'activity_tracker')
+  def initialize(tick, period, read_expiry, width = ACTIVITY_CACHE_WIDTH, scope = 'activity_tracker')
     @tick = tick
     @period = period
     @width = width
     @scope = scope
+    @read_expiry = read_expiry
   end
 
   # Activity queries
   public
   def hosts_activity
-    Rails.cache.fetch('activity_hosts', :expires_in => @period) {Activity.select('distinct host').count}
+    Rails.cache.fetch('activity_hosts', :expires_in => @read_expiry) {Activity.select('distinct host').count}
   end
   def clicks_activity
-    Rails.cache.fetch('activity_clicks', :expires_in => @period) {Activity.select('host').count}
+    Rails.cache.fetch('activity_clicks', :expires_in => @read_expiry) {Activity.select('host').count}
   end
 
   # Activity writes

@@ -226,7 +226,7 @@ class ApplicationController < ActionController::Base
   end
 
   def tracker
-    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_WIDTH)
+    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_WIDTH)
   end
   helper_method :tracker
 
