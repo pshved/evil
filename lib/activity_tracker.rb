@@ -55,9 +55,13 @@ class ActivityTracker
     # Clear the cache
 
     # Convert these records to ActiveRecord initialization hashes
-    # NOTE: keep this synchronized with +click!+
-    inits = records.map{|rec| {:created_at => rec[0], :host => rec[1]}}
-    Activity.create(inits) unless inits.empty?
+    # Unfortunately, if we use something like "Activity.create(inits)", we'll create a lot of transactions anyway.  We have to resort to raw SQL :-(
+    # (or, install ActiveRecord-extensions gem, but it would be used here only
+    unless records.empty?
+      inserts = records.inject([]) {|acc, rec| acc + ["('#{rec[1]}','#{rec[0].to_formatted_s(:db)}')"]}
+      # NOTE: keep this synchronized with +click!+
+      Activity.connection.execute "INSERT into activities(host,created_at) VALUES #{inserts.join(", ")}"
+    end
     # Also, delete old activities that aren't interesting to anyone
     Activity.delete_all(['created_at < ?', Time.now - @period])
   end
