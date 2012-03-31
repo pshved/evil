@@ -220,7 +220,7 @@ class ApplicationController < ActionController::Base
   def log_request
     tracker.click!(gethostbyaddr(request.remote_ip))
     # Now commit all the cached activities
-    if rand < 0.1
+    Rails.cache.fetch('activity_commit', :expires_in => ACTIVITY_CACHE_TIME/2) do
       tracker.commit
     end
   end

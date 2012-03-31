@@ -45,9 +45,13 @@ class ActivityTracker
     # Now read all these caches, collect the data, and insert it into the persistent storage
  
     # Get the records.  Do not forget to throw NILs away.
-    records = caches.map{|cache| Rails.cache.read(cache)}.compact.flatten(1)
+    # We shuffle to decrease the change that we'll have a race condition here.
+    records = caches.shuffle.map do |cache|
+      r = Rails.cache.read(cache)
+      Rails.cache.delete(cache)
+      r
+    end.compact.flatten(1)
     # Clear the cache
-    caches.map{|cache| Rails.cache.delete(cache)}
 
     # Convert these records to ActiveRecord initialization hashes
     # NOTE: keep this synchronized with +click!+
