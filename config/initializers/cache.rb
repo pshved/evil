@@ -15,5 +15,9 @@ UNREG_VIEW_CACHE_TIME = 3.seconds
 UNREG_VIEW_CACHE_UPDATE_TIME = 3.seconds
 
 # Activity cache on the index page
-ACTIVITY_CACHE_TIME = 25.seconds
+ACTIVITY_CACHE_TIME = 30.seconds
+# The more this value is, the more precise activity calculation will be (will drop less accesses).  Approximately, this should be at least twice greater than the number of _simlultaneous_ activity writes you need
+ACTIVITY_CACHE_WIDTH = 15
+# The more this value is, the more time is spent on writes.  However, if this will be very small, if will put a lot of trash in the cache.  5 seconds should be optimal.
+ACTIVITY_CACHE_TICK = 5.seconds
 

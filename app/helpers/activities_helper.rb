@@ -1,8 +1,11 @@
 module ActivitiesHelper
+  # NOTE: tracker is loaded in ApplicationController
+ 
   def hosts_activity
-    Rails.cache.fetch('activity_hosts', :expires_in => ACTIVITY_CACHE_TIME) {Activity.select('distinct host').count}
+    tracker.hosts_activity
   end
+
   def clicks_activity
-    Rails.cache.fetch('activity_clicks', :expires_in => ACTIVITY_CACHE_TIME) {Activity.select('host').count}
+    tracker.clicks_activity
   end
 end
