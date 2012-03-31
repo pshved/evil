@@ -207,23 +207,28 @@ class ApplicationController < ActionController::Base
     current_user || !captcha_enabled || verify_recaptcha({:model => @loginpost, :private_key => config_param(:recaptcha_private)}.merge(opts))
   end
 
+  # TODO: can't run spawn without this!  Somehow init.rb is not included everywhere
+  ActionController::Base.send :include, Spawn
+
   # Activity metrics
   # Hint was given here: http://stackoverflow.com/a/9470559/158676
   # We use after filter in order to not delay the delievery of the data
   after_filter :log_request
   protected
-  # TODO: can't run without this!  Somehow init.rb is not included everywhere
-  ActionController::Base.send :include, Spawn
   # We track activity like this.  At each request, we record it into memcached (spawning a thread for this takes much more time than just doing it at once).  The place we record the click to is identified by the current time.  This allows for some imprecision due to read/write race conditions.
   # Each several seconds, a job wakes up, collects all the information from the memcached activity storage spawned within the previous time span we track activity for (this allows us to ignore old data, and do it on a per-request basis instead of maintaining a cron job), and commits it to MySQL's `activities` table.
   def log_request
-    tracker = ActivityTracker.new(30,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_WIDTH)
     tracker.click!(gethostbyaddr(request.remote_ip))
     # Now commit all the cached activities
     if rand < 0.1
       tracker.commit
     end
-    end
+  end
+
+  def tracker
+    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_WIDTH)
+  end
+  helper_method :tracker
 
   # Global admin config modification time
   def config_mtime

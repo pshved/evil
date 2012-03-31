@@ -6,6 +6,18 @@ class ActivityTracker
     @scope = scope
   end
 
+  # Activity queries
+  public
+  def hosts_activity
+    Rails.cache.fetch('activity_hosts', :expires_in => @period) {Activity.select('distinct host').count}
+  end
+  def clicks_activity
+    Rails.cache.fetch('activity_clicks', :expires_in => @period) {Activity.select('host').count}
+  end
+
+  # Activity writes
+
+  # Write a single activity event
   def click!(host)
     # get the bucket
     now = Time.now
@@ -24,7 +36,7 @@ class ActivityTracker
     puts "Ac write to #{cache_name} #{info.length} for #{@period}"
   end
 
-  # This function recycles everything that happened during the last @period seconds.  It's important that you don't let several threads run this in parallel.
+  # This function flushes everything that happened during the last @period seconds.  It's important that you don't let several threads run this in parallel.
   def commit
     # determine the list of cache entities we're to collect.  We do not collect the cache the +click+ function would otherwise write to here.
     now = Time.now
