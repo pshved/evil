@@ -32,8 +32,6 @@ class ActivityTracker
     # NOTE: keep this synchronized with +recycle+!
     info << [now, host]
     Rails.cache.write(cache_name, info, :expires_in => @period)
-
-    puts "Ac write to #{cache_name} #{info.length} for #{@period}"
   end
 
   # This function flushes everything that happened during the last @period seconds.  It's important that you don't let several threads run this in parallel.
@@ -48,11 +46,8 @@ class ActivityTracker
  
     # Get the records.  Do not forget to throw NILs away.
     records = caches.map{|cache| Rails.cache.read(cache)}.compact.flatten(1)
-    puts "Recs #{records.inspect}"
     # Clear the cache
     caches.map{|cache| Rails.cache.delete(cache)}
-
-    puts "Queried #{caches.length} caches yielding #{records.length} records"
 
     # Convert these records to ActiveRecord initialization hashes
     # NOTE: keep this synchronized with +click!+
