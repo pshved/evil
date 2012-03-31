@@ -1,4 +1,5 @@
 require 'autoload/utils'
+require 'activity_tracker'
 class ApplicationController < ActionController::Base
   protect_from_forgery
   helper_method :current_user_session, :current_user
@@ -213,16 +214,16 @@ class ApplicationController < ActionController::Base
   protected
   # TODO: can't run without this!  Somehow init.rb is not included everywhere
   ActionController::Base.send :include, Spawn
-  # Spawn another thread that will log the proper request
+  # We track activity like this.  At each request, we record it into memcached (spawning a thread for this takes much more time than just doing it at once).  The place we record the click to is identified by the current time.  This allows for some imprecision due to read/write race conditions.
+  # Each several seconds, a job wakes up, collects all the information from the memcached activity storage spawned within the previous time span we track activity for (this allows us to ignore old data, and do it on a per-request basis instead of maintaining a cron job), and commits it to MySQL's `activities` table.
   def log_request
-    # We could use "spawn", but instead we just write, because spawn-ing would cause another DB connection to appear, and we don't want that.
-    Activity.create(:host => gethostbyaddr(request.remote_ip))
-    # Now cleanup all old activities (NOTE the usage of delete_all instead of destroy_all: we do not need to load them!)
-    # This happens only once per several seconds, since it blocks activity database.
-    Rails.cache.fetch('activity_delete', :expires_in => ACTIVITY_CACHE_TIME, :race_condition_ttl => ACTIVITY_CACHE_TIME) do
-      Activity.delete_all(['created_at < ?', Time.now - config_param(:activity_minutes).minutes])
+    tracker = ActivityTracker.new(30,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_WIDTH)
+    tracker.click!(gethostbyaddr(request.remote_ip))
+    # Now commit all the cached activities
+    if rand < 0.1
+      tracker.commit
     end
-  end
+    end
 
   # Global admin config modification time
   def config_mtime
