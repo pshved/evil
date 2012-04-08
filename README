@@ -27,6 +27,7 @@ glibc-devel
 mysql-devel
 ruby1.9
 ruby-devel
+curl
 
 
 

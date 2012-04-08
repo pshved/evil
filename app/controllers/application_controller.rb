@@ -219,16 +219,16 @@ class ApplicationController < ActionController::Base
   # Each several seconds, a job wakes up, collects all the information from the memcached activity storage spawned within the previous time span we track activity for (this allows us to ignore old data, and do it on a per-request basis instead of maintaining a cron job), and commits it to MySQL's `activities` table.
   def log_request
     tracker.click!(gethostbyaddr(request.remote_ip))
-    # Now commit all the cached activities
-    Rails.cache.fetch('activity_commit', :expires_in => ACTIVITY_CACHE_TIME/2) do
-      tracker.commit
-    end
+    # Activities are committed periodically, via the external API call.  See ApiController and config/schedule.rb.
   end
 
+  public
   def tracker
-    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_WIDTH)
+    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_WIDTH)
   end
   helper_method :tracker
+
+  protected
 
   # Global admin config modification time
   def config_mtime
