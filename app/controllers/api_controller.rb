@@ -5,7 +5,7 @@ class ApiController < ApplicationController
     # Call activity commit functionality.
     # Guard it, just in case, into a hash timeout, so that they are not called too often by whatever reasons
     Rails.cache.fetch('activity_commit', :expires_in => ACTIVITY_CACHE_TIME/2) do
-      tracker.commit
+      access_tracker.commit
     end
     render :text => 'OK'
   end

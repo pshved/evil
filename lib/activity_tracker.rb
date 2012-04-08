@@ -1,27 +1,27 @@
+# For documentation, see http://coldattic.info/shvedsky/pro/blogs/a-foo-walks-into-a-bar/posts/77
 class ActivityTracker
   def initialize(opts = {})
     @tick = opts[:tick]
     @period = opts[:period]
     @width = opts[:width] || ACTIVITY_CACHE_WIDTH
     @scope = opts[:scope] || 'activity_tracker'
-    @read_expiry = opts[:read_expiry]
     @commit_period = opts[:commit_period]
+    @read_proc = opts[:read_proc] || proc {}
+    @update_proc = opts[:update_proc] || proc {}
+    @commit_proc = opts[:commit_proc] || proc {}
   end
 
   # Activity queries
   # In these queries, we do not rely that the table is cleaned up, and explicitely query the latest records.
 
-  def hosts_activity
-    Rails.cache.fetch('activity_hosts', :expires_in => @read_expiry) {Activity.select('distinct host').where(['created_at >= ?', Time.now - @period]).count}
-  end
-  def clicks_activity
-    Rails.cache.fetch('activity_clicks', :expires_in => @read_expiry) {Activity.select('host').where(['created_at >= ?', Time.now - @period]).count}
+  def read
+    @read_proc[]
   end
 
   # Activity mutators
 
   # Write a single activity event
-  def click!(host)
+  def event(*args)
     # get the bucket
     now = Time.now
     t = bucket(now)
@@ -32,8 +32,7 @@ class ActivityTracker
     # Load from name and paste there
     # FIXME: dup due to Rails <=3.1 bug with frozen records returned by Rails cache.
     info = (Rails.cache.read(cache_name) || []).dup
-    # NOTE: keep this synchronized with +commit+ (see at the bottom)!
-    info << [now, host]
+    info = @update_proc[info,*args]
     Rails.cache.write(cache_name, info, :expires_in => @period)
   end
 
@@ -56,16 +55,8 @@ class ActivityTracker
       r
     end.compact.flatten(1)
 
-    # Convert these records to ActiveRecord initialization hashes
-    # Unfortunately, even if we use something like "Activity.create(inits)", we'll create a lot of transactions/DB inserts anyway.  We have to resort to raw SQL to use a single, multi-row insert :-(
-    # (or, install ActiveRecord-extensions gem, but it would be used here only)
-    unless records.empty?
-      inserts = records.inject([]) {|acc, rec| acc + ["('#{rec[1]}','#{rec[0].to_formatted_s(:db)}')"]}
-      # NOTE: keep this synchronized with +click!+
-      Activity.connection.execute "INSERT into activities(host,created_at) VALUES #{inserts.join(", ")}"
-    end
-    # Also, delete old activities that aren't interesting anymore
-    Activity.delete_all(['created_at < ?', Time.now - @period])
+    # Commit the records collected
+    @commit_proc[records]
   end
 
   private
