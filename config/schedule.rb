@@ -20,6 +20,12 @@ every 1.minute do
   command %Q(sleep 30; curl #{app_url}/api/commit_activity)
 end
 
+# Commit post clicks
+every 1.minute do
+  post_click_api = %Q(curl #{app_url}/api/commit_clicks)
+  (1.minute / POST_CLICK_CACHE_TIME).times {|m| command %Q(sleep #{POST_CLICK_CACHE_TIME*m}; #{post_click_api})}
+end
+
 # set :output, "/path/to/my/cron_log.log"
 #
 # every 2.hours do

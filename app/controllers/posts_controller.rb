@@ -19,7 +19,7 @@ class PostsController < ApplicationController
     # To ignore show/hide settings and always show.
     @show_all_posts = true
     # Add click
-    @post.click! current_user, request.remote_ip
+    post_clicks_tracker.event(@post.id)
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @post }

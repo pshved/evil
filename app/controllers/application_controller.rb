@@ -218,15 +218,76 @@ class ApplicationController < ActionController::Base
   # We track activity like this.  At each request, we record it into memcached (spawning a thread for this takes much more time than just doing it at once).  The place we record the click to is identified by the current time.  This allows for some imprecision due to read/write race conditions.
   # Each several seconds, a job wakes up, collects all the information from the memcached activity storage spawned within the previous time span we track activity for (this allows us to ignore old data, and do it on a per-request basis instead of maintaining a cron job), and commits it to MySQL's `activities` table.
   def log_request
-    tracker.click!(gethostbyaddr(request.remote_ip))
+    access_tracker.event()
     # Activities are committed periodically, via the external API call.  See ApiController and config/schedule.rb.
   end
 
-  public
-  def tracker
-    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_WIDTH)
+  # Commit activity data if we're in development mode
+  if Rails.env.to_sym == :development
+    after_filter do
+      access_tracker.commit
+      post_clicks_tracker.commit
+    end
   end
-  helper_method :tracker
+
+  public
+  def access_tracker
+    period = config_param(:activity_minutes).minutes
+    @access_tracker ||= ActivityTracker.new(
+      :tick =>ACTIVITY_CACHE_TICK,
+      :period => period,
+      :commit_period => ACTIVITY_CACHE_TIME,
+      :width => ACTIVITY_CACHE_WIDTH,
+      :scope => 'site_wide_activity',
+      :read_proc => proc {
+        h = Rails.cache.fetch('activity_hosts', :expires_in => ACTIVITY_CACHE_TIME) {Activity.select('distinct host').where(['created_at >= ?', Time.now - period]).count}
+        c = Rails.cache.fetch('activity_clicks', :expires_in => ACTIVITY_CACHE_TIME) {Activity.select('host').where(['created_at >= ?', Time.now - period]).count}
+        [h, c]
+      },
+      :update_proc => proc {|activity_data|
+        host = gethostbyaddr(request.remote_ip)
+        # Double braces because we add an array of 2 elements into an array of arrays
+        (activity_data || []) + [[Time.now, host]]
+      },
+      :commit_proc => proc {|records|
+        # Convert these records to ActiveRecord initialization hashes
+        # Unfortunately, even if we use something like "Activity.create(inits)", we'll create a lot of transactions/DB inserts anyway.  We have to resort to raw SQL to use a single, multi-row insert :-(
+        # (or, install ActiveRecord-extensions gem, but it would be used here only)
+        unless records.empty?
+          inserts = records.inject([]) {|acc, rec| acc + ["('#{rec[1]}','#{rec[0].to_formatted_s(:db)}')"]}
+          # NOTE: keep this synchronized with +click!+
+          Activity.connection.execute "INSERT into activities(host,created_at) VALUES #{inserts.join(", ")}"
+        end
+        # Also, delete old activities that aren't interesting anymore
+        Activity.delete_all(['created_at < ?', Time.now - period])
+      },
+    )
+  end
+  helper_method :access_tracker
+
+  def post_clicks_tracker
+    period = config_param(:activity_minutes).minutes
+    @post_clicks_tracker ||= ActivityTracker.new(
+      :tick =>ACTIVITY_CACHE_TICK,
+      :period => period,
+      :commit_period => ACTIVITY_CACHE_TIME,
+      :width => ACTIVITY_CACHE_WIDTH,
+      :scope => 'post_clicks_activity',
+      # We don't need to read anything, we read from the database when we render posts
+      :update_proc => proc {|activity_data, post_id|
+        clicker = Click.clicker(current_user,request.remote_ip)
+        # We record the click time to "replay" post clicks at commit, ordered by time
+        # Double braces because we add an array of 2 elements into an array of arrays
+        (activity_data || []) + [[Time.now, post_id, clicker]]
+      },
+      :commit_proc => proc {|records|
+        # Clicks model has an abstraction of "replaying" a click sequence.  Just pass it there.
+        # Sort by click time, and remove the time
+        click_sequence = records.sort {|a,b| a[0] <=> b[0]}.map{|id_time_host| id_time_host[1..2]}
+        Click.replay(click_sequence)
+      },
+    )
+  end
 
   protected
 
