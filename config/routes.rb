@@ -1,4 +1,6 @@
 Zlo::Application.routes.draw do
+  get "api/commit_activity"
+
   root :controller => 'backwards', :action => 'index'
 
   match 'login' => 'user_sessions#new', :as => 'login'
