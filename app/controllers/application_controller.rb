@@ -239,7 +239,7 @@ class ApplicationController < ActionController::Base
       :update_proc => proc {|activity_data|
         host = gethostbyaddr(request.remote_ip)
         # Double braces because we add an array of 2 elements into an array of arrays
-        activity_data + [[Time.now, host]]
+        (activity_data || []) + [[Time.now, host]]
       },
       :commit_proc => proc {|records|
         # Convert these records to ActiveRecord initialization hashes

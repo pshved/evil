@@ -11,6 +11,6 @@ module ActivitiesHelper
 
   protected
   def ensure_data
-    @activity_data ||= access_tracker.read
+    @activity_data ||= (access_tracker.read || [])
   end
 end
