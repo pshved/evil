@@ -1,11 +1,11 @@
 class ActivityTracker
-  def initialize(tick, period, commit_period, read_expiry, width = ACTIVITY_CACHE_WIDTH, scope = 'activity_tracker')
-    @tick = tick
-    @period = period
-    @width = width
-    @scope = scope
-    @read_expiry = read_expiry
-    @commit_period = commit_period
+  def initialize(opts = {})
+    @tick = opts[:tick]
+    @period = opts[:period]
+    @width = opts[:width] || ACTIVITY_CACHE_WIDTH
+    @scope = opts[:scope] || 'activity_tracker'
+    @read_expiry = opts[:read_expiry]
+    @commit_period = opts[:commit_period]
   end
 
   # Activity queries
