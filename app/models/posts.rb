@@ -174,12 +174,6 @@ class Posts < ActiveRecord::Base
     text_container.save
   end
 
-  def click!(user = nil, rq = '127.0.0.1')
-    # If post has not been clicked, assume that the previous clicker was the author
-    build_click(:last_click => Click.clicker(self.user,rq)) unless click
-    click.click! user,rq
-  end
-
   def clicks
     click ? (click.clicks || 0) : 0
   end

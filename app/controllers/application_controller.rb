@@ -242,7 +242,6 @@ class ApplicationController < ActionController::Base
         activity_data + [[Time.now, host]]
       },
       :commit_proc => proc {|records|
-        puts records.inspect
         # Convert these records to ActiveRecord initialization hashes
         # Unfortunately, even if we use something like "Activity.create(inits)", we'll create a lot of transactions/DB inserts anyway.  We have to resort to raw SQL to use a single, multi-row insert :-(
         # (or, install ActiveRecord-extensions gem, but it would be used here only)
@@ -257,6 +256,30 @@ class ApplicationController < ActionController::Base
     )
   end
   helper_method :access_tracker
+
+  def post_clicks_tracker
+    period = config_param(:activity_minutes).minutes
+    @post_clicks_tracker ||= ActivityTracker.new(
+      :tick =>ACTIVITY_CACHE_TICK,
+      :period => period,
+      :commit_period => ACTIVITY_CACHE_TIME,
+      :width => ACTIVITY_CACHE_WIDTH,
+      :scope => 'post_clicks_activity',
+      # We don't need to read anything, we read from the database when we render posts
+      :update_proc => proc {|activity_data, post_id|
+        clicker = Click.clicker(current_user,request.remote_ip)
+        # We record the click time to "replay" post clicks at commit, ordered by time
+        # Double braces because we add an array of 2 elements into an array of arrays
+        (activity_data || []) + [[Time.now, post_id, clicker]]
+      },
+      :commit_proc => proc {|records|
+        # Clicks model has an abstraction of "replaying" a click sequence.  Just pass it there.
+        # Sort by click time, and remove the time
+        click_sequence = records.sort {|a,b| a[0] <=> b[0]}.map{|id_time_host| id_time_host[1..2]}
+        Click.replay(click_sequence)
+      },
+    )
+  end
 
   protected
 

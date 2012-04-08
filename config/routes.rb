@@ -1,5 +1,6 @@
 Zlo::Application.routes.draw do
   get "api/commit_activity"
+  get "api/commit_clicks"
 
   root :controller => 'backwards', :action => 'index'
 

@@ -22,3 +22,11 @@ ACTIVITY_CACHE_WIDTH = 15
 # The more this value is, the more time is spent on writes.  However, if this will be very small, if will put a lot of trash in the cache.  5 seconds should be optimal.
 ACTIVITY_CACHE_TICK = 5.seconds
 
+# POST CLICKS
+# If we update each thread at each click, we'll lose the ability to cache them.
+# Instead, we drop precision in sake of performance.
+# When a post has less than CLICK_UPDATE_THRESHOLD clicks, the thread is always updated.  Otherwise, the thread is updates once per CLICK_DELAY_RATE clicks (as decided by random number generator)
+CLICK_UPDATE_THRESHOLD = 10
+CLICK_DELAY_RATE = 5
+# How often post click information is committed
+POST_CLICK_CACHE_TIME = 5.seconds

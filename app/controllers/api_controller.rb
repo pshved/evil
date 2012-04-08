@@ -1,11 +1,18 @@
 require 'activity_tracker'
 class ApiController < ApplicationController
-  before_filter :authorize_local!, :only => [:commit_activity]
+  before_filter :authorize_local!, :only => [:commit_activity, :commit_clicks]
   def commit_activity
     # Call activity commit functionality.
     # Guard it, just in case, into a hash timeout, so that they are not called too often by whatever reasons
     Rails.cache.fetch('activity_commit', :expires_in => ACTIVITY_CACHE_TIME/2) do
       access_tracker.commit
+    end
+    render :text => 'OK'
+  end
+
+  def commit_clicks
+    Rails.cache.fetch('post_click_commit', :expires_in => POST_CLICK_CACHE_TIME/2) do
+      post_clicks_tracker.commit
     end
     render :text => 'OK'
   end
