@@ -14,5 +14,6 @@
 /log/*.log
 /tmp
 
-# Ignore database.yml
+# Ignore database.yml and other configs
 database.yml
+application.yml

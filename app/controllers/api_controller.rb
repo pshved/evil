@@ -18,9 +18,10 @@ class ApiController < ApplicationController
   protected
   # Check that the request comes from localhost
   def authorize_local!
+    logger.info "Will authorize: #{APP_CONFIG['api_urls']}"
     unless (APP_CONFIG['api_urls'].include? request.remote_ip)
       # NOTE: render will make rails not enter the controller
-      render :text => 'Unauthorized'
+      render :text => "Unauthorized #{request.remote_ip}"
     end
   end
 
