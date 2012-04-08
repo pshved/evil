@@ -1,5 +1,11 @@
 # This will set up the environment into Rails.env
-require File.expand_path('../../lib/init_for_whenever.rb',  __FILE__)
+# Since we're inside the instance of a whenever object, we should access the Rails module in the global namespace
+eval %Q(module ::Rails
+  def self.env
+    '#{@environment}' || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+  end
+end
+)
 
 # Use this file to easily define all of your cron jobs.
 require File.expand_path('../initializers/cache.rb',  __FILE__)
