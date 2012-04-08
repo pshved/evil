@@ -1,0 +1,9 @@
+development:
+  application_url: "http://localhost:3000/"
+  api_urls:
+    - '127.0.0.1'
+
+production:
+  application_url: "http://x.coldattic.info/"
+  api_urls:
+    - '127.0.0.1'

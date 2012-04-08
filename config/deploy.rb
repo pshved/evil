@@ -47,7 +47,8 @@ after 'deploy:update_code', 'deploy:symlink_cfg'
 namespace :deploy do
   desc "Symlinks config files"
   task :symlink_cfg, :roles => :app do
-    run "ln -nfs #{deploy_to}/shared/config/database.yml #{release_path}/config/database.yml"
+    configs = %w(database.yml application.yml)
+    configs.each {|c| run "ln -nfs #{deploy_to}/shared/config/#{c} #{release_path}/config/#{c}"}
   end
 end
 
