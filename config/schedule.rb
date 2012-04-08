@@ -1,8 +1,8 @@
 # Use this file to easily define all of your cron jobs.
 require File.expand_path('../initializers/cache.rb',  __FILE__)
-require File.expand_path('../initializers/url.rb',  __FILE__)
+require File.expand_path('../initializers/appconfig.rb',  __FILE__)
 
-app_url = THE_APPLICATION_URL.gsub(/\/*$/,'')
+app_url = APP_CONFIG['application_url'].gsub(/\/*$/,'')
 
 # Commit each 30 seconds (as in config/initializers/cache.rb).  Cron doesn't allow this granularity, so we use a trick.
 every 1.minute do
