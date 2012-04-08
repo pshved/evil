@@ -14,7 +14,8 @@ INDEX_CACHE_UPDATE_TIME = 4.seconds
 UNREG_VIEW_CACHE_TIME = 3.seconds
 UNREG_VIEW_CACHE_UPDATE_TIME = 3.seconds
 
-# Activity cache on the index page
+# Activity cache on the index page. 
+# NOTE: if you change this, make sure to do the same in config/schedule.rb!
 ACTIVITY_CACHE_TIME = 30.seconds
 # The more this value is, the more precise activity calculation will be (will drop less accesses).  Approximately, this should be at least twice greater than the number of _simlultaneous_ activity writes you need
 ACTIVITY_CACHE_WIDTH = 15

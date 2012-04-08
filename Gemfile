@@ -85,3 +85,6 @@ gem 'dalli'
 
 # Russian support
 gem 'russian', '~> 0.6.0'
+
+# Periodic jobs runner
+gem 'whenever', :require => false
