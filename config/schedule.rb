@@ -1,3 +1,6 @@
+# This will set up the environment into Rails.env
+require File.expand_path('../../lib/init_for_whenever.rb',  __FILE__)
+
 # Use this file to easily define all of your cron jobs.
 require File.expand_path('../initializers/cache.rb',  __FILE__)
 require File.expand_path('../initializers/appconfig.rb',  __FILE__)
