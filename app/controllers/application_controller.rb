@@ -222,6 +222,14 @@ class ApplicationController < ActionController::Base
     # Activities are committed periodically, via the external API call.  See ApiController and config/schedule.rb.
   end
 
+  # Commit activity data if we're in development mode
+  if Rails.env.to_sym == :development
+    after_filter do
+      access_tracker.commit
+      post_clicks_tracker.commit
+    end
+  end
+
   public
   def access_tracker
     period = config_param(:activity_minutes).minutes
