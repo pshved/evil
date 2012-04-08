@@ -2,11 +2,13 @@
 require File.expand_path('../initializers/cache.rb',  __FILE__)
 require File.expand_path('../initializers/url.rb',  __FILE__)
 
+app_url = THE_APPLICATION_URL.gsub(/\/*$/,'')
+
 # Commit each 30 seconds (as in config/initializers/cache.rb).  Cron doesn't allow this granularity, so we use a trick.
 every 1.minute do
   # Commit information on the activity to the DB
-  command %Q(curl #{THE_APPLICATION_URL}/api/commit_activity)
-  command %Q(sleep 30; curl #{THE_APPLICATION_URL}/api/commit_activity)
+  command %Q(curl #{app_url}/api/commit_activity)
+  command %Q(sleep 30; curl #{app_url}/api/commit_activity)
 end
 
 # set :output, "/path/to/my/cron_log.log"
