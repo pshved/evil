@@ -1,19 +1,21 @@
 class ActivityTracker
-  def initialize(tick, period, read_expiry, width = ACTIVITY_CACHE_WIDTH, scope = 'activity_tracker')
+  def initialize(tick, period, commit_period, read_expiry, width = ACTIVITY_CACHE_WIDTH, scope = 'activity_tracker')
     @tick = tick
     @period = period
     @width = width
     @scope = scope
     @read_expiry = read_expiry
+    @commit_period = commit_period
   end
 
   # Activity queries
+  # In these queries, we do not rely that the table is cleaned up, and explicitely query the latest records.
 
   def hosts_activity
-    Rails.cache.fetch('activity_hosts', :expires_in => @read_expiry) {Activity.select('distinct host').count}
+    Rails.cache.fetch('activity_hosts', :expires_in => @read_expiry) {Activity.select('distinct host').where(['created_at >= ?', Time.now - @period]).count}
   end
   def clicks_activity
-    Rails.cache.fetch('activity_clicks', :expires_in => @read_expiry) {Activity.select('host').count}
+    Rails.cache.fetch('activity_clicks', :expires_in => @read_expiry) {Activity.select('host').where(['created_at >= ?', Time.now - @period]).count}
   end
 
   # Activity mutators
@@ -38,9 +40,10 @@ class ActivityTracker
   # This function flushes everything that happened during the last @period seconds.  It tries to work without many race conditions even if several threads run this concurrently, optimizing for the case when they start nearly simultaneously.
   def commit
     # determine the list of cache entities we're to collect.  We do not collect the cache the +click+ function would otherwise write to here.
+    # NOTE that we collect the data twice as old as the expected commit period, because older data should have been committed by previous calls via the scheduler.
     now = Time.now
     t = bucket(now)
-    n_timestamps = (@period / @tick) + 1 + 1
+    n_timestamps = (2*@commit_period / @tick) + 1 + 1
     caches = (1..n_timestamps-1).map{|shift| t - shift*@tick}.map{|t| "#{@scope}_#{t}"}.map{|ts| (0..@width-1).map{|bucket| "#{ts}_#{bucket}"}}.flatten(1)
 
     # Now read all these caches, collect the data, and insert it into the persistent storage

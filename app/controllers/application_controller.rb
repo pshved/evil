@@ -225,10 +225,13 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  public
   def tracker
-    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_WIDTH)
+    @tracker ||= ActivityTracker.new(ACTIVITY_CACHE_TICK,config_param(:activity_minutes).minutes,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_TIME,ACTIVITY_CACHE_WIDTH)
   end
   helper_method :tracker
+
+  protected
 
   # Global admin config modification time
   def config_mtime
