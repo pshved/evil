@@ -6,6 +6,9 @@ class PostsController < ApplicationController
   before_filter :find_thread, :only => [:edit, :update, :show, :remove]
   before_filter :init_loginpost, :only => [:edit, :update]
 
+  # Record post click (doing this in before_filter for it to work even if the page is cached)
+  before_filter :click, :only => [:show]
+
   # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
   before_filter :trick_authorization, :only => [:latest]
   filter_access_to :all, :attribute_check => true, :model => Posts
@@ -18,8 +21,6 @@ class PostsController < ApplicationController
     @loginpost = Loginpost.new(:reply_to => @post.to_param, :user => current_user)
     # To ignore show/hide settings and always show.
     @show_all_posts = true
-    # Add click
-    post_clicks_tracker.event(@post.id)
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @post }
@@ -150,5 +151,9 @@ class PostsController < ApplicationController
   def trick_authorization
     @posts = @@fake_posts if @@fake_posts
     @posts = @@fake_posts = Posts.find(:first)
+  end
+
+  def click
+    post_clicks_tracker.event(@post.id)
   end
 end
