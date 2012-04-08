@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-  caches_action :index, :unless => proc {current_user}, :cache_path => proc {"post_#{params[:id]}"},
+  caches_action :show, :unless => proc {current_user}, :cache_path => proc {"post_#{params[:id]}"},
     :expires_in => UNREG_VIEW_CACHE_TIME, :race_condition_ttl => UNREG_VIEW_CACHE_UPDATE_TIME
 
   before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
