@@ -45,6 +45,9 @@ class Loginpost
         session.errors[:password] = I18n.t('blank_password', :scope => 'errors', :login => session.login)
         errors.add(:base, I18n.t('enter_password', :scope => 'errors'))
       end
+      if session.login.blank?
+        session.errors[:login] = I18n.t('blank_login', :scope => 'errors', :login => session.login)
+      end
     else
       if @session && @session.valid?
         @user = User.find_by_login(session.login)

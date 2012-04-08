@@ -274,4 +274,17 @@ module PostsHelper
     end
   end
 
+
+  # Now the regular helpers
+  def make_button(button)
+    if btr = BUTTON_REGISTRY[button]
+      haml_tag 'button', :type => 'button', :class => 'style', :name => btr[:name], :accesskey => btr[:accesskey], :title => btr[:title], :onclick => btr[:onclick], :tabindex => 5 do
+        if btr[:html]
+          haml_concat btr[:html]
+        else
+          haml_concat (html_escape button)
+        end
+      end
+    end
+  end
 end

@@ -167,6 +167,7 @@ ru:
   errors:
     credentials: "Неправильный логин/пароль"
     blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"
+    blank_login: "не может быть пустым"
     enter_password: "Введите пароль!"
   moderation:
     spam:

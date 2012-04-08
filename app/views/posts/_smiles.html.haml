@@ -4,4 +4,5 @@
     -smileys.each do |smile_row|
       %tr
         -smile_row.each do |smiley|
-          %td=render :partial => 'posts/button', :locals => {:button => smiley}
+          %td
+            -make_button smiley

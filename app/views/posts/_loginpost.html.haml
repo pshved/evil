@@ -45,7 +45,7 @@
         - buttons = [%w(b i u q pic url h s sup sub strike), %w(color red pre center tex tub spoiler hr smile)]
         - buttons.each do |row|
           - row.each do |btn|
-            = render :partial => 'posts/button', :locals => {:button => btn}
+            - make_button(btn)
           %br/
         = render :partial => 'posts/smiles'
     %tr
