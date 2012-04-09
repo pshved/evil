@@ -30,3 +30,5 @@ CLICK_UPDATE_THRESHOLD = 10
 CLICK_DELAY_RATE = 5
 # How often post click information is committed
 POST_CLICK_CACHE_TIME = 5.seconds
+# The more this value is, the more precise activity calculation will be (will drop less accesses).  Approximately, this should be at least twice greater than the number of _simlultaneous_ activity writes you need
+POST_CLICK_CACHE_WIDTH = 66

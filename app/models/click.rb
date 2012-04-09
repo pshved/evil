@@ -15,12 +15,19 @@ class Click < ActiveRecord::Base
     post_clicks = {}
     # Load posts once (hash: id => activerecord object), and load clicks alongside to determine the latest clicker for each post.  We also load threads to touch them.
     posts = {}
-    Posts.find(sequence.map{|tuple| tuple[0]}, :include => ['click','thread']).each {|p| posts[p.id] = p}
+    # Since post_ids may be not valid, we should clear them out, keeping only valid posts.
+    # NOTE: we can't use Posts.find here because it throws an exception if not all ID-s have been found.
+    valid_post_ids = Posts.where(:id => sequence.map{|tuple| tuple[0]}).map {|p| p.id}
+    # Now all the post IDs are really posts, and we may load them and their associations
+    Posts.find(valid_post_ids, :include => ['click','thread']).each {|p| posts[p.id] = p}
     # Replay the sequence.  Count clicks made during this sequence.
     sequence.each do |tuple|
       post_id, clicker = tuple
       # Load current post and bucket
       post = posts[post_id]
+
+      # Since we don't try to find posts before recording their access, check if the post has actually been found
+      next unless post
       # Handle post that has never been clicked
       last_click = post.click ? post.click.last_click : nil
       bucket = (post_clicks[post_id] ||= [0,last_click])

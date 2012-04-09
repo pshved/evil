@@ -1,13 +1,13 @@
 class PostsController < ApplicationController
+  # Record post click (doing this in before_filter for it to work even if the page is cached)
+  before_filter :click, :only => [:show]
+
   caches_action :show, :unless => proc {current_user}, :cache_path => proc {"post_#{params[:id]}"},
     :expires_in => UNREG_VIEW_CACHE_TIME, :race_condition_ttl => UNREG_VIEW_CACHE_UPDATE_TIME
 
   before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
   before_filter :find_thread, :only => [:edit, :update, :show, :remove]
   before_filter :init_loginpost, :only => [:edit, :update]
-
-  # Record post click (doing this in before_filter for it to work even if the page is cached)
-  before_filter :click, :only => [:show]
 
   # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
   before_filter :trick_authorization, :only => [:latest]
@@ -154,6 +154,7 @@ class PostsController < ApplicationController
   end
 
   def click
-    post_clicks_tracker.event(@post.id)
+    # Don't try to find the post: just record the access!
+    post_clicks_tracker.event(params[:id])
   end
 end

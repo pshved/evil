@@ -266,12 +266,11 @@ class ApplicationController < ActionController::Base
   helper_method :access_tracker
 
   def post_clicks_tracker
-    period = config_param(:activity_minutes).minutes
     @post_clicks_tracker ||= ActivityTracker.new(
-      :tick =>ACTIVITY_CACHE_TICK,
-      :period => period,
-      :commit_period => ACTIVITY_CACHE_TIME,
-      :width => ACTIVITY_CACHE_WIDTH,
+      :tick => POST_CLICK_CACHE_TIME,
+      :period => POST_CLICK_CACHE_TIME,
+      :commit_period => POST_CLICK_CACHE_TIME,
+      :width => POST_CLICK_CACHE_WIDTH,
       :scope => 'post_clicks_activity',
       # We don't need to read anything, we read from the database when we render posts
       :update_proc => proc {|activity_data, post_id|
