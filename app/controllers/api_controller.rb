@@ -1,6 +1,11 @@
 require 'activity_tracker'
 class ApiController < ApplicationController
+  # Do not track API requests in activity!
+  skip_filter :log_request
+
+  # API authorizationa by IP
   before_filter :authorize_local!, :only => [:commit_activity, :commit_clicks]
+
   def commit_activity
     # Call activity commit functionality.
     # Guard it, just in case, into a hash timeout, so that they are not called too often by whatever reasons
