@@ -34,30 +34,75 @@ end.parse!
 
 url = ARGV[0].dup
 
-# Downloading strategy gets whether the previous download succeeded, and returns a tuple (next target, new strategy)
-class UpDownStrategy
+class NullStrategy
+  attr_reader :current
   def initialize(initial)
     @current = initial
-    @upper = initial
-    @lower = initial - 1
   end
+  def move(_)
+    nil
+  end
+  def print
+    "<NONE>"
+  end
+end
 
+class UpStrategy < NullStrategy
   def move(was_success)
-    if @current == @upper
-      @upper += 1 if was_success
-      @current = (@lower > 0) ? @lower : @upper
-    else
-      @lower -= 1 if was_success
-      @current = @upper
-    end
+    @current += 1 if was_success
     # Do not change strategy for now
     self
   end
+  def print
+    "<UP from #{@current}>"
+  end
+end
 
-  attr_reader :current
+class DownStrategy < NullStrategy
+  def move(was_success)
+    @current -= 1 if was_success
+    if @current <= 0
+      # Do not iterate anymore
+      NullStrategy.new(@current)
+    else
+      # Continue
+      self
+    end
+  end
+  def print
+    "<DOWN from #{@current}>"
+  end
+end
+
+class AlterStrategy < NullStrategy
+  def initialize(*strategies)
+    @strategies = strategies
+    raise "Specify at least one strategy, please!" if @strategies.length < 0
+    @i = 0
+  end
+
+  def move(success)
+    i = @i
+    #@strategies[i] = @strategies[i].move(success)
+    @strategies[i] = @strategies[i].move(success)
+    unless @strategies[i]
+      @strategies.delete_at(i)
+    end
+    @i = (i + 1).modulo @strategies.length
+    self
+  end
+
+  def current
+    @strategies[@i].current
+  end
 
   def print
-    "<#{@lower}..#{@upper}>"
+    r = "Combine #{@strategies.length}: "
+    @strategies.each_with_index do |s,i|
+      r << ((i == @i) ? "**#{i}**" : "#{i}:")
+      r << s.print << '  '
+    end
+    r
   end
 end
 
@@ -68,7 +113,7 @@ class Downloader
     current = opts[:start]
     current = 1 if !current || current <= 0
 
-    @strategy = UpDownStrategy.new(current)
+    @strategy = AlterStrategy.new(UpStrategy.new(current), DownStrategy.new(current - 1))
 
     # Cache, if any
     @cache_dir = opts[:cache_dir]
@@ -83,7 +128,7 @@ class Downloader
   end
 
   def work
-    $log.debug "Work: @current=#{current}, state=#{@strategy.print}"
+    $log.info "Work: @current=#{current}, state=#{@strategy.print}"
     r = download
     @strategy = @strategy.move(r)
     $log.debug "Work: next @current=#{current}, state=#{@strategy.print}"
