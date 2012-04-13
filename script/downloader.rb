@@ -47,17 +47,6 @@ class NullStrategy
   end
 end
 
-class UpStrategy < NullStrategy
-  def move(was_success)
-    @current += 1 if was_success
-    # Do not change strategy for now
-    self
-  end
-  def print
-    "<UP from #{@current}>"
-  end
-end
-
 class DownStrategy < NullStrategy
   def move(was_success)
     @current -= 1 if was_success
@@ -74,6 +63,25 @@ class DownStrategy < NullStrategy
   end
 end
 
+# Goes up step-by-step, returns another strategy at failure (or just sleeps for 10 seconds if unspecified)
+class UpStrategy < NullStrategy
+  def initialize(initial, when_we_reach_fail = nil)
+    super(initial)
+    @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
+  end
+  def move(was_success)
+    if was_success
+      @current += 1
+      self
+    else
+      @when_we_reach_fail[@current]
+    end
+  end
+  def print
+    "<UP from #{@current}>"
+  end
+end
+
 class AlterStrategy < NullStrategy
   def initialize(*strategies)
     @strategies = strategies
@@ -83,7 +91,6 @@ class AlterStrategy < NullStrategy
 
   def move(success)
     i = @i
-    #@strategies[i] = @strategies[i].move(success)
     @strategies[i] = @strategies[i].move(success)
     unless @strategies[i]
       @strategies.delete_at(i)
@@ -179,25 +186,28 @@ class XmlfpDownloader < Downloader
   def download
     @last_downloaded = current
     begin
-      body = cache "#{current}.html" do
+      cache "#{current}.html" do
         $log.debug "Downloading #{make_url}"
         rsp = Net::HTTP.get_response(URI(make_url))
-        rsp.body
-      end
-      $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
-      if body =~ /Ошибочный запрос на действие/
-        $log.debug "Response matches bad regexp, retry"
-        return false
-      end
-      doc = Hpricot(body)
-      # Hpricot is "liberal" enough to return empty strings if the element was not found
-      status = doc.search(%Q(//message[@id="#{current}"]/status)).inner_html
-      $log.debug %Q(Status found by //message[@id="#{current}"]/status is '#{status}')
+        body = rsp.body
+        $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
 
-      return false if status == 'not_exists'
+        if body =~ /Ошибочный запрос на действие/
+          $log.debug "Response matches bad regexp, retry"
+          false
+        else
+          doc = Hpricot(body)
+          # Hpricot is "liberal" enough to return empty strings if the element was not found
+          status = doc.search(%Q(//message[@id="#{current}"]/status)).inner_html
+          $log.debug %Q(Status found by //message[@id="#{current}"]/status is '#{status}')
 
-      # OK
-      return body
+          if status == 'not_exists'
+            false
+          else
+            body
+          end
+        end
+      end
     rescue Net::HTTPBadResponse
       false
     end
