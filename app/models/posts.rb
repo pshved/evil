@@ -140,11 +140,9 @@ class Posts < ActiveRecord::Base
   end
   def toggle_showhide(user,presentation)
     # We should check if the user hides the thread with his or her settings
-    # TODO refactor thread queries
-    Threads.settings_for = user
     pthr = thread
     pthr.presentation = presentation
-    #
+    pthr.settings_for = user
     hidden = hidden_by?(:user => user, :thread_info => pthr.hides_fast)
     if hide_assoc = user.hide_actions.where(['posts_id = ?',self.id]).first
       # Alter the hide association

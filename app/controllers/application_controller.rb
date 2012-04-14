@@ -44,7 +44,7 @@ class ApplicationController < ActionController::Base
 
   # A proxy class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all information to have them rendered.
   class CachedThread
-    attr_accessor :presentation, :id, :updated_at
+    attr_accessor :presentation, :id, :updated_at, :settings_for
     # Given a "normal" thread, initialize
     def initialize(thread)
       self.id = thread.id
@@ -71,6 +71,7 @@ class ApplicationController < ActionController::Base
       return @real_thread if @real_thread
       @real_thread = Threads.find(id)
       @real_thread.presentation = self.presentation
+      @real_thread.settings_for = self.settings_for
       @real_thread
     end
   end
@@ -144,7 +145,6 @@ class ApplicationController < ActionController::Base
     # (see fast_tree_cache in PostsHelper for explanation of the cache key)
     cpres = current_presentation
     cache_key = "thread-list.page:#{params[:page]}-sortby:time-user:#{key_of(current_user,'guest')}-view:#{key_of(cpres,'guest')}-global:#{config_mtime}"
-    Threads.settings_for = current_user
     # If a threads cache is invalidated, then re-fetch it
     load_threads = proc do
       logger.info "Rebuilding threads for #{cache_key}"
@@ -165,8 +165,9 @@ class ApplicationController < ActionController::Base
     else
       @threads = load_threads[]
     end
-    # Assign presentation to threads, so the model now knows how to display them
+    # Assign presentation information to threads, so the model now knows how to display them
     @threads.each {|t| t.presentation = cpres}
+    @threads.each {|t| t.settings_for = current_user}
 
     # Rails doesn't cache proc objects, so re-initialize it
     @threads.index_validator = proc{ clear_index_invalidation }
