@@ -35,15 +35,22 @@ end.parse!
 url = ARGV[0].dup
 
 class NullStrategy
-  attr_reader :current
   def initialize(initial)
     @current = initial
   end
+  # Returns the move the strategy advises to make
+  attr_reader :current
+  # Updates current and returns the strategy for the next move
   def move(_)
-    nil
+    self
   end
+  # Debug-prints the state
   def print
     "<NONE>"
+  end
+  # Some strategies allow you to prevent an attempt to make a move if it's useless.  The attempt is encoded as a block.  Returns false if the attempt was not successful (just like it resulted in false if it was actually performed).
+  def peek_or
+    yield
   end
 end
 
@@ -65,6 +72,7 @@ end
 
 # Goes up step-by-step, returns another strategy at failure (or just sleeps for 10 seconds if unspecified)
 class UpStrategy < NullStrategy
+  attr_accessor :when_we_reach_fail
   def initialize(initial, when_we_reach_fail = nil)
     super(initial)
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
@@ -74,7 +82,8 @@ class UpStrategy < NullStrategy
       @current += 1
       self
     else
-      @when_we_reach_fail[@current]
+      # A special case: if when_we_reach_fail returns nil, we keep the strategy
+      @when_we_reach_fail[@current] || self
     end
   end
   def print
@@ -82,10 +91,37 @@ class UpStrategy < NullStrategy
   end
 end
 
+# Goes up step-by-step, stops at the prespecified number (max), then turns back.
+class LimitedUpStrategy < NullStrategy
+  #attr_accessor :
+  def initialize(initial, max, when_we_reach_fail = nil)
+    super(initial)
+    @upper = max || initial
+    @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
+  end
+  def move(was_success)
+    # If we have downloaded everything, return the next strategy
+    if @current > @upper
+      @when_we_reach_fail[@current] || self
+    else
+      # We only repeat the query if server is down.  Otherwise, we keep going regardless of whether the post actually exists
+      @current += 1 unless was_success.nil?
+      self
+    end
+  end
+  def print
+    "<LIM-UP from #{@current} to #{@upper}>"
+  end
+  def peek_or
+    (@current <= @upper) ? yield : false
+  end
+end
+
+# Iterates over several strategies in the round-robin fashion, discarding those that reach quiesence.
 class AlterStrategy < NullStrategy
   def initialize(*strategies)
     @strategies = strategies
-    raise "Specify at least one strategy, please!" if @strategies.length < 0
+    raise "Specify at least one strategy, please!" if @strategies.length <= 0
     @i = 0
   end
 
@@ -95,6 +131,9 @@ class AlterStrategy < NullStrategy
     unless @strategies[i]
       @strategies.delete_at(i)
     end
+    # If there's no more strategies left, fold self as well
+    return NullStrategy.new if @strategies.length == 0
+    # ...besides, we'd hit division by zero here
     @i = (i + 1).modulo @strategies.length
     self
   end
@@ -111,9 +150,14 @@ class AlterStrategy < NullStrategy
     end
     r
   end
+
+  def peek_or(&b)
+    @strategies[@i].peek_or(&b)
+  end
 end
 
 class Downloader
+  attr_accessor :strategy
   def initialize(opts = {})
     @base_path = opts[:base_path] or raise "Specify base_path please!"
     @base_path.gsub!(/\/*$/,'')
@@ -136,13 +180,11 @@ class Downloader
 
   def work
     $log.info "Work: @current=#{current}, state=#{@strategy.print}"
-    r = download
+    r = @strategy.peek_or {download}
     @strategy = @strategy.move(r)
     $log.debug "Work: next @current=#{current}, state=#{@strategy.print}"
     r
   end
-
-  attr_accessor :last_downloaded
 
   protected
   def uri
@@ -162,8 +204,9 @@ class Downloader
 
     result = yield
 
-    # Write then move, because we don't want incomplete files in our cache!
+    # Only cache successful downloads of actual posts
     if result
+      # Write then move, because we don't want incomplete files in our cache!
       File.open("#{target}.tmp","w") {|f| f.write result}
       FileUtils.move("#{target}.tmp",target)
     end
@@ -178,13 +221,45 @@ class Downloader
 
 end
 
+# Thanks to Tom Mortel
+def y_combinator(&f)
+  lambda {|x| x[x] } [
+    lambda {|maker| lambda {|*args| f[maker[maker]][*args] }}
+  ]
+end
+
 class XmlfpDownloader < Downloader
   def initialize(opts = {})
     super(opts)
+    # We should re-program our strategy so that it queries last_message_id when it finds a nonexistent post
+    get_last_message_when_reach_up = y_combinator {|recurse| proc do |current|
+      # Check last message ID
+      begin
+        $log.debug "Checking last_message_id at #{make_last_messge_id_url}"
+        rsp = Net::HTTP.get_response(URI(make_last_messge_id_url))
+        body = rsp.body
+        doc = Hpricot(body)
+        # Hpricot is "liberal" enough to return empty strings if the element was not found
+        status = doc.search(%Q(/lastMessageNumber)).inner_text.to_i
+        $log.debug %Q(Status found by /lastMessageNumber is '#{status}')
+        # Now check if we have anything new
+        if status <= current
+          # No, nothing new, wait for more messages to appear
+          sleep 2
+        end
+        # In any case, our next strategy will be checking the lastMessageNumber with the current function, and trying to reach the limit.
+        LimitedUpStrategy.new(current,status,recurse)
+      rescue Net::HTTPBadResponse
+        sleep 10
+        retry
+      end
+    end}
+
+    @strategy = AlterStrategy.new(UpStrategy.new(current, get_last_message_when_reach_up), DownStrategy.new(current - 1))
+
   end
 
   def download
-    @last_downloaded = current
     begin
       cache "#{current}.html" do
         $log.debug "Downloading #{make_url}"
@@ -202,6 +277,7 @@ class XmlfpDownloader < Downloader
           $log.debug %Q(Status found by //message[@id="#{current}"]/status is '#{status}')
 
           if status == 'not_exists'
+            # Serwer was OK, so return false instead of nil
             false
           else
             body
@@ -209,12 +285,17 @@ class XmlfpDownloader < Downloader
         end
       end
     rescue Net::HTTPBadResponse
-      false
+      # Couldn't connect.  Return nil instead of false
+      nil
     end
   end
 
   def make_url
     %Q(#{@base_path}/?xmlfpread=#{current})
+  end
+
+  def make_last_messge_id_url
+    %Q(#{@base_path}/?xmlfplast)
   end
 end
 
