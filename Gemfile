@@ -38,14 +38,11 @@ gem 'capistrano'
 group :test do
   # Pretty printed test output
   gem 'turn', '~> 0.8.3', :require => false
-  # To use debugger
-  # Couldn't install under ruby 1.9.  Temporarily commenting
-  #gem 'ruby-debug19', :require => nil
 end
 
 # Only in development!
 group :development do
-  gem 'ruby-debug19'
+  gem 'debugger', :require => 'ruby-debug'
 end
 
 gem 'haml'
