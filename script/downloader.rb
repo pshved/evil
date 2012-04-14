@@ -15,12 +15,12 @@ require 'optparse'
 $log = Logger.new(STDOUT)
 $log.level = Logger::INFO
 
-options = {:strategy => 'xmlfp', :from => 1}
+options = {:api => 'xmlfp', :from => 1}
 OptionParser.new do |opts|
   opts.banner = "Usage: ./download.rb [options]"
 
-  opts.on("-s STRATEGY", "--strategy", "What download strategy to use.  Available: xmlfp") do |v|
-    options[:strategy] = v
+  opts.on("-a API", "--api", "What download interface to use.  Available: xmlfp") do |v|
+    options[:api] = v
   end
 
   opts.on("-f FROM", "--from", Integer, "The start post number") do |v|
@@ -233,18 +233,19 @@ options[:base_path] = url
 
 $log.debug "Start with opts=#{options.inspect}"
 
-dler = DownloaderFactory.make('xmlfp',options)
+dler = DownloaderFactory.make(options[:api],options)
 
 puts dler.test.inspect
 
 while true
-  $log.debug "iteration"
+  $log.debug "Loop"
+  last_dl = dler.current
   r = dler.work
   $log.debug "Result: #{r.inspect}"
   if r
-    $log.info "Downloaded post #{dler.last_downloaded} entitled #{Hpricot(r).search(%Q(//message[@id="#{dler.last_downloaded}"]/content/title)).inner_text}"
+    $log.info "Downloaded post #{last_dl} entitled #{Hpricot(r).search(%Q(//message[@id="#{last_dl}"]/content/title)).inner_text}"
   else
-    $log.info "Could not download post #{dler.last_downloaded}"
+    $log.info "Could not download post #{last_dl}"
   end
   sleep(2) unless dler.last_was_cached?
 end
