@@ -14,6 +14,9 @@ class Posts < ActiveRecord::Base
   # Do NOT auto-save clicks!  We do not caches to be invalidated constantly.
   has_one :click, :foreign_key => 'post_id'
 
+  # This will be set if the post has been imported
+  has_one :import, :foreign_key => 'post_id'
+
   validates_presence_of :thread, :strict => true
   # Each post should have a parent except for the root ones
   # I had to rename "empty?" method and "empty" field on Posts to "empty_body", as it treated a post with an empty body as blank, and invalidated its kid
