@@ -95,6 +95,16 @@ class Posts < ActiveRecord::Base
     text_container.filtered[1]
   end
 
+  # Depending on the style of the underlying container, it's either a simple title, or raw title if the underlying container type is html
+  def htmlsafe_title
+    case text_container.filter.to_sym
+    when :html
+      text_container.filtered[0].html_safe
+    else
+      ERB::Util.h(text_container.body[0])
+    end
+  end
+
   # Attach post to the proper thread (or create a new one).  Return the object to save (either a thread or this post)
   def attach_to(reply_to)
     if reply_to.blank?
