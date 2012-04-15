@@ -7,12 +7,15 @@ class Posts < ActiveRecord::Base
   belongs_to :text_container, :autosave => true
   # touch attr updates the thread's timestamp if its post is updated
   # We need class_name since Thread is a system class
-  belongs_to :thread, :touch => true, :class_name => 'Threads'
+  belongs_to :thread, :touch => true, :class_name => 'Threads', :foreign_key => 'thread_id'
   belongs_to :parent, :class_name => 'Posts', :inverse_of => :children
   has_many :children, :class_name => 'Posts', :foreign_key => 'parent_id'
 
   # Do NOT auto-save clicks!  We do not caches to be invalidated constantly.
   has_one :click, :foreign_key => 'post_id'
+
+  # This will be set if the post has been imported
+  has_one :import, :foreign_key => 'post_id'
 
   validates_presence_of :thread, :strict => true
   # Each post should have a parent except for the root ones
@@ -20,9 +23,6 @@ class Posts < ActiveRecord::Base
   validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }, :strict => true
   # Just checking...
   validates_presence_of :text_container, :strict => true
-
-  # Check that there's no two imported posts with the same ID (not strict because we may want to return a value to an importer)
-  validates_uniqueness_of :back, :unless => proc {|p| p.back.blank?}
 
   # This checks that you are not replying to a closed thread, or to a deleted post
   validate :replies_to_open?
@@ -96,6 +96,16 @@ class Posts < ActiveRecord::Base
   # Post's body after the proper filter application
   def filtered_body
     text_container.filtered[1]
+  end
+
+  # Depending on the style of the underlying container, it's either a simple title, or raw title if the underlying container type is html
+  def htmlsafe_title
+    case text_container.filter.to_sym
+    when :html
+      text_container.filtered[0].html_safe
+    else
+      ERB::Util.h(text_container.body[0])
+    end
   end
 
   # Attach post to the proper thread (or create a new one).  Return the object to save (either a thread or this post)

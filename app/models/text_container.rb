@@ -1,4 +1,5 @@
 require 'markup/boardtags'
+require 'markup/html_marks'
 class TextContainer < ActiveRecord::Base
   has_many :text_items, :autosave => true
 
@@ -16,6 +17,7 @@ class TextContainer < ActiveRecord::Base
     when :board
       BoardtagsFilter.filter(txt,:to_body,context)
     when :html
+      calculate_marks_for_html(txt,context)
       txt || ''
     end
   end

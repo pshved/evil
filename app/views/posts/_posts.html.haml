@@ -17,6 +17,14 @@
       = link_to "\##{@post.id}", post_path(@post)
       -if @post.deleted
         %span.deleted-mark=ta(:deleted,:post)
+      -if imp = @post.import
+        \//
+        %span.imported-mark
+          =ta('imported.source',:post)
+          = link_to "\##{imp.back}", "#{sprintf imp.source.template, imp.back}"
+          =ta('imported.from',:post)
+          = link_to imp.source.url, imp.source.url
+        \//
     %div.author
       =ta(:sent_by,:post)
       - user_link @post.user, @post.unreg_name

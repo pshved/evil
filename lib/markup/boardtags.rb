@@ -3,7 +3,7 @@ require 'treetop'
 require 'erb'
 
 # The actual value does not matter now, it will be reset at filter() call
-# NOTE that this is a global variable, so we can't parse concurrently...
+# NOTE that this is a global variable, so we can't parse concurrently.  Each process, however, has its own scope, and should not affect what happens in other processes.
 $c = nil
 
 # Tag conversions.  Use $c.sign hash to add "marks" to the posts.
