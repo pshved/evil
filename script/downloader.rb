@@ -23,15 +23,19 @@ OptionParser.new do |opts|
     options[:api] = v
   end
 
-  opts.on("-f FROM", "--from", Integer, "The start post number") do |v|
+  opts.on("-f FROM", "--from", Integer, "The start post number.  This post is not downloaded, only the next one is.") do |v|
     options[:start] = v
+  end
+
+  opts.on("-t TO", "--to", Integer, "The end post number.  Should be greater than -f.") do |v|
+    options[:end] = v
   end
 
   opts.on("-d DIR", "--cache-dir", "Where to cache the downloaded files") do |v|
     options[:cache_dir] = v
   end
 
-  opts.on("-t TARGET", "--target", "Where to send the downloaded files") do |v|
+  opts.on("-r TARGET", "--recipient", "Where to send the downloaded files") do |v|
     options[:target] = v
   end
 
@@ -46,6 +50,9 @@ end.parse!
 
 url = ARGV[0].dup
 
+class NoMoves < Exception
+end
+
 class NullStrategy
   def initialize(initial)
     @current = initial
@@ -54,6 +61,7 @@ class NullStrategy
   attr_reader :current
   # Updates current and returns the strategy for the next move
   def move(_)
+    raise NoMoves.new
     self
   end
   # Debug-prints the state
@@ -64,30 +72,31 @@ class NullStrategy
   def peek_or
     yield
   end
-  # Store successful move
+  # Store successful move (shifted by mod, so the ranges do not intersect)
   attr_reader :last_success
-  def save_last_success(was_success)
-    @last_success = @current if was_success
+  def save_last_success(was_success, mod = 0)
+    @last_success = @current+mod if was_success
   end
 end
 
-class DownStrategy < NullStrategy
-  def initialize(initial, step = 1)
+class LimitedDownStrategy < NullStrategy
+  def initialize(initial, lowest, step = 1)
     super(initial)
     @step = step
+    @lowest = lowest
   end
   def move(was_success)
-    save_last_success(was_success)
+    save_last_success(was_success,-1)
     if was_success
-      if @current == 1
-        @current = 0
+      if @current == @lowest
+        @current = @lowest - 1
       elsif @current <= @step
-        @current = 1
+        @current = @lowest
       else
         @current -= @step
       end
     end
-    if @current <= 0
+    if @current < @lowest
       # Do not iterate anymore
       NullStrategy.new(@current)
     else
@@ -96,7 +105,13 @@ class DownStrategy < NullStrategy
     end
   end
   def print
-    "<DOWN from #{@current} with step #{@step}>"
+    "<DOWN from #{@current} to #{@lowest} with step #{@step}>"
+  end
+end
+
+class DownStrategy < LimitedDownStrategy
+  def initialize(initial, step = 1)
+    super(initial,1,step)
   end
 end
 
@@ -109,7 +124,7 @@ class UpStrategy < NullStrategy
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
   end
   def move(was_success)
-    save_last_success(was_success)
+    save_last_success(was_success,+1)
     if was_success
       @current += @step
       self
@@ -126,12 +141,14 @@ end
 # Goes up step-by-step, stops at the prespecified number (max), then turns back.
 class LimitedUpStrategy < NullStrategy
   #attr_accessor :
-  def initialize(initial, max, when_we_reach_fail = nil)
+  def initialize(initial, max, step = 1, when_we_reach_fail = nil)
     super(initial)
     @upper = max || initial
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
+    @step = step || 1
   end
   def move(was_success)
+    save_last_success(was_success,+1)
     # If we have downloaded everything, return the next strategy
     if @current > @upper
       @when_we_reach_fail[@current] || self
@@ -281,6 +298,7 @@ def y_combinator(&f)
 end
 
 class XmlfpDownloader < Downloader
+  MAX_STEP = 100
   def initialize(opts = {})
     super(opts)
     # We should re-program our strategy so that it queries last_message_id when it finds a nonexistent post
@@ -300,14 +318,25 @@ class XmlfpDownloader < Downloader
           sleep 10
         end
         # In any case, our next strategy will be checking the lastMessageNumber with the current function, and trying to reach the limit.
-        LimitedUpStrategy.new(current,status,recurse,100)
+        LimitedUpStrategy.new(status+1,status,MAX_STEP,recurse)
       rescue Net::HTTPBadResponse
         sleep 10
         retry
       end
     end}
 
-    @strategy = AlterStrategy.new(UpStrategy.new(current, get_last_message_when_reach_up,100), DownStrategy.new(current - 1,100))
+
+    s = opts[:start]
+    e = opts[:end]
+    # If e is not specified, then we download upwards only starting at s.  Otherwise, we download upwards or downwards, whichever fits.
+
+    if e && e >= s
+      @strategy = LimitedUpStrategy.new(s,e,MAX_STEP)
+    elsif e && e < s
+      @strategy = LimitedDownStrategy.new(s - 1,e,MAX_STEP)
+    else
+      @strategy = UpStrategy.new(s, get_last_message_when_reach_up,MAX_STEP)
+    end
 
   end
 
