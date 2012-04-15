@@ -7,7 +7,7 @@ class Posts < ActiveRecord::Base
   belongs_to :text_container, :autosave => true
   # touch attr updates the thread's timestamp if its post is updated
   # We need class_name since Thread is a system class
-  belongs_to :thread, :touch => true, :class_name => 'Threads'
+  belongs_to :thread, :touch => true, :class_name => 'Threads', :foreign_key => 'thread_id'
   belongs_to :parent, :class_name => 'Posts', :inverse_of => :children
   has_many :children, :class_name => 'Posts', :foreign_key => 'parent_id'
 
@@ -20,9 +20,6 @@ class Posts < ActiveRecord::Base
   validates_presence_of :parent, :if => proc { |p| p.thread && (p.thread.head != p) }, :strict => true
   # Just checking...
   validates_presence_of :text_container, :strict => true
-
-  # Check that there's no two imported posts with the same ID (not strict because we may want to return a value to an importer)
-  validates_uniqueness_of :back, :unless => proc {|p| p.back.blank?}
 
   # This checks that you are not replying to a closed thread, or to a deleted post
   validate :replies_to_open?

@@ -1,10 +1,11 @@
 require 'activity_tracker'
+require 'importer'
 class ApiController < ApplicationController
   # Do not track API requests in activity!
   skip_filter :log_request
 
   # API authorizationa by IP
-  before_filter :authorize_local!, :only => [:commit_activity, :commit_clicks]
+  before_filter :authorize_local!, :only => [:commit_activity, :commit_clicks, :import_one]
 
   def commit_activity
     # Call activity commit functionality.
@@ -22,8 +23,25 @@ class ApiController < ApplicationController
     render :text => 'OK'
   end
 
-  def import
-    # do noting
+  def import_one
+    source = Source.find_by_url(params[:source_url])
+    id = params[:post_id]
+    fmt = params[:api]
+    encoding = params[:enc]
+    # Check source
+    if !source || id.blank? || fmt.blank?
+      logger.warn "No source for #{source},#{id},#{fmt}"
+      render :text => 'NO SOURCE!'
+      return
+    end
+    # Get and import the post
+    begin
+      p = Importer.post(source,id,fmt,params[:page],params[:enc])
+      render :text => "SAVED #{p.id}"
+    rescue => e
+      render :text => "ERROR : #{e.to_s}"
+      raise e
+    end
   end
 
 

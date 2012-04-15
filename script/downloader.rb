@@ -15,7 +15,7 @@ require 'optparse'
 $log = Logger.new(STDOUT)
 $log.level = Logger::INFO
 
-options = {:api => 'xmlfp', :from => 1}
+options = {:api => 'xmlfp', :from => 1, :target => nil, :enc => 'CP1251'}
 OptionParser.new do |opts|
   opts.banner = "Usage: ./download.rb [options]"
 
@@ -29,6 +29,14 @@ OptionParser.new do |opts|
 
   opts.on("-d DIR", "--cache-dir", "Where to cache the downloaded files") do |v|
     options[:cache_dir] = v
+  end
+
+  opts.on("-t TARGET", "--target", "Where to send the downloaded files") do |v|
+    options[:target] = v
+  end
+
+  opts.on("-e ENCODING", "--encoding", "The encoding the forum is in") do |v|
+    options[:enc] = v
   end
 end.parse!
 
@@ -286,7 +294,8 @@ class XmlfpDownloader < Downloader
       end
     rescue Net::HTTPBadResponse
       # Couldn't connect.  Return nil instead of false
-      nil
+      sleep 10
+      retry
     end
   end
 
@@ -325,6 +334,16 @@ while true
   $log.debug "Result: #{r.inspect}"
   if r
     $log.info "Downloaded post #{last_dl} entitled #{Hpricot(r).search(%Q(//message[@id="#{last_dl}"]/content/title)).inner_text}"
+    # Send post to the target
+    if targ = options[:target]
+      Net::HTTP.post_form(URI(options[:target]), {
+        :source_url => url,
+        :post_id => last_dl,
+        :api => options[:api],
+        :page => r,
+        :enc => options[:enc],
+      })
+    end
   else
     $log.info "Could not download post #{last_dl}"
   end
