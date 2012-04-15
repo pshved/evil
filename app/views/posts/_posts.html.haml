@@ -24,6 +24,7 @@
           = link_to "\##{imp.back}", "#{sprintf imp.source.template, imp.back}"
           =ta('imported.from',:post)
           = link_to imp.source.url, imp.source.url
+        \//
     %div.author
       =ta(:sent_by,:post)
       - user_link @post.user, @post.unreg_name
