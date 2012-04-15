@@ -1,6 +1,7 @@
 Zlo::Application.routes.draw do
   get "api/commit_activity"
   get "api/commit_clicks"
+  match "api/import/post" => 'api#import_one'
 
   root :controller => 'backwards', :action => 'index'
 
@@ -9,7 +10,8 @@ Zlo::Application.routes.draw do
 
   resources :threads, :only => [:new]
   resources :user_sessions
-  resources :users
+  # User IDs are permissive, they may contain a lot of various symbols... Thanks to http://devblog.avdi.org/2010/06/18/.
+  resources :users, :constraints => { :id => /.*/ }
   resources :posts, :path => 'p' do
     member do
       get :toggle_showhide, :remove

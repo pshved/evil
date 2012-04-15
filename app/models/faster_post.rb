@@ -86,6 +86,16 @@ class FasterPost < ActiveRecord::Base
     TextContainer.filter_cached(body,body_filter.to_sym,id,1,cache_timestamp)
   end
 
+  # Depending on the style of the underlying container, it's either a simple title, or raw title if the underlying container type is html
+  def htmlsafe_title
+    case body_filter.to_sym
+    when :html
+      title.html_safe
+    else
+      ERB::Util.h(title)
+    end
+  end
+
   # TODO: make it DRY with Threads model!
   def self.latest(length,settings_for,load_deleted = true)
     FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.action as hide_action, body_items.body as body, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp,

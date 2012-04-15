@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120317202746) do
+ActiveRecord::Schema.define(:version => 20120415004859) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -49,13 +49,18 @@ ActiveRecord::Schema.define(:version => 20120317202746) do
   add_index "hidden_posts_users", ["user_id"], :name => "index_hidden_posts_users_on_user_id"
 
   create_table "imports", :force => true do |t|
-    t.enum     "status",     :limit => [:queued, :started, :finished], :default => :queued
     t.integer  "post_id"
+    t.integer  "source_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "back"
+    t.string   "reply_to"
   end
 
   add_index "imports", ["post_id"], :name => "index_imports_on_post_id"
+  add_index "imports", ["source_id", "back"], :name => "index_imports_on_source_id_and_back"
+  add_index "imports", ["source_id", "reply_to"], :name => "index_imports_on_source_id_and_reply_to"
+  add_index "imports", ["source_id"], :name => "index_imports_on_source_id"
 
   create_table "moderation_actions", :force => true do |t|
     t.integer  "post_id"
@@ -79,12 +84,10 @@ ActiveRecord::Schema.define(:version => 20120317202746) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "marks"
-    t.string   "back"
     t.boolean  "empty_body"
     t.boolean  "deleted",           :default => false
   end
 
-  add_index "posts", ["back"], :name => "index_posts_on_back"
   add_index "posts", ["parent_id"], :name => "index_posts_on_parent_id"
   add_index "posts", ["text_container_id"], :name => "index_posts_on_text_container_id"
   add_index "posts", ["thread_id"], :name => "index_posts_on_thread_id"
@@ -143,6 +146,16 @@ ActiveRecord::Schema.define(:version => 20120317202746) do
     t.integer "user_id"
     t.integer "role_id"
   end
+
+  create_table "sources", :force => true do |t|
+    t.string   "url"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "name"
+    t.string   "template"
+  end
+
+  add_index "sources", ["name"], :name => "index_sources_on_name"
 
   create_table "text_containers", :force => true do |t|
     t.integer  "current_revision"

@@ -18,7 +18,7 @@ module PostsHelper
     md4 = md[4]
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
-    @_post_fast_link = proc {|buf,p,title_override| buf << md1 << p.id.to_s << md2 << p.id.to_s << md3 << (title_override || h(p.title.strip)) << md4}
+    @_post_fast_link = proc {|buf,p,title_override| buf << md1 << p.id.to_s << md2 << p.id.to_s << md3 << (title_override || p.htmlsafe_title.strip) << md4}
 
   end
 
