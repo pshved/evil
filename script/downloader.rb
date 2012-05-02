@@ -39,6 +39,10 @@ OptionParser.new do |opts|
     options[:target] = v
   end
 
+  opts.on("-i INTERVAL", "--interval", "Where to query the request interval") do |v|
+    options[:interval] = v
+  end
+
   opts.on("-e ENCODING", "--encoding", "The encoding the forum is in") do |v|
     options[:enc] = v
   end
@@ -211,6 +215,59 @@ class AlterStrategy < NullStrategy
   end
 end
 
+class DummyIntervalRequestor
+  def initialize(timeout)
+    @timeout = timeout
+    @pipe_r_from, @pipe_w_to = IO.pipe
+    @child_thread = Thread.new do
+      while true
+        $log.debug "Run next_interval"
+        new_interval = next_interval
+        if new_interval && new_interval != @timeout
+          $log.debug "Will print next_interval: #{new_interval}"
+          @timeout = new_interval
+          @pipe_w_to.puts @timeout
+        end
+      end
+    end
+  end
+
+  def read_pipe
+    @pipe_r_from
+  end
+
+  def next_interval
+    sleep 2
+    @timeout
+  end
+
+  # Do not confuse it with next_interval: timetou requests the current one, and next_interval requests the next one from an external source
+  attr_reader :timeout
+end
+
+# Each 2 seconds, request json api, and read 'timeout' for 
+class JSONIntervalRequestor < DummyIntervalRequestor
+  def initialize(addr,timeout)
+    super(timeout)
+    @json_request_addr = addr
+  end
+
+  def next_interval
+    # Call json apii
+    begin
+      $log.debug "Checking interval at #{@json_request_addr}"
+      rsp = Net::HTTP.get_response(URI(@json_request_addr))
+      body = rsp.body
+      to = JSON.decode(rsp.body)[:timeout].to_i
+      (to < 5)? 5 : to
+    rescue
+      sleep 10
+      retry
+    end
+    sleep 2
+  end
+end
+
 class Downloader
   attr_accessor :strategy
   def initialize(opts = {})
@@ -225,6 +282,14 @@ class Downloader
 
     # Cache, if any
     @cache_dir = opts[:cache_dir]
+
+    # API to request an interval (or a dummy requestor)
+    @current_timeout = 10
+    if opts[:interval]
+      @interval_requestor = JSONIntervalRequestor.new(opts[:interval], @current_timeout)
+    else
+      @interval_requestor = DummyIntervalRequestor.new(@current_timeout)
+    end
   end
 
   def current
@@ -253,6 +318,19 @@ class Downloader
     @strategy = @strategy.move(r)
     $log.debug "Work: next @current=#{current}, state=#{@strategy.print}"
     r
+  end
+
+  # Interval waiting
+  def wait_for_interval
+    $log.debug "Launch select with to #{@current_timeout} and #{@interval_requestor.read_pipe}"
+    if select_results = IO.select([@interval_requestor.read_pipe],nil,nil,@current_timeout)
+      # Something happened, not just timeout
+      new_timeout_s = @interval_requestor.read_pipe.gets
+      $log.debug "Pipe is ready, read #{new_timeout_s}"
+      @current_timeout = new_timeout_s.to_i || 10
+    else
+      $log.debug "Timeout #{@current_timeout} reached"
+    end
   end
 
   protected
@@ -315,12 +393,12 @@ class XmlfpDownloader < Downloader
         # Now check if we have anything new
         if status <= current
           # No, nothing new, wait for more messages to appear
-          sleep 10
+          wait_for_interval
         end
         # In any case, our next strategy will be checking the lastMessageNumber with the current function, and trying to reach the limit.
         LimitedUpStrategy.new(status+1,status,MAX_STEP,recurse)
       rescue Net::HTTPBadResponse
-        sleep 10
+        wait_for_interval
         retry
       end
     end}
