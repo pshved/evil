@@ -1,6 +1,7 @@
 Zlo::Application.routes.draw do
   get "api/commit_activity"
   get "api/commit_clicks"
+  get "api/commit_sources"
   match "api/import/post" => 'api#import_one'
 
   root :controller => 'backwards', :action => 'index'

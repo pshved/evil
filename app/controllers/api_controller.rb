@@ -5,7 +5,7 @@ class ApiController < ApplicationController
   skip_filter :log_request
 
   # API authorizationa by IP
-  before_filter :authorize_local!, :only => [:commit_activity, :commit_clicks, :import_one]
+  before_filter :authorize_local!, :only => [:commit_activity, :commit_clicks, :commit_sources, :import_one]
 
   def commit_activity
     # Call activity commit functionality.
@@ -19,6 +19,13 @@ class ApiController < ApplicationController
   def commit_clicks
     Rails.cache.fetch('post_click_commit', :expires_in => POST_CLICK_CACHE_TIME/2) do
       post_clicks_tracker.commit
+    end
+    render :text => 'OK'
+  end
+
+  def commit_sources
+    Rails.cache.fetch('sources_commit', :expires_in => SOURCE_UPDATE_CACHE_TIME/2) do
+      source_request_tracker.commit
     end
     render :text => 'OK'
   end
