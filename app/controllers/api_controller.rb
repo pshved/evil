@@ -51,6 +51,16 @@ class ApiController < ApplicationController
     end
   end
 
+  # Show the desired download interval for the source.
+  def interval
+    source = Source.where(:name => params[:source]).first
+    if source
+      render :json => { :timeout => source.timeout }
+    else
+      render :text => "ERROR: not found"
+    end
+  end
+
 
   protected
   # Check that the request comes from localhost
