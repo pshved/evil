@@ -221,6 +221,9 @@ class ApplicationController < ActionController::Base
   def log_request
     access_tracker.event()
     # Activities are committed periodically, via the external API call.  See ApiController and config/schedule.rb.
+
+    # Notify the sources as well
+    notify_sources
   end
 
   # Commit activity data if we're in development mode
@@ -228,6 +231,7 @@ class ApplicationController < ActionController::Base
     after_filter do
       access_tracker.commit
       post_clicks_tracker.commit
+      source_request_tracker.commit
     end
   end
 
@@ -287,6 +291,31 @@ class ApplicationController < ActionController::Base
         Click.replay(click_sequence)
       },
     )
+  end
+
+  def source_request_tracker
+    @source_request_tracker ||= ActivityTracker.new(
+      :tick => SOURCE_UPDATE_CACHE_TIME,
+      :period => SOURCE_UPDATE_CACHE_TIME,
+      :commit_period => SOURCE_UPDATE_CACHE_TIME,
+      :width => SOURCE_UPDATE_CACHE_WIDTH,
+      :scope => 'source_rq_tr',
+      :update_proc => proc {|activity_data, source|
+        # add "true" to an easier conversion to hash
+        (activity_data || []) + [ [source, true] ]
+      },
+      :commit_proc => proc {|records|
+        Source.record_accesses_to(Hash[records].keys)
+      },
+    )
+  end
+
+  protected
+  # Notify the DB that sources shown in this view that were requested.
+  # NOTE: temporarily, we access all sources!  Later, we make this distinguish between the sources a user actually tries to display
+  def notify_sources
+    sources = Rails.cache.fetch('sources_to_notify') { Source.all.map &:id }
+    sources.each{|s| source_request_tracker.event(s)}
   end
 
   protected

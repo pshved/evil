@@ -32,3 +32,11 @@ CLICK_DELAY_RATE = 5
 POST_CLICK_CACHE_TIME = 5.seconds
 # The more this value is, the more precise activity calculation will be (will drop less accesses).  Approximately, this should be at least twice greater than the number of _simlultaneous_ activity writes you need
 POST_CLICK_CACHE_WIDTH = 66
+
+
+# SOURCE UPDATE CLICKS
+# When an external source is requested, it transfers into "hot" mode, so that the external source is requested more frequently.  This frequency is stored in the database, and it also goes through a wide cache
+SOURCE_UPDATE_CACHE_WIDTH = 30
+SOURCE_UPDATE_CACHE_TIME = 5.seconds
+# How long after the last request the source should remain in the hot mode
+SOURCE_UPDATE_HOT_TIMEOUT = 5.minutes

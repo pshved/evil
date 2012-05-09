@@ -11,9 +11,9 @@ require 'logger'
 require 'net/http'
 require 'optparse'
 #require 'xml'
+require 'json'
 
 $log = Logger.new(STDOUT)
-$log.level = Logger::INFO
 
 options = {:api => 'xmlfp', :from => 1, :target => nil, :enc => 'CP1251'}
 OptionParser.new do |opts|
@@ -23,24 +23,58 @@ OptionParser.new do |opts|
     options[:api] = v
   end
 
-  opts.on("-f FROM", "--from", Integer, "The start post number") do |v|
+  opts.on("-f FROM", "--from", Integer, "The start post number.  This post is not downloaded, only the next one is.") do |v|
     options[:start] = v
+  end
+
+  opts.on("-t TO", "--to", Integer, "The end post number.  Should be greater than -f.") do |v|
+    options[:end] = v
   end
 
   opts.on("-d DIR", "--cache-dir", "Where to cache the downloaded files") do |v|
     options[:cache_dir] = v
   end
 
-  opts.on("-t TARGET", "--target", "Where to send the downloaded files") do |v|
+  opts.on("-r TARGET", "--recipient", "Where to send the downloaded files") do |v|
     options[:target] = v
+  end
+
+  opts.on("-i INTERVAL", "--interval", "Where to query the request interval") do |v|
+    options[:interval] = v
   end
 
   opts.on("-e ENCODING", "--encoding", "The encoding the forum is in") do |v|
     options[:enc] = v
   end
+
+  opts.on("-v", "--verbosity", "Be verbose") do |v|
+    options[:verbose] = true
+  end
+
+  opts.on("-n", "--dry-run", "Do not POST, only download") do |v|
+    options[:dry] = true
+  end
 end.parse!
 
 url = ARGV[0].dup
+
+$log.level = Logger::INFO
+$log.level = Logger::DEBUG if options[:verbose]
+
+
+# Retry doing the block infinitely, with pause "pause" until it doesn't throw an exception
+def inf_retry(pause_sec = 30)
+  begin
+    yield
+  rescue => e
+    $log.debug "Connection error #{e}.  Sleep #{pause_sec} sec."
+    sleep pause_sec
+    retry
+  end
+end
+
+class NoMoves < Exception
+end
 
 class NullStrategy
   def initialize(initial)
@@ -50,6 +84,7 @@ class NullStrategy
   attr_reader :current
   # Updates current and returns the strategy for the next move
   def move(_)
+    raise NoMoves.new
     self
   end
   # Debug-prints the state
@@ -60,12 +95,31 @@ class NullStrategy
   def peek_or
     yield
   end
+  # Store successful move (shifted by mod, so the ranges do not intersect)
+  attr_reader :last_success
+  def save_last_success(was_success, mod = 0)
+    @last_success = @current+mod if was_success
+  end
 end
 
-class DownStrategy < NullStrategy
+class LimitedDownStrategy < NullStrategy
+  def initialize(initial, lowest, step = 1)
+    super(initial)
+    @step = step
+    @lowest = lowest
+  end
   def move(was_success)
-    @current -= 1 if was_success
-    if @current <= 0
+    save_last_success(was_success,-1)
+    if was_success
+      if @current == @lowest
+        @current = @lowest - 1
+      elsif @current <= @step
+        @current = @lowest
+      else
+        @current -= @step
+      end
+    end
+    if @current < @lowest
       # Do not iterate anymore
       NullStrategy.new(@current)
     else
@@ -74,20 +128,28 @@ class DownStrategy < NullStrategy
     end
   end
   def print
-    "<DOWN from #{@current}>"
+    "<DOWN from #{@current} to #{@lowest} with step #{@step}>"
+  end
+end
+
+class DownStrategy < LimitedDownStrategy
+  def initialize(initial, step = 1)
+    super(initial,1,step)
   end
 end
 
 # Goes up step-by-step, returns another strategy at failure (or just sleeps for 10 seconds if unspecified)
 class UpStrategy < NullStrategy
   attr_accessor :when_we_reach_fail
-  def initialize(initial, when_we_reach_fail = nil)
+  def initialize(initial, when_we_reach_fail = nil, step = 1)
     super(initial)
+    @step = step || 1
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
   end
   def move(was_success)
+    save_last_success(was_success,+1)
     if was_success
-      @current += 1
+      @current += @step
       self
     else
       # A special case: if when_we_reach_fail returns nil, we keep the strategy
@@ -95,30 +157,38 @@ class UpStrategy < NullStrategy
     end
   end
   def print
-    "<UP from #{@current}>"
+    "<UP from #{@current} with step #{@step}>"
+  end
+  # A hack that allows to change the current move without changing abnything else
+  def set_next(c)
+    @current = c
   end
 end
 
 # Goes up step-by-step, stops at the prespecified number (max), then turns back.
 class LimitedUpStrategy < NullStrategy
   #attr_accessor :
-  def initialize(initial, max, when_we_reach_fail = nil)
+  def initialize(initial, max, step = 1, when_we_reach_fail = nil)
     super(initial)
     @upper = max || initial
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
+    @step = step || 1
   end
   def move(was_success)
+    save_last_success(was_success,+1)
     # If we have downloaded everything, return the next strategy
     if @current > @upper
       @when_we_reach_fail[@current] || self
     else
       # We only repeat the query if server is down.  Otherwise, we keep going regardless of whether the post actually exists
-      @current += 1 unless was_success.nil?
+      unless was_success.nil?
+        @current = [@current + @step, @upper + 1].min
+      end
       self
     end
   end
   def print
-    "<LIM-UP from #{@current} to #{@upper}>"
+    "<LIM-UP from #{@current} to #{@upper} with step #{@step}>"
   end
   def peek_or
     (@current <= @upper) ? yield : false
@@ -136,7 +206,7 @@ class AlterStrategy < NullStrategy
   def move(success)
     i = @i
     @strategies[i] = @strategies[i].move(success)
-    unless @strategies[i]
+    if @strategies[i].nil? || (@strategies[i].class == NullStrategy)
       @strategies.delete_at(i)
     end
     # If there's no more strategies left, fold self as well
@@ -148,6 +218,10 @@ class AlterStrategy < NullStrategy
 
   def current
     @strategies[@i].current
+  end
+
+  def last_success
+    @strategies[@i].last_success
   end
 
   def print
@@ -164,6 +238,66 @@ class AlterStrategy < NullStrategy
   end
 end
 
+class DummyIntervalRequestor
+  def initialize(timeout)
+    @timeout = timeout
+    @pipe_r_from, @pipe_w_to = IO.pipe
+    @child_thread = Thread.new do
+      while true
+        $log.debug "Run next_interval"
+        new_interval = next_interval
+        if new_interval && new_interval != @timeout
+          $log.debug "Will print next_interval: #{new_interval}"
+          @timeout = new_interval
+          @pipe_w_to.puts @timeout
+        else
+          $log.debug "Will NOT print next_interval: #{new_interval.inspect} and #{@timeout.inspect}"
+        end
+      end
+    end
+  end
+
+  def read_pipe
+    @pipe_r_from
+  end
+
+  def next_interval
+    sleep 2
+    @timeout
+  end
+
+  # Do not confuse it with next_interval: timetou requests the current one, and next_interval requests the next one from an external source
+  attr_reader :timeout
+end
+
+# Each 2 seconds, request json api, and read 'timeout' for 
+class JSONIntervalRequestor < DummyIntervalRequestor
+  def initialize(addr,timeout)
+    super(timeout)
+    @json_request_addr = addr
+  end
+
+  def next_interval
+    # Call json apii
+    to = 2
+    begin
+      $log.debug "Checking interval at #{@json_request_addr}"
+      rsp = inf_retry {Net::HTTP.get_response(URI(@json_request_addr))}
+      body = rsp.body
+      $log.debug "Got response '#{body}'"
+      to = JSON(rsp.body)['timeout'].to_i
+      $log.debug "Got timeout '#{to}'"
+      (to < 5)? 5 : to
+    rescue => e
+      $stderr.print "Exception #{e}"
+      sleep 10
+      retry
+    end
+    sleep 2
+    to
+  end
+end
+
 class Downloader
   attr_accessor :strategy
   def initialize(opts = {})
@@ -172,14 +306,32 @@ class Downloader
     current = opts[:start]
     current = 1 if !current || current <= 0
 
+    @no_download = opts[:dry]
+
     @strategy = AlterStrategy.new(UpStrategy.new(current), DownStrategy.new(current - 1))
 
     # Cache, if any
     @cache_dir = opts[:cache_dir]
+
+    # API to request an interval (or a dummy requestor)
+    @current_timeout = 10
+    if opts[:interval]
+      @interval_requestor = JSONIntervalRequestor.new(opts[:interval], @current_timeout)
+    else
+      @interval_requestor = DummyIntervalRequestor.new(@current_timeout)
+    end
   end
 
   def current
     @strategy.current
+  end
+
+  def previous_ok
+    @strategy.last_success
+  end
+
+  def range
+    [current,previous_ok || current].sort
   end
 
   def test
@@ -188,10 +340,33 @@ class Downloader
 
   def work
     $log.info "Work: @current=#{current}, state=#{@strategy.print}"
-    r = @strategy.peek_or {download}
+    worked_range = range
+    r,next_id = if @no_download
+                  @strategy.peek_or {' '}
+                else
+                  @strategy.peek_or {download}
+                end
     @strategy = @strategy.move(r)
+    # FIXME: I'm tired of fixing this script, so I'll just make a shortcut...
+    if next_id && @strategy.respond_to?(:set_next)
+      $log.debug "HACK!  Setting next move to #{next_id}"
+      @strategy.set_next(next_id)
+    end
     $log.debug "Work: next @current=#{current}, state=#{@strategy.print}"
-    r
+    [r] + worked_range
+  end
+
+  # Interval waiting
+  def wait_for_interval
+    $log.debug "Launch select with to #{@current_timeout} and #{@interval_requestor.read_pipe}"
+    if select_results = IO.select([@interval_requestor.read_pipe],nil,nil,@current_timeout)
+      # Something happened, not just timeout
+      new_timeout_s = @interval_requestor.read_pipe.gets
+      $log.debug "Pipe is ready, read #{new_timeout_s}"
+      @current_timeout = new_timeout_s.to_i || 10
+    else
+      $log.debug "Timeout #{@current_timeout} reached"
+    end
   end
 
   protected
@@ -206,7 +381,7 @@ class Downloader
 
     if File.exists? target
       @last_was_cached = true
-      return IO.read(target)
+      return Marshal.load(IO.read(target))
     end
     @last_was_cached = false
 
@@ -215,7 +390,7 @@ class Downloader
     # Only cache successful downloads of actual posts
     if result
       # Write then move, because we don't want incomplete files in our cache!
-      File.open("#{target}.tmp","w") {|f| f.write result}
+      File.open("#{target}.tmp","w") {|f| f.write Marshal.dump(result)}
       FileUtils.move("#{target}.tmp",target)
     end
 
@@ -237,41 +412,55 @@ def y_combinator(&f)
 end
 
 class XmlfpDownloader < Downloader
+  MAX_STEP = 100
   def initialize(opts = {})
     super(opts)
     # We should re-program our strategy so that it queries last_message_id when it finds a nonexistent post
     get_last_message_when_reach_up = y_combinator {|recurse| proc do |current|
       # Check last message ID
       begin
-        $log.debug "Checking last_message_id at #{make_last_messge_id_url}"
-        rsp = Net::HTTP.get_response(URI(make_last_messge_id_url))
+        $log.info "Checking last_message_id at #{make_last_messge_id_url}"
+        rsp = inf_retry {Net::HTTP.get_response(URI(make_last_messge_id_url))}
         body = rsp.body
         doc = Hpricot(body)
         # Hpricot is "liberal" enough to return empty strings if the element was not found
         status = doc.search(%Q(/lastMessageNumber)).inner_text.to_i
         $log.debug %Q(Status found by /lastMessageNumber is '#{status}')
         # Now check if we have anything new
-        if status <= current
+        if status < current
           # No, nothing new, wait for more messages to appear
-          sleep 2
+          wait_for_interval
         end
         # In any case, our next strategy will be checking the lastMessageNumber with the current function, and trying to reach the limit.
-        LimitedUpStrategy.new(current,status,recurse)
+        LimitedUpStrategy.new(current,status,MAX_STEP,recurse)
       rescue Net::HTTPBadResponse
-        sleep 10
+        wait_for_interval
         retry
       end
     end}
 
-    @strategy = AlterStrategy.new(UpStrategy.new(current, get_last_message_when_reach_up), DownStrategy.new(current - 1))
+
+    s = opts[:start]
+    e = opts[:end]
+    # If e is not specified, then we download upwards only starting at s.  Otherwise, we download upwards or downwards, whichever fits.
+
+    if e && e >= s
+      @strategy = LimitedUpStrategy.new(s,e,MAX_STEP)
+    elsif e && e < s
+      @strategy = LimitedDownStrategy.new(s - 1,e,MAX_STEP)
+    else
+      @strategy = UpStrategy.new(s, get_last_message_when_reach_up,MAX_STEP)
+    end
 
   end
 
   def download
     begin
       cache "#{current}.html" do
-        $log.debug "Downloading #{make_url}"
-        rsp = Net::HTTP.get_response(URI(make_url))
+        r1, r2 = range
+        $log.info "Range from #{r1} to #{r2}"
+        $log.debug "Downloading #{make_url(r1,r2)}"
+        rsp = inf_retry(30) {Net::HTTP.get_response(URI(make_url(r1,r2)))}
         body = rsp.body
         $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
 
@@ -285,22 +474,36 @@ class XmlfpDownloader < Downloader
           $log.debug %Q(Status found by //message[@id="#{current}"]/status is '#{status}')
 
           if status == 'not_exists'
-            # Serwer was OK, so return false instead of nil
-            false
+            $log.info "We have reached the last message somewhere between #{r1} and #{r2}."
+            # We _could_ use binary search here, but in most cases the message will be close to the beginning
+            first_bad = (r1..r2).find do |msg_id|
+              doc.search(%Q(//message[@id="#{msg_id}"]/status)).inner_html == 'not_exists'
+            end
+            $log.info "Search indicates that the first nonexistant message is #{first_bad}"
+            # If NO message exists, then we have reached the end, return "false" to indicate this
+            if first_bad == r1
+              [false, first_bad]
+            else
+              [body, first_bad]
+            end
           else
-            body
+            # nil means "Do not set next_id: everything's fine"
+            [body, nil]
           end
         end
       end
     rescue Net::HTTPBadResponse
       # Couldn't connect.  Return nil instead of false
-      sleep 10
+      sleep 30
       retry
     end
   end
 
-  def make_url
-    %Q(#{@base_path}/?xmlfpread=#{current})
+  #def make_url
+    #%Q(#{@base_path}/?xmlfpread=#{current})
+  #end
+  def make_url(r1,r2)
+    %Q(#{@base_path}/?xmlfpindex&from=#{r1}&to=#{r2})
   end
 
   def make_last_messge_id_url
@@ -330,19 +533,24 @@ puts dler.test.inspect
 while true
   $log.debug "Loop"
   last_dl = dler.current
-  r = dler.work
+  r, r1, r2 = dler.work
   $log.debug "Result: #{r.inspect}"
   if r
+    $log.info "Range from #{r1} to #{r2}"
     $log.info "Downloaded post #{last_dl} entitled #{Hpricot(r).search(%Q(//message[@id="#{last_dl}"]/content/title)).inner_text}"
     # Send post to the target
-    if targ = options[:target]
+    if targ = options[:target] && (!options[:dry])
+      inf_retry(10){
       Net::HTTP.post_form(URI(options[:target]), {
         :source_url => url,
-        :post_id => last_dl,
+        :post_start => r1,
+        :post_end => r2,
         :api => options[:api],
         :page => r,
         :enc => options[:enc],
-      })
+      })}
+    else
+      $log.warn "Would send #{last_dl}, but there's no target or dry-run"
     end
   else
     $log.info "Could not download post #{last_dl}"

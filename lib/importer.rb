@@ -13,14 +13,14 @@ class Importer
   end
 
   def self.msg_node(doc,id)
-    doc.find(%Q(/message[@id="#{id.to_i}"])).first
+    doc.find(%Q(/descendant-or-self::message[@id="#{id.to_i}"])).first
   end
 
   def self.mk_user_or_unreg(name,id,doc)
-    author_node = msg_node(doc,id).find(%Q(/message/author)).first
-    registered = author_node.find(%Q(//author/registered)).first.content
-    username = author_node.find(%Q(//author/name)).first.content
-    host = author_node.find(%Q(//author/host)).first.content
+    author_node = msg_node(doc,id).find(%Q(author)).first
+    registered = author_node.find(%Q(registered)).first.content
+    username = author_node.find(%Q(name)).first.content
+    host = author_node.find(%Q(host)).first.content
     common = {:host => host}
     unless registered == 'true'
       common.merge :unreg_name => username
@@ -32,18 +32,26 @@ class Importer
   def self.post(source,id,fmt,page,enc = 'UTF-8')
     case fmt
     when 'xmlfp'
-      puts [source,id,fmt,page].inspect
+      puts [source,id,fmt].inspect
+      # Parse the incoming page
       doc = XML::Parser.string(page, :options => XML::Parser::Options::RECOVER).parse
+      # When importing multiple posts, we may, in fact, encounter a situation when not every message ID we requested is in the output.  To fix this, we check if there is a proper message node in the input.
+      mn = msg_node(doc,id)
+      if mn.nil? || (mn.find(%Q(status)).first && mn.find(%Q(status)).first.content == 'not_exists')
+        puts "No node with id=#{id} found!  Not importing."
+        return nil
+      end
+      # mp will be the hash that contains the new post's parameters
       mp = {}
       # Get user
       mp = mp.merge(mk_user_or_unreg(source.name,id,doc))
       # Get post contents and timestamp
-      mp[:body] = (body = msg_node(doc,id).find(%Q(/message/content/body)).first) ? body.content : ''
-      mp[:title] = msg_node(doc,id).find(%Q(/message/content/title)).first.content 
-      mp[:created_at] = Time.parse(msg_node(doc,id).find(%Q(/message/info/date)).first.content)
+      mp[:body] = (body = mn.find(%Q(content/body)).first) ? body.content : ''
+      mp[:title] = mn.find(%Q(content/title)).first.content
+      mp[:created_at] = Time.parse(mn.find(%Q(info/date)).first.content)
       # Find the post this one replies to, and attach this post to it
       parent_back_id = nil
-      parent_post = if pp_node = msg_node(doc,id).find(%Q(/message/info/parentId)).first
+      parent_post = if pp_node = mn.find(%Q(info/parentId)).first
                       parent_back_id = pp_node.content
                       pp_import = source.imports.where(:back => parent_back_id).first
                       pp_import && pp_import.post
