@@ -14,7 +14,6 @@ require 'optparse'
 require 'json'
 
 $log = Logger.new(STDOUT)
-$log.level = Logger::INFO
 
 options = {:api => 'xmlfp', :from => 1, :target => nil, :enc => 'CP1251'}
 OptionParser.new do |opts|
@@ -48,12 +47,20 @@ OptionParser.new do |opts|
     options[:enc] = v
   end
 
+  opts.on("-v", "--verbosity", "Be verbose") do |v|
+    options[:verbose] = true
+  end
+
   opts.on("-n", "--dry-run", "Do not POST, only download") do |v|
     options[:dry] = true
   end
 end.parse!
 
 url = ARGV[0].dup
+
+$log.level = Logger::INFO
+$log.level = Logger::DEBUG if options[:verbose]
+
 
 # Retry doing the block infinitely, with pause "pause" until it doesn't throw an exception
 def inf_retry(pause_sec = 30)
