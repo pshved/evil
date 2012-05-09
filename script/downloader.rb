@@ -11,6 +11,7 @@ require 'logger'
 require 'net/http'
 require 'optparse'
 #require 'xml'
+require 'json'
 
 $log = Logger.new(STDOUT)
 $log.level = Logger::INFO
@@ -53,6 +54,17 @@ OptionParser.new do |opts|
 end.parse!
 
 url = ARGV[0].dup
+
+# Retry doing the block infinitely, with pause "pause" until it doesn't throw an exception
+def inf_retry(pause_sec = 30)
+  begin
+    yield
+  rescue => e
+    $log.debug "Connection error #{e}.  Sleep #{pause_sec} sec."
+    sleep pause_sec
+    retry
+  end
+end
 
 class NoMoves < Exception
 end
@@ -139,6 +151,10 @@ class UpStrategy < NullStrategy
   end
   def print
     "<UP from #{@current} with step #{@step}>"
+  end
+  # A hack that allows to change the current move without changing abnything else
+  def set_next(c)
+    @current = c
   end
 end
 
@@ -227,6 +243,8 @@ class DummyIntervalRequestor
           $log.debug "Will print next_interval: #{new_interval}"
           @timeout = new_interval
           @pipe_w_to.puts @timeout
+        else
+          $log.debug "Will NOT print next_interval: #{new_interval.inspect} and #{@timeout.inspect}"
         end
       end
     end
@@ -254,17 +272,22 @@ class JSONIntervalRequestor < DummyIntervalRequestor
 
   def next_interval
     # Call json apii
+    to = 2
     begin
       $log.debug "Checking interval at #{@json_request_addr}"
-      rsp = Net::HTTP.get_response(URI(@json_request_addr))
+      rsp = inf_retry {Net::HTTP.get_response(URI(@json_request_addr))}
       body = rsp.body
-      to = JSON.decode(rsp.body)[:timeout].to_i
+      $log.debug "Got response '#{body}'"
+      to = JSON(rsp.body)['timeout'].to_i
+      $log.debug "Got timeout '#{to}'"
       (to < 5)? 5 : to
-    rescue
+    rescue => e
+      $stderr.print "Exception #{e}"
       sleep 10
       retry
     end
     sleep 2
+    to
   end
 end
 
@@ -310,14 +333,20 @@ class Downloader
 
   def work
     $log.info "Work: @current=#{current}, state=#{@strategy.print}"
-    r = if @no_download
-          @strategy.peek_or {' '}
-        else
-          @strategy.peek_or {download}
-        end
+    worked_range = range
+    r,next_id = if @no_download
+                  @strategy.peek_or {' '}
+                else
+                  @strategy.peek_or {download}
+                end
     @strategy = @strategy.move(r)
+    # FIXME: I'm tired of fixing this script, so I'll just make a shortcut...
+    if next_id && @strategy.respond_to?(:set_next)
+      $log.debug "HACK!  Setting next move to #{next_id}"
+      @strategy.set_next(next_id)
+    end
     $log.debug "Work: next @current=#{current}, state=#{@strategy.print}"
-    r
+    [r] + worked_range
   end
 
   # Interval waiting
@@ -345,7 +374,7 @@ class Downloader
 
     if File.exists? target
       @last_was_cached = true
-      return IO.read(target)
+      return Marshal.load(IO.read(target))
     end
     @last_was_cached = false
 
@@ -354,7 +383,7 @@ class Downloader
     # Only cache successful downloads of actual posts
     if result
       # Write then move, because we don't want incomplete files in our cache!
-      File.open("#{target}.tmp","w") {|f| f.write result}
+      File.open("#{target}.tmp","w") {|f| f.write Marshal.dump(result)}
       FileUtils.move("#{target}.tmp",target)
     end
 
@@ -383,20 +412,20 @@ class XmlfpDownloader < Downloader
     get_last_message_when_reach_up = y_combinator {|recurse| proc do |current|
       # Check last message ID
       begin
-        $log.debug "Checking last_message_id at #{make_last_messge_id_url}"
-        rsp = Net::HTTP.get_response(URI(make_last_messge_id_url))
+        $log.info "Checking last_message_id at #{make_last_messge_id_url}"
+        rsp = inf_retry {Net::HTTP.get_response(URI(make_last_messge_id_url))}
         body = rsp.body
         doc = Hpricot(body)
         # Hpricot is "liberal" enough to return empty strings if the element was not found
         status = doc.search(%Q(/lastMessageNumber)).inner_text.to_i
         $log.debug %Q(Status found by /lastMessageNumber is '#{status}')
         # Now check if we have anything new
-        if status <= current
+        if status < current
           # No, nothing new, wait for more messages to appear
           wait_for_interval
         end
         # In any case, our next strategy will be checking the lastMessageNumber with the current function, and trying to reach the limit.
-        LimitedUpStrategy.new(status+1,status,MAX_STEP,recurse)
+        LimitedUpStrategy.new(current,status,MAX_STEP,recurse)
       rescue Net::HTTPBadResponse
         wait_for_interval
         retry
@@ -423,8 +452,8 @@ class XmlfpDownloader < Downloader
       cache "#{current}.html" do
         r1, r2 = range
         $log.info "Range from #{r1} to #{r2}"
-        $log.debug "Downloading #{make_url}"
-        rsp = Net::HTTP.get_response(URI(make_url))
+        $log.debug "Downloading #{make_url(r1,r2)}"
+        rsp = inf_retry(30) {Net::HTTP.get_response(URI(make_url(r1,r2)))}
         body = rsp.body
         $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
 
@@ -438,22 +467,36 @@ class XmlfpDownloader < Downloader
           $log.debug %Q(Status found by //message[@id="#{current}"]/status is '#{status}')
 
           if status == 'not_exists'
-            # Serwer was OK, so return false instead of nil
-            false
+            $log.info "We have reached the last message somewhere between #{r1} and #{r2}."
+            # We _could_ use binary search here, but in most cases the message will be close to the beginning
+            first_bad = (r1..r2).find do |msg_id|
+              doc.search(%Q(//message[@id="#{msg_id}"]/status)).inner_html == 'not_exists'
+            end
+            $log.info "Search indicates that the first nonexistant message is #{first_bad}"
+            # If NO message exists, then we have reached the end, return "false" to indicate this
+            if first_bad == r1
+              [false, first_bad]
+            else
+              [body, first_bad]
+            end
           else
-            body
+            # nil means "Do not set next_id: everything's fine"
+            [body, nil]
           end
         end
       end
     rescue Net::HTTPBadResponse
       # Couldn't connect.  Return nil instead of false
-      sleep 10
+      sleep 30
       retry
     end
   end
 
-  def make_url
-    %Q(#{@base_path}/?xmlfpread=#{current})
+  #def make_url
+    #%Q(#{@base_path}/?xmlfpread=#{current})
+  #end
+  def make_url(r1,r2)
+    %Q(#{@base_path}/?xmlfpindex&from=#{r1}&to=#{r2})
   end
 
   def make_last_messge_id_url
@@ -483,21 +526,22 @@ puts dler.test.inspect
 while true
   $log.debug "Loop"
   last_dl = dler.current
-  r = dler.work
+  r, r1, r2 = dler.work
   $log.debug "Result: #{r.inspect}"
   if r
-        r1, r2 = dler.range
-        $log.info "Range from #{r1} to #{r2}"
+    $log.info "Range from #{r1} to #{r2}"
     $log.info "Downloaded post #{last_dl} entitled #{Hpricot(r).search(%Q(//message[@id="#{last_dl}"]/content/title)).inner_text}"
     # Send post to the target
     if targ = options[:target] && (!options[:dry])
+      inf_retry(10){
       Net::HTTP.post_form(URI(options[:target]), {
         :source_url => url,
-        :post_id => last_dl,
+        :post_start => r1,
+        :post_end => r2,
         :api => options[:api],
         :page => r,
         :enc => options[:enc],
-      })
+      })}
     else
       $log.warn "Would send #{last_dl}, but there's no target or dry-run"
     end
