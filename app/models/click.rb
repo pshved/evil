@@ -13,6 +13,8 @@ class Click < ActiveRecord::Base
   def self.replay(sequence)
     # hash:  post_id => [clicks, last_click]
     post_clicks = {}
+    # oops, I noticed that sequence returns strings as post_ids... it can't pick the stuff from hash later!
+    sequence.map!{|tuple| [tuple[0].to_i, tuple[1]]}
     # Load posts once (hash: id => activerecord object), and load clicks alongside to determine the latest clicker for each post.  We also load threads to touch them.
     posts = {}
     # Since post_ids may be not valid, we should clear them out, keeping only valid posts.
