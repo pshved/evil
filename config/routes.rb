@@ -46,6 +46,12 @@ Zlo::Application.routes.draw do
 
   resources :moderation_actions, :path => 'moder'
 
+  resources :sources, :only => [] do
+    member do
+      get 'read/:orig_id', :action => 'read_post'
+    end
+  end
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

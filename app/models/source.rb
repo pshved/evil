@@ -17,4 +17,8 @@ class Source < ActiveRecord::Base
       30.seconds
     end
   end
+
+  def to_param
+    name
+  end
 end
