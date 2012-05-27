@@ -11,7 +11,8 @@ function pbsh_maker(post_id, dont_hide)
     if (!dont_hide || !body_elem.is(':visible')) {
       body_elem.slideToggle();
     }
-    orig_elem.find('a.postbody').first().removeClass('inprogress');
+    // Remove "in progress" marks that might have been installed by progress triggers
+    $("#p"+post_id).find('a.postbody').first().removeClass('inprogress');
   } else {
     // The element does not exist; create by querying the ajax post body request
     // Prevent duplicate requests
@@ -46,6 +47,7 @@ jQuery(function($) {
     pbsh_maker(post_id, true)
   });
 
+  /* Call that show-only event via special links */
   $('a.subthreadbody').click(function (event){
     $(this).closest('li').find('a.postbody').addClass('inprogress');
     $(this).closest('li').find('a.postbody').trigger('showbody');
