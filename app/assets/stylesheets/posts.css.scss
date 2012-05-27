@@ -67,6 +67,14 @@ span.user-unreg {
 /* Post body hide/show link */
 .post-header a.postbody {
   text-decoration: none;
+  color: #000000;
+  &:visited {
+    color: #000000;
+  }
+}
+
+.post-header a.inprogress {
+  font-weight: bold;
 }
 
 /* Post body in index div */
@@ -77,6 +85,12 @@ span.user-unreg {
   border-top: 1px solid #999999;
 }
 
+.post-header a.subthreadbody {
+  color: #900000;
+  &:visited {
+    color: #900000;
+  };
+}
 
 /* Posts hidden/closed information bar */
 .hidden-bar {

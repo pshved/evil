@@ -127,7 +127,7 @@ module PostsHelper
     else
       if view_opts[:plus]
         # Let's insert a JavaScript "+"!
-        buf << %Q( <a class="postbody" onclick="pbsh(#{post.id});" href="lol">(+)</a>)
+        buf << %Q( <a class="postbody" id="sh#{post.id}" onclick="pbsh(#{post.id});" href="lol">(+)</a>)
       end
     end
     # (url)/(pic) marks
@@ -143,6 +143,8 @@ module PostsHelper
     buf << " (#{post.host}) "
     buf << ' - '
     buf << %Q(<span class="post-timestamp">) << time_for_header(post.created_at,tz) << %Q(</span>)
+
+    buf << %Q( <a class="subthreadbody" href="#">(+++)</a>)
 
     # See the opening tag the end of the function
     buf << %Q(</span>) if post.deleted
