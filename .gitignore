@@ -19,8 +19,9 @@ database.yml
 application.yml
 
 # RVM stuff
-.rvmrc
+.rvmrc*
 # CTags
 tags
 # Vim
 .exrc
+*~
