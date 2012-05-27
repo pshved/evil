@@ -3,13 +3,14 @@
 
 // What happens when a user clicks show/hide on a post.  PBSH = "post bosy show/hide"
 var pbsh_request = {};
+var animation_time = 88;
 function pbsh_maker(post_id, dont_hide)
 {
   // The element that will be spawned, with the body
   body_elem = $("#pb"+post_id);
   if (body_elem.length > 0) {
     if (!dont_hide || !body_elem.is(':visible')) {
-      body_elem.slideToggle();
+      body_elem.slideToggle(animation_time);
     }
     // Remove "in progress" marks that might have been installed by progress triggers
     $("#p"+post_id).find('a.postbody').first().removeClass('inprogress');
@@ -26,7 +27,7 @@ function pbsh_maker(post_id, dont_hide)
           post_id = data.id;
           orig_elem = $("#p"+post_id);
           orig_elem.find('a.postbody').first().removeClass('inprogress');
-          $('<div id="pb'+post_id+'" class="postbody">'+data.body+'</div>').hide().appendTo(orig_elem).slideToggle();
+          $('<div id="pb'+post_id+'" class="postbody">'+data.body+'</div>').hide().appendTo(orig_elem).slideToggle(animation_time);
         },
         complete: function() { pbsh_request[post_id] = null }
       });
