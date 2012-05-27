@@ -23,7 +23,9 @@ class PostsController < ApplicationController
     @show_all_posts = true
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render json: @post }
+      # For now, this only shows body; perhaps, the behavior will be changed in the future!
+      format.json { render :json => {'body' => @post.filtered_body, 'id' => @post.id} }
+      #format.js
     end
   end
 
