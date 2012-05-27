@@ -144,8 +144,6 @@ module PostsHelper
     buf << ' - '
     buf << %Q(<span class="post-timestamp">) << time_for_header(post.created_at,tz) << %Q(</span>)
 
-    buf << %Q( <a class="subthreadbody" href="#">(+++)</a>)
-
     # See the opening tag the end of the function
     buf << %Q(</span>) if post.deleted
   end
@@ -204,6 +202,11 @@ module PostsHelper
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
+
+      if (info[start.id] || {})[:has_nonempty_body]
+        buf << %Q( <a class="subthreadbody" href="#">(+++)</a>)
+      end
+
       # Show if post is hidden, and display the toggle
       post_shown = fast_showhide(start,tree,info,buf)
       buf << %Q(</div>)
