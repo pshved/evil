@@ -3,8 +3,12 @@
   %div.threads
     = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
   -unless @post.deleted
-    %div
-      = render :partial => 'loginpost'
+    -if @source
+      %div
+        = render :partial => 'sourcepost'
+    -else
+      %div
+        = render :partial => 'loginpost'
   -else
     %div.hint
       =ta('noreply.deleted',:post)

@@ -15,6 +15,9 @@ class PostsController < ApplicationController
 
   before_filter :invalidate_index_pages, :only => [:update, :toggle_showhide, :remove]
 
+  # Find the source so that a user can post there
+  before_filter :initialize_source, :only => [:show]
+
   # GET /posts/1
   # GET /posts/1.json
   def show
@@ -158,5 +161,21 @@ class PostsController < ApplicationController
   def click
     # Don't try to find the post: just record the access!
     post_clicks_tracker.event(params[:id])
+  end
+
+  def initialize_source
+    return unless @post && @post.import && (source = @post.import.source)
+    # We show source reply by default
+    if source && params[:source].blank?
+      @import = @post.import
+      @source = source
+      # For now, only replies are supported.
+      @source_reply_to = @post.import.back
+    else
+      # source name mismatch, retry
+      @source = nil
+    end
+
+
   end
 end

@@ -21,4 +21,9 @@ class Source < ActiveRecord::Base
   def to_param
     name
   end
+
+  # URL to POST a reply form to
+  def reply_to_post_url(post_id)
+    sprintf(post_to,post_id)
+  end
 end

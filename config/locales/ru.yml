@@ -50,6 +50,8 @@ ru:
       cantedit:  Невозможно удалить сообщение.  Попробуйте его отредактировать.
     private_message:
       sent:  Личное сообщение отправлено
+  external_credentials: "Чтобы отправить сообщение на другой форум, вы должны быть уже авторизованы на нём.  Чтобы вернуться сюда, вам нужно будет нажать «Назад» после отправки сообщения и подождать 30 секунд.  Или можно "
+  reply_locally: "просто ответить на этой же доске"
   # Some models are "activemodel" rather than "activerecord" models
   activemodel:
     models:
@@ -58,6 +60,8 @@ ru:
       loginpost:
         title: "Заголовок"
         reply: "Ответить"
+        reply_into: "Ответить в"
+        to_post: "на пост"
         name: "Имя"
         autologin: "Залогиниться"
   activerecord:
