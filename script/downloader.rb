@@ -97,7 +97,7 @@ class DummyIntervalRequestor
   end
 
   def reconsider_timeout
-    new_timeout_s = @wait_breaker.read_pipe.gets
+    new_timeout_s = read_pipe.gets
     $log.debug "Pipe is ready, read #{new_timeout_s}"
     @timeout = new_timeout_s.to_i || DEFAULT_TIMEOUT
   end
@@ -125,14 +125,19 @@ class WebDownloader
   # Download page, retrying on all errors
   def download(url, pause_before = nil, pause_retry = 30)
     if pause_before
-      $log.debug "Sleeping #{pause_before} sec via select"
+      $log.debug "Sleeping the fixed #{pause_before} sec via select"
       wait_for_interval(pause_before)
+    else
+      pause_sec = @wait_breaker.timeout
+      $log.debug "Sleeping the timer's #{pause_sec} sec via select"
+      wait_for_interval(pause_sec)
     end
     # Now download
     $log.debug "Downloading from #{url}"
     rsp = inf_retry(pause_retry) {Net::HTTP.get_response(URI(url))}
     body = rsp.body
     $log.debug "Got response '#{body}'"
+    body
   end
 
   # Interval waiting
@@ -142,7 +147,7 @@ class WebDownloader
       # Something happened, not just timeout
       @wait_breaker.reconsider_timeout
     else
-      $log.debug "Timeout #{current_timeout} reached"
+      $log.debug "Timeout #{timeout} reached"
     end
   end
 end
@@ -378,6 +383,7 @@ class JSONIntervalRequestor < DummyIntervalRequestor
 end
 
 class XmlfpDownloader < BoardDownloader
+  DEFAULT_PAUSE_BETWEEN_DL = 100
   def initialize(board_url, timeouter)
     @range_url = "#{board_url}/?xmlfpindex"
     @last_message_url = "#{board_url}/?xmlfplast"
@@ -395,8 +401,7 @@ class XmlfpDownloader < BoardDownloader
   def get_posts(range)
     $log.info "Getting range from #{range.first} to #{range.last}"
     $log.debug "Downloading #{make_url(range.first,range.last)}"
-    rsp = inf_retry(30) {Net::HTTP.get_response(URI(make_url(range.first,range.last)))}
-    body = rsp.body
+    body = @dl.download(make_url(range.first,range.last))
     $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
 
     doc = Hpricot(body)
@@ -412,8 +417,7 @@ class XmlfpDownloader < BoardDownloader
 
   def get_last_message_id
     $log.info "Checking last_message_id at #{make_last_messge_id_url}"
-    rsp = inf_retry {Net::HTTP.get_response(URI(make_last_messge_id_url))}
-    body = rsp.body
+    body = @dl.download(make_last_messge_id_url,DEFAULT_PAUSE_BETWEEN_DL)
     doc = Hpricot(body)
     # Hpricot is "liberal" enough to return empty strings if the element was not found
     status = doc.search(%Q(/lastMessageNumber)).inner_text.to_i
@@ -427,7 +431,7 @@ class Fetcher
 end
 
 class XmlfpFetcher < Fetcher
-  MAX_STEP = 100
+  MAX_STEP = 5
   attr_accessor :strategy
   def initialize(opts = {})
     # Prepare a web accessor
@@ -550,8 +554,8 @@ puts dler.test.inspect
 while true
   $log.debug "Loop"
   r = dler.work
-  $log.debug "Result: #{r.inspect}"
   if r
+    $log.debug "Result: #{r[:range].inspect}"
     downloaded_ids = r[:range]
     r1, r2 = downloaded_ids.first, downloaded_ids.last
     $log.info "Range from #{r1} to #{r2}"
@@ -567,6 +571,8 @@ while true
         :page => r[:messages][r1],
         :enc => options[:enc],
       })}
+    elsif options[:dry]
+      $log.info "Sending messages from #{r1} to #{r2}"
     else
       $log.warn "Would send #{r1}..#{r2}, but there's no target or dry-run"
     end
