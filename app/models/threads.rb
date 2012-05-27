@@ -96,6 +96,7 @@ class Threads < ActiveRecord::Base
     #   :hidden => true, # whether the subtherad is automatically hidden based on hide threshold/value
     #   :smoothed => true, # whether the *children* of this node should be displayed at the same level as it, based on smooth threshold value
     #   :size => N, # How many posts are there, in the subthread
+    #   :has_nonempty_body => true, Whether the subthread (or the post itself) contains a post with a nonempty body
     # }
     thread_info = {}
     # We wanted to cache them, but, in production environment, models are not re-loadedd at each request
@@ -110,6 +111,7 @@ class Threads < ActiveRecord::Base
     #   :latest_mtime => modification time of the latest post,
     #   :height => height of the subtree
     #   :size => number of nodes in the subtree
+    #   :has_nonempty_body => true, Whether the subthread (or the post itself) contains a post with a nonempty body
     def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,depth = 0,is_an_only_child = false)
       depth += 1
       return {:height => 0, :size => 0} unless node
@@ -131,6 +133,7 @@ class Threads < ActiveRecord::Base
           r[:latest_id] = ki[:latest_id]
         end
       end
+      any_kids_nonempty = kids_info.inject(false) {|acc,ki| acc || ki[:has_nonempty_body]}
 
       # 2. Compute and upload the information about the current node
       # Check if the thread should be hidden
@@ -140,8 +143,15 @@ class Threads < ActiveRecord::Base
       smoothed = smooth_threshold && (depth >= smooth_threshold) && (kids.length == 1) && is_an_only_child
       # Sum the size
       size = kids_info.inject(1) {|acc,ki| acc + (ki[:size] || 0)}
+      has_nonempty_body = !idmap[node].empty_body? || any_kids_nonempty
 
-      thread_info[node] = {:latest => idmap[r[:latest_id]], :hidden => hidden, :smoothed => smoothed, :size => size}
+      thread_info[node] = {
+        :latest => idmap[r[:latest_id]],
+        :hidden => hidden,
+        :smoothed => smoothed,
+        :size => size,
+        :has_nonempty_body => has_nonempty_body,
+      }
 
       # 3. Prepare the return value for the parent
       created_at = idmap[node].created_at
@@ -151,6 +161,7 @@ class Threads < ActiveRecord::Base
       end
       r[:height] += 1
       r[:size] = size
+      r[:has_nonempty_body] = has_nonempty_body
 
       r
     end
