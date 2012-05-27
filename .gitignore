@@ -17,3 +17,10 @@
 # Ignore database.yml and other configs
 database.yml
 application.yml
+
+# RVM stuff
+.rvmrc
+# CTags
+tags
+# Vim
+.exrc
