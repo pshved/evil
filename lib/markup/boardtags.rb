@@ -186,8 +186,8 @@ module RegexpConvertNode
         to_convert = ''
       end
     end
-    t = result
-    # The string is already HTML-safe at this point.
+    t = html_escape result
+    # The string is HTML-safe at this point.
 
     # Find each conversion until it's exhausted
     TagConversions.each do |tcd|
