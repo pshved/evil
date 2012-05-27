@@ -61,6 +61,14 @@ url = ARGV[0].dup
 $log.level = Logger::INFO
 $log.level = Logger::DEBUG if options[:verbose]
 
+###############################################
+#  Utils
+###############################################
+
+def lap(stuff, wtf = '')
+  $log.debug "#{wtf} #{stuff.inspect}"
+  stuff
+end
 
 ###############################################
 #  Downloading section
@@ -104,6 +112,12 @@ class DummyIntervalRequestor
 
   # Do not confuse it with next_interval: timeout requests the current one, and next_interval requests the next one from an external source
   attr_reader :timeout
+
+  # Just waits for the recorded timeout
+  def just_wait(pause = nil)
+    $log.debug "JUST SLEEP: #{pause || timeout}"
+    sleep(pause || timeout)
+  end
 end
 
 # Retry doing the block infinitely, with pause "pause" until it doesn't throw an exception
@@ -118,6 +132,7 @@ def inf_retry(pause_sec = 30)
 end
 
 class WebDownloader
+  PAUSE = 10
   def initialize(wait_breaker = DummyIntervalRequestor.new)
     @wait_breaker = wait_breaker
   end
@@ -149,6 +164,11 @@ class WebDownloader
     else
       $log.debug "Timeout #{timeout} reached"
     end
+  end
+
+  # Just waits for the recorded timeout (and breaks if necessary)
+  def just_wait(pause = nil)
+    wait_for_interval(pause || timeout)
   end
 end
 
@@ -201,27 +221,24 @@ end
 class LimitedDownStrategy < NullStrategy
   def initialize(initial, lowest, step = 1)
     super(initial)
+    @pause = WebDownloader::PAUSE # A smaller pause between range downloads
     @step = step
     @lowest = lowest
   end
-  def move(was_success)
-    save_last_success(was_success,-1)
-    if was_success
-      if @current == @lowest
-        @current = @lowest - 1
-      elsif @current <= @step
-        @current = @lowest
-      else
-        @current -= @step
-      end
-    end
-    if @current < @lowest
+  def move(response)
+    # We don't really care about the response, we only check if the range of posts to download is exhausted.
+    next_move = peek[:range].min - 1
+    if next_move < @lowest
       # Do not iterate anymore
-      NullStrategy.new(@current)
+      NullStrategy.new(next_move)
     else
-      # Continue
+      @current = next_move
+      # Continue iterations
       self
     end
+  end
+  def peek
+    {:range => (([@current - @step + 1, @lowest].max)..@current), :pause => @pause}
   end
   def print
     "<DOWN from #{@current} to #{@lowest} with step #{@step}>"
@@ -242,6 +259,7 @@ class UpStrategy < NullStrategy
   def initialize(initial, when_we_reach_fail = nil, step = 1)
     super(initial)
     @step = step || 1
+    @pause = WebDownloader::PAUSE
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
   end
   def move(response)
@@ -251,47 +269,46 @@ class UpStrategy < NullStrategy
       @when_we_reach_fail[next_try] || self
     elsif next_try
       @current = next_try
+      self
     else
       @current += @step
       self
     end
   end
   def peek
-    {:range => (@current..(@current+@step-1))}
+    # We make a smaller pause if we're just downloading, not waiting
+    {:range => (@current..(@current+@step-1)), :pause => @pause}
   end
   def print
     "<UP from #{@current} with step #{@step}>"
   end
 end
 
-# NOT FIXED
-# Goes up step-by-step, stops at the prespecified number (max), then turns back.
+# Goes up step-by-step, stops at the prespecified number (max), then returns a strategy from the callback if any
 class LimitedUpStrategy < NullStrategy
-  #attr_accessor :
   def initialize(initial, max, step = 1, when_we_reach_fail = nil)
     super(initial)
+    @pause = WebDownloader::PAUSE # A smaller pause between range downloads
     @upper = max || initial
     @when_we_reach_fail = when_we_reach_fail || proc { sleep(10); self }
     @step = step || 1
   end
-  def move(was_success)
-    save_last_success(was_success,+1)
-    # If we have downloaded everything, return the next strategy
-    if @current > @upper
-      @when_we_reach_fail[@current] || self
+  def move(response)
+    # We don't really care about the response, we only check if the range of posts to download is exhausted.
+    next_move = peek[:range].max + 1
+    if next_move > @upper
+      # If we have downloaded everything, return the next strategy, supplying the next message as the starting point
+      @when_we_reach_fail[@upper+1] || self
     else
-      # We only repeat the query if server is down.  Otherwise, we keep going regardless of whether the post actually exists
-      unless was_success.nil?
-        @current = [@current + @step, @upper + 1].min
-      end
+      @current = next_move
       self
     end
   end
   def print
     "<LIM-UP from #{@current} to #{@upper} with step #{@step}>"
   end
-  def peek_or
-    (@current <= @upper) ? yield : false
+  def peek
+    {:range => (@current..([@current + @step - 1, @upper].min)), :pause => @pause}
   end
 end
 
@@ -339,14 +356,53 @@ class AlterStrategy < NullStrategy
 end
 
 ###############################################
-#  Generic board downloader
+#  Generic board downloader classes
 ###############################################
 
 # Downloads posts from a board
 class BoardDownloader
-  # Gets posts from f to t.
-  def get_posts(f,t)
+  # Gets posts in the range specified, making a pause before (if pause is nil, then it's up to the downloader)
+  def get_posts(r,pause = nil)
     return []
+  end
+
+  # Gets the last message id on the board
+  def get_last_message_id
+    nil
+  end
+end
+
+# A mock downloading engine, useful in tests.  Initialized with an array of pairs [t,n], where t is the time when the n-th message is posted (n can also be a range object).  The time t is counted from the start.
+class MockDownloader < BoardDownloader
+  def initialize(timeposts,timeouter)
+    @sequence = timeposts.sort {|a,b| a[0] <=> b[0] }
+    @posts = []
+    @start_time = Time.now
+    commit_sequence_until @start_time
+    @timeouter = timeouter
+  end
+
+  def get_posts(r,pause = nil)
+    @timeouter.just_wait(pause)
+    commit_sequence_until
+    @posts.select{|p| r.include? p }.inject({}) {|acc,p| acc[p]=p; acc}
+  end
+
+  def get_last_message_id(pause = nil)
+    @timeouter.just_wait(pause)
+    commit_sequence_until
+    @posts.max
+  end
+
+  protected
+  def commit_sequence_until(time = Time.now)
+    while (x = @sequence.first) && (@start_time + x[0] < time)
+      _,x = @sequence.shift
+      x = [x] if x.is_a? Integer
+      $log.debug "Adding posts: #{x.inspect}"
+      x.each {|p| @posts << p}
+    end
+    $log.info "Max post now is: #{@posts.max}"
   end
 end
 
@@ -398,10 +454,10 @@ class XmlfpDownloader < BoardDownloader
     %Q(#{@last_message_url})
   end
 
-  def get_posts(range)
+  def get_posts(range,pause = nil)
     $log.info "Getting range from #{range.first} to #{range.last}"
     $log.debug "Downloading #{make_url(range.first,range.last)}"
-    body = @dl.download(make_url(range.first,range.last))
+    body = @dl.download(make_url(range.first,range.last),pause)
     $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
 
     doc = Hpricot(body)
@@ -415,9 +471,9 @@ class XmlfpDownloader < BoardDownloader
     end
   end
 
-  def get_last_message_id
+  def get_last_message_id(pause = nil)
     $log.info "Checking last_message_id at #{make_last_messge_id_url}"
-    body = @dl.download(make_last_messge_id_url,DEFAULT_PAUSE_BETWEEN_DL)
+    body = @dl.download(make_last_messge_id_url,pause)
     doc = Hpricot(body)
     # Hpricot is "liberal" enough to return empty strings if the element was not found
     status = doc.search(%Q(/lastMessageNumber)).inner_text.to_i
@@ -431,15 +487,17 @@ class Fetcher
 end
 
 class XmlfpFetcher < Fetcher
-  MAX_STEP = 5
+  MAX_STEP = 100
   attr_accessor :strategy
   def initialize(opts = {})
     # Prepare a web accessor
     @base_path = opts[:base_path] or raise "Specify base_path please!"
     @base_path.gsub!(/\/*$/,'')
 
-    interval_requestor = JSONIntervalRequestor.new(opts[:interval],30)
+    interval_requestor = JSONIntervalRequestor.new(opts[:interval],31)
     @dl = XmlfpDownloader.new(@base_path,interval_requestor)
+    # To test the strategies, mock the downloader by uncommenting this:
+    #@dl = MockDownloader.new([[0,(1..5000)], [5,5001], [7,5002], [13,5003], [31,5004], [52,5005], [123,5006],[124,5007]],interval_requestor)
 
     current = opts[:start]
     current = 1 if !current || current <= 0
@@ -447,10 +505,12 @@ class XmlfpFetcher < Fetcher
     # We should re-program our strategy so that it queries last_message_id when it finds a nonexistent post
     get_last_message_when_reach_up = y_combinator {|recurse| proc do |current|
       # Check last message ID until it's at least as big as what we'd like to get
+      $log.info "Starting to wait for more messages with less heavy queueing; will start from #{current} asap"
       last_id = @dl.get_last_message_id
       while last_id < current
         last_id = @dl.get_last_message_id
       end
+      $log.debug "Switching to LimitedUp"
       # As soon as we got the last message id greater than this one, download them and start waiting again
       LimitedUpStrategy.new(current,last_id,MAX_STEP,recurse)
     end}
@@ -461,15 +521,14 @@ class XmlfpFetcher < Fetcher
     # If e is not specified, then we download upwards only starting at s.  Otherwise, we download upwards or downwards, whichever fits.
 
     # For test, we'll try a simple strategy
-    @strategy = UpStrategy.new(s, get_last_message_when_reach_up,MAX_STEP)
 
-    #if e && e >= s
-      #@strategy = LimitedUpStrategy.new(s,e,MAX_STEP)
-    #elsif e && e < s
-      #@strategy = LimitedDownStrategy.new(s - 1,e,MAX_STEP)
-    #else
-      #@strategy = UpStrategy.new(s, get_last_message_when_reach_up,MAX_STEP)
-    #end
+    if e && e >= s
+      @strategy = LimitedUpStrategy.new(s,e,MAX_STEP)
+    elsif e && e < s
+      @strategy = LimitedDownStrategy.new(s - 1,e,MAX_STEP)
+    else
+      @strategy = UpStrategy.new(s, get_last_message_when_reach_up,MAX_STEP)
+    end
 
   end
 
@@ -481,8 +540,9 @@ class XmlfpFetcher < Fetcher
     $log.info "Work: state=#{@strategy.print}"
     move = @strategy.peek
     # Let our "adversary" move...
-    msgs = @dl.get_posts(move[:range])
+    msgs = @dl.get_posts(move[:range],move[:pause])
     response = {:messages => msgs, :range => msgs.keys.map(&:to_i).sort}
+    $log.debug "Response to move=#{move.inspect} is #{response.inspect}"
     # And set the next strategy
     @strategy = @strategy.move(response)
 
@@ -557,6 +617,10 @@ while true
   if r
     $log.debug "Result: #{r[:range].inspect}"
     downloaded_ids = r[:range]
+    if downloaded_ids.empty?
+      $log.info "Nothing was downloaded, trying again"
+      next
+    end
     r1, r2 = downloaded_ids.first, downloaded_ids.last
     $log.info "Range from #{r1} to #{r2}"
     # Send post to the target
