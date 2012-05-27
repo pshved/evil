@@ -126,7 +126,8 @@ module PostsHelper
       buf << ' (-)'
     else
       if view_opts[:plus]
-        buf << ' (+)'
+        # Let's insert a JavaScript "+"!
+        buf << %Q( <a class="postbody" onclick="pbsh(#{post.id});" href="lol">(+)</a>)
       end
     end
     # (url)/(pic) marks
@@ -197,7 +198,7 @@ module PostsHelper
   def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, view_opts = {})
     # If start is nil, then we're printing the index, and skip the post itself.
     if start
-      buf << %Q(<div class="post-header">)
+      buf << %Q(<div class="post-header" id="p#{start.id}">)
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}

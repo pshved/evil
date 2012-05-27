@@ -64,6 +64,20 @@ span.user-unreg {
   }
 }
 
+/* Post body hide/show link */
+.post-header a.postbody {
+  text-decoration: none;
+}
+
+/* Post body in index div */
+.post-header div.postbody {
+  text-decoration: none;
+  font-size: 133%;
+  border-bottom: 1px solid #999999;
+  border-top: 1px solid #999999;
+}
+
+
 /* Posts hidden/closed information bar */
 .hidden-bar {
   margin-top: 4px;
