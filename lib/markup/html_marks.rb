@@ -4,6 +4,8 @@ require 'xml'
 def calculate_marks_for_html(text,context)
   # Don't try to parse blank text
   return if text.blank?
+  # skip marks calculation if context is nil--we must have already calculated the marks
+  return if context.nil?
 
   begin
     doc = XML::HTMLParser.string(text, :options => XML::HTMLParser::Options::RECOVER).parse
