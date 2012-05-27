@@ -203,7 +203,8 @@ module PostsHelper
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
 
-      if (info[start.id] || {})[:has_nonempty_body]
+      # Do not show (+++) if we don't show a usual (+), since it's not going to work anyway
+      if view_opts[:plus] && (info[start.id] || {})[:has_nonempty_body]
         buf << %Q( <a class="subthreadbody" href="#">(+++)</a>)
       end
 
