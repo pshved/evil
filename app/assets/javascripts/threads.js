@@ -50,8 +50,10 @@ jQuery(function($) {
 
   /* Call that show-only event via special links */
   $('a.subthreadbody').click(function (event){
-    $(this).closest('li').find('a.postbody').addClass('inprogress');
-    $(this).closest('li').find('a.postbody').trigger('showbody');
+    // We are to trigger "expand" events at all proper children of this post.  This selector should get the div that wraps all children of this post.  We start from <a> link which is in header which is in the div we are looking for.
+    var start_from = $(this).parent().parent();
+    start_from.find('a.postbody').addClass('inprogress');
+    start_from.find('a.postbody').trigger('showbody');
   });
 });
 
