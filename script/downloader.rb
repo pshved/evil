@@ -70,6 +70,15 @@ def lap(stuff, wtf = '')
   stuff
 end
 
+# Range doesn't have empty? method? O_o
+# Let's add one, but one that doesn't convert it to an array: the range may be quite big!
+class Range
+  def empty?
+    # That would've been 'peek', but for this script we maintain 1.8 compatibility
+    (!each.next) rescue true
+  end
+end
+
 ###############################################
 #  Downloading section
 ###############################################
@@ -132,7 +141,8 @@ def inf_retry(pause_sec = 30)
 end
 
 class WebDownloader
-  PAUSE = 10
+  # Default pause in order to not bombard the target with queries
+  PAUSE = 3
   def initialize(wait_breaker = DummyIntervalRequestor.new)
     @wait_breaker = wait_breaker
   end
@@ -312,6 +322,35 @@ class LimitedUpStrategy < NullStrategy
   end
 end
 
+# Waiting strategy.  At peek, it runs the proc until its result is true.  Does't wait at the consequent peeks.
+class WaitForSomethingNewStrategy < NullStrategy
+  def initialize(initial, check_proc, next_proc, name = "something")
+    super(initial - 1)
+    @initial = initial
+    @new_last = @initial - 1
+
+    @check = check_proc
+    @next = next_proc
+
+    @name = name
+  end
+  def move(response)
+    # Just return the next strategy if we have successfully waited for our event.
+    (@new_last >= @initial) ? @next[@new_last] : self
+  end
+  def print
+    "<WAIT for #{@name}>"
+  end
+  def peek
+    $log.debug "Starting to wait for more #{@name}"
+    while @new_last < @initial
+      @new_last = @check[]
+    end
+    # Only a small pause: we have successfully waited for our event, so we don't want to wait!
+    {:range => [], :pause => 1}
+  end
+end
+
 # Iterates over several strategies in the round-robin fashion, discarding those that reach quiesence.
 class AlterStrategy < NullStrategy
   def initialize(*strategies)
@@ -455,8 +494,11 @@ class XmlfpDownloader < BoardDownloader
   end
 
   def get_posts(range,pause = nil)
+    # Do not download anything if there's no task to
+    return {} if !range || range.empty?
+
     $log.info "Getting range from #{range.first} to #{range.last}"
-    $log.debug "Downloading #{make_url(range.first,range.last)}"
+    $log.debug "Downloading #{make_url(range.first,range.last)} with pause #{pause}"
     body = @dl.download(make_url(range.first,range.last),pause)
     $log.debug "Response: #{body ? body[0..10] : body.inspect}..."
 
@@ -504,17 +546,14 @@ class XmlfpFetcher < Fetcher
 
     # We should re-program our strategy so that it queries last_message_id when it finds a nonexistent post
     get_last_message_when_reach_up = y_combinator {|recurse| proc do |current|
-      # Check last message ID until it's at least as big as what we'd like to get
+      # We can't just wait for new messages here.  Instead, we switch to a "waiting" strategy that switches back to LimitedUp as soon as it finds the message
       $log.info "Starting to wait for more messages with less heavy queueing; will start from #{current} asap"
-      last_id = @dl.get_last_message_id
-      while last_id < current
-        last_id = @dl.get_last_message_id
-      end
-      $log.debug "Switching to LimitedUp"
-      # As soon as we got the last message id greater than this one, download them and start waiting again
-      LimitedUpStrategy.new(current,last_id,MAX_STEP,recurse)
+      WaitForSomethingNewStrategy.new(current, proc {@dl.get_last_message_id}, proc { |new_last|
+        $log.debug "Switching to LimitedUp"
+        # As soon as we got the last message id greater than this one, download them and start waiting again
+        LimitedUpStrategy.new(current,new_last,MAX_STEP,recurse)
+      })
     end}
-
 
     s = opts[:start]
     e = opts[:end]
@@ -622,7 +661,7 @@ while true
       next
     end
     r1, r2 = downloaded_ids.first, downloaded_ids.last
-    $log.info "Range from #{r1} to #{r2}"
+    $log.info "Posting range from #{r1} to #{r2}"
     # Send post to the target
     if targ = options[:target] && (!options[:dry])
       inf_retry(10){
