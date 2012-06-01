@@ -38,6 +38,8 @@ ru:
       recaptcha_unavailable: 'Каптча не сработала.  Реши-ка ещё загадку!'
       verification_failed: 'Да ты же робот!  Старайся получше!'
   signatures_are_hidden: Пользователь имеет подпись, но её отображение запрещено в настройках.
+  page_load_time_is: Тормозной Руби осилил страницу за
+  page_load_time_seconds: секунд (Real Time)
   notice:
     session:
       login: Вы вошли в конференцию.
