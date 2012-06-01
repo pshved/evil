@@ -89,6 +89,10 @@ class Posts < ActiveRecord::Base
     ensure_container.body[0]
   end
 
+  def filtered_title
+    text_container.filtered[0]
+  end
+
   def body
     ensure_container.body[1]
   end

@@ -9,6 +9,9 @@
   <% if %w(posts).include? params[:controller] %>
     <%= javascript_include_tag params[:controller] %>
   <% end %>
+  <!-- These inline styles are used to highlight your name and the current post efficiently. -->
+  <style type="text/css"><%= yield :current_post_style %></style>
+  <style type="text/css"><%= yield :current_user_style %></style>
   <%= csrf_meta_tags %>
 </head>
 <body>
