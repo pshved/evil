@@ -10,11 +10,7 @@ module ApplicationHelper
   # Helper to create nice user links in a fast manner
   def user_link(user, maybe_unreg = nil)
     if user
-      if user == current_user
-        haml_tag 'span.user-self',link_to(user.login, user_path(user))
-      else
-        haml_tag 'span.user-other',link_to(user.login, user_path(user))
-      end
+      haml_tag %Q(span.user-other.uid#{user.login}),link_to(user.login, user_path(user))
     else
       haml_tag 'span.user-unreg',(maybe_unreg || 'NIL')
     end
