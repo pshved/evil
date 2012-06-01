@@ -37,7 +37,7 @@
             =ta(:last_edit,:post)
             ="#{user_time @post.edited_at}."
   %div.post-title
-    = @post.title
+    != @post.filtered_title
   %div.post-body
     -# Note that we do not strip the post in DB, but rather do it in the view
     - unless (pb = @post.filtered_body.strip).blank?
