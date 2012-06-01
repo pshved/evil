@@ -18,7 +18,7 @@ class BackwardsController < ApplicationController
     elsif index
       prepare_threads
       # here we do not want to redirect: it's not nice.  Just render a partial.
-      render :action => 'index'
+      render :action => 'index', :stream => true
     end
   end
 
