@@ -86,7 +86,7 @@ module PostsHelper
 
   # Casted after the tree is printed.  Changes the class of the span the current post's header is wrapped, so that it looks differently
   def post_span_replace(post,tree_string)
-    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,%Q(<!--post:#{post.id}--><span class="this-post-oneline">))
+    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,%Q(<!--post:#{post.id}--><span class="this-post post-oneline">))
   end
 
   def fast_print_username(buf,post)
