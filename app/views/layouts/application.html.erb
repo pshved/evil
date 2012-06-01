@@ -9,6 +9,7 @@
   <% if %w(posts).include? params[:controller] %>
     <%= javascript_include_tag params[:controller] %>
   <% end %>
+  <style type="text/css"><%= yield :current_post_style %></style>
   <%= csrf_meta_tags %>
 </head>
 <body>

@@ -86,7 +86,18 @@ module PostsHelper
 
   # Casted after the tree is printed.  Changes the class of the span the current post's header is wrapped, so that it looks differently
   def post_span_replace(post,tree_string)
-    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,%Q(<!--post:#{post.id}--><span class="this-post post-oneline">))
+    # If we're not showing any particular post, do not add any styles
+    if post
+      content_for :current_post_style, <<EOS
+span.css#{post.id} a {
+  font-weight: bold;
+  color: #000;
+  &:visited {}
+  &:hover   { color: #000; }
+}
+EOS
+    end
+    tree_string
   end
 
   def fast_print_username(buf,post)
@@ -117,8 +128,8 @@ module PostsHelper
     buf << %Q(<span class="post-deleted">) if post.deleted
 
     # Post title (link or plain, depending on whether it's the current post)
-    # Warning!  This comment with a post's ID is used to replace the span's class to match the post.  See post_span_replace function.
-    buf << %Q(<!--post:#{post.id}--><span class="post-oneline">)
+    # The css class with post.id is used to render the same thread regardless what post is current, making the thread browsing easier.  See post_span_replace for how it works.
+    buf << %Q(<!--post:#{post.id}--><span class="post-oneline css#{post.id}">)
     # This already prints to the buf!  Do not append, or your memory will blow!
     fast_link[buf,post]
     buf << %Q(</span>)
