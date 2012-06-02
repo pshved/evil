@@ -42,6 +42,8 @@ class UsersController < ApplicationController
   # POST /users.json
   def create
     @user = User.new(params[:user])
+    # Mass-assignment protection doesn't allow us to do this.
+    @user.login = params[:user][:login]
 
     respond_to do |format|
       # Do not check captcha on validation failure: user should be able to first complete the form correctly without solving the captcha.
