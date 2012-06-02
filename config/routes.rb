@@ -7,6 +7,7 @@ Zlo::Application.routes.draw do
   match "api/import/interval/:source" => 'api#interval'
 
   root :controller => 'backwards', :action => 'index'
+  match '/page/:page' => 'backwards#index'
 
   match 'login' => 'user_sessions#new', :as => 'login'
   # Protected with get_csrf_token
