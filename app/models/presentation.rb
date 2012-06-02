@@ -3,6 +3,9 @@ class Presentation < ActiveRecord::Base
   belongs_to :user
   composed_of :tz, :class_name => 'TZInfo::Timezone', :mapping => %w(time_zone time_zone)
 
+  # Mass-assignment protection
+  attr_accessible :name, :global, :time_zone, :threadpage_size, :highlight_self, :hide_signatures, :smooth_threshold, :plus, :autowrap_thread_threshold, :autowrap_thread_value
+
   validates_uniqueness_of :name, :scope => :user_id, :unless => proc {|p| p.user.nil?}
   validates_uniqueness_of :cookie_key, :unless => proc {|p| p.cookie_key.nil?}
 
