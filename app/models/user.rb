@@ -92,7 +92,7 @@ class User < ActiveRecord::Base
   end
   # Belongs_to associations, unlike has_one, need to be saved explicitly
   before_save do
-    signature.save
+    ensure_signature.save
   end
 
   # Caching
