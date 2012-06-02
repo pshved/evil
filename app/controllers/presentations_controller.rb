@@ -124,7 +124,7 @@ class PresentationsController < ApplicationController
       @presentation = Presentation.new(params[:presentation].merge(user_hash))
     else
       # Create local presentation
-      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies)
+      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies,request.remote_ip)
     end
   end
 

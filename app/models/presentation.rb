@@ -48,9 +48,10 @@ class Presentation < ActiveRecord::Base
     cookies[:presentation_name] = { :value => self.name, :expires => VIEW_EXPIRATION_TIME.from_now }
   end
 
-  # Saves this as a local view to the cookies supplied
-  def record_into(cookies)
+  # Saves this as a local view to the cookies supplied.  Will delete old presentations that belong to the given IP address.
+  def record_into(cookies, origin_ip = nil)
     generate_cookie_key
+    self.requested_by = origin_ip
     cookies[:presentation_key] = { :value => self.cookie_key, :expires => VIEW_EXPIRATION_TIME.from_now }
     self
   end
@@ -105,5 +106,22 @@ class Presentation < ActiveRecord::Base
       key = "ck_#{generate_random_string(35, '0123456789abcdef')}"
     end until not Presentation.find_by_cookie_key(key)
     self.cookie_key = key
+  end
+
+  # Remove old presentations for this IP address
+  KEEP_FOR_IP = 5
+  scope :cookie_based, where(:global => false, :user_id => nil)
+  after_create do
+    # Not removing Presentations with NULL requestors maintains backward compatibility!
+    unless requested_by.blank?
+      # Get access time for the "worst" presentation
+      threshold_access_time = Presentation.cookie_based.where(:requested_by => requested_by).where('accessed_at is not NULL').order('accessed_at DESC').first(KEEP_FOR_IP).map(&:accessed_at).compact.min
+      Presentation.cookie_based.where(:requested_by => requested_by).where(['accessed_at is NULL OR accessed_at < ?', threshold_access_time]).delete_all
+    end
+  end
+  # The protection requires a correctly set accessed_at...
+  before_save do
+    self.accessed_at ||= Time.now
+    true
   end
 end
