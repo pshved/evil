@@ -10,6 +10,8 @@ class PresentationsController < ApplicationController
   filter_access_to :index, :attribute_check => false
   filter_access_to :edit_default, :attribute_check => false
 
+  before_filter :verify_get_csrf, :only => [:use, :clone, :make_default]
+
   # GET /presentations
   # GET /presentations.json
   def index
@@ -122,7 +124,7 @@ class PresentationsController < ApplicationController
       @presentation = Presentation.new(params[:presentation].merge(user_hash))
     else
       # Create local presentation
-      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies)
+      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies,request.remote_ip)
     end
   end
 

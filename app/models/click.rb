@@ -3,6 +3,9 @@ require 'autoload/utils'
 class Click < ActiveRecord::Base
   belongs_to :post, :class_name => 'Posts'
 
+  # Mass-assignment security
+  attr_accessible :last_click, :clicks
+
   def self.clicker(user = nil, ip = '127.0.0.1')
     # We don't need to get a nice host here.
     user ? user.login : ip

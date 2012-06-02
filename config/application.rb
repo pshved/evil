@@ -55,5 +55,8 @@ module Zlo
 
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
+
+    # Paranoid mass-assignment protection
+    config.active_record.whitelist_attributes = true
   end
 end

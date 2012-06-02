@@ -39,6 +39,24 @@ class ApplicationController < ActionController::Base
   # Allow its use in views (moreover, it's unlikely we'll use it in the controller at all)
   helper_method :current_presentation
 
+  # CSRF protection: POST requests are protected, this is used for GET protection.  Merge the result of get_csrf_token to params hash, and call verify_get_csrf as a before filter before actions.
+  def get_csrf_token
+    if current_user
+      { :gctok => current_user.persistence_token }
+    else
+      {}
+    end
+  end
+  helper_method :get_csrf_token
+  def verify_get_csrf
+    if current_user
+      permission_denied unless params[:gctok] == current_user.persistence_token
+    else
+      # Someone's doing something nasty, deny permissions
+      permission_denied unless params[:gctok].blank?
+    end
+  end
+
   # A convenience helper to get a cache-stamp of something.  This "something" usually has a modification time accessible via "updated_at" and an id.
   def key_of(something,ifnil = 'nil')
     something ? "#{something.id}@#{something.updated_at}" : ifnil

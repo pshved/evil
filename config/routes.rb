@@ -9,6 +9,7 @@ Zlo::Application.routes.draw do
   root :controller => 'backwards', :action => 'index'
 
   match 'login' => 'user_sessions#new', :as => 'login'
+  # Protected with get_csrf_token
   match 'logout' => 'user_sessions#destroy', :as => 'logout'
 
   resources :threads, :only => [:new]
@@ -31,6 +32,7 @@ Zlo::Application.routes.draw do
   # User's view settings
   resources :presentations do
     member do
+      # Protected with get_csrf_token
       get :use, :clone, :make_default
     end
     collection do

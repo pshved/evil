@@ -70,10 +70,12 @@ class PrivateMessagesController < ApplicationController
   end
 
   def new_private_message_from_params
-    @private_message = PrivateMessage.new(params[:private_message].merge(:current_user => current_user))
+    @private_message = PrivateMessage.new(params[:private_message])
+    @private_message.current_user = current_user
   end
 
   def new_private_message
-    @private_message = PrivateMessage.new(:current_user => current_user, :recipient_user_login => params[:to], :reply_to_stamp => params[:replyto])
+    @private_message = PrivateMessage.new(:recipient_user_login => params[:to], :reply_to_stamp => params[:replyto])
+    @private_message.current_user = current_user
   end
 end

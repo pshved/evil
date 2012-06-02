@@ -10,10 +10,14 @@ class User < ActiveRecord::Base
     find_last_by_login(login)
   end
 
+  # Mass-assignment protection
+  attr_accessible :login, :password, :password_confirmation, :email, :signature_body
+
   has_many :private_messages
   has_many :unread_messages, :class_name => 'PrivateMessage', :conditions => {:unread => true}
 
   attr_accessor :current_password
+  attr_accessible :current_password
 
   # For use in form
   validates_each :current_password do |record, attr, value|
