@@ -11,7 +11,7 @@ class User < ActiveRecord::Base
   end
 
   # Mass-assignment protection
-  attr_accessible :login, :password, :password_confirmation, :email, :signature_body
+  attr_accessible :password, :password_confirmation, :email, :signature_body
 
   has_many :private_messages
   has_many :unread_messages, :class_name => 'PrivateMessage', :conditions => {:unread => true}
@@ -92,7 +92,7 @@ class User < ActiveRecord::Base
   end
   # Belongs_to associations, unlike has_one, need to be saved explicitly
   before_save do
-    signature.save
+    ensure_signature.save
   end
 
   # Caching

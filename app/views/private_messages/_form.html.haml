@@ -11,6 +11,6 @@
     =f.label :msg_body
     =f.text_area :msg_body, :cols => 60, :rows => 5
   %div.actions
-    = f.submit 'Preview'
+    = f.submit t('helpers.submit.private_message.preview'), :default => true, :name => :preview
     = f.submit
 

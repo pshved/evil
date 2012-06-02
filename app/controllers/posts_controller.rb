@@ -63,7 +63,7 @@ class PostsController < ApplicationController
   # PUT /posts/1
   # PUT /posts/1.json
   def update
-    if params[:commit] == 'Preview'
+    if ! params[:preview].blank?
       @post.assign_attributes(params[:posts])
       # This is a preview, validate and show it
       @post.valid?
