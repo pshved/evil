@@ -87,9 +87,10 @@ module PostsHelper
   # Casted after the tree is printed.  Changes the class of the span the current post's header is wrapped, so that it looks differently
   def post_span_replace(tree_string,post,user = current_user)
     user_login = user ? user.login : nil
+    # NOTE: I tried to use "provide" instead of "content_for" to avoid unnecessary concatenation, but it didn't work.  Instead, we check if the content has been supplied before printing it. (TODO: check if slow!)
     # If we're not showing any particular post, do not add any styles
-    if post
-      content_for :current_post_style, <<EOS
+    if post && !(content_for? :current_post_style)
+      provide :current_post_style, <<EOS
 span.css#{post.id} a {
   font-weight: bold;
   color: #000;
@@ -100,9 +101,9 @@ EOS
     end
 
     # Not only we check if the user login is supplied but also if we actually want to highlight it
-    if user_login && should_highlight[user_login]
+    if user_login && should_highlight[user_login] && !(content_for? :current_user_style)
       # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
-      content_for :current_user_style, <<EOS
+      provide :current_user_style, <<EOS
 span.uid#{user_login} a {
   font-weight: bold;
   color: red;
