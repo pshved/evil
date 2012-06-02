@@ -7,7 +7,7 @@ class LoginpostsController < ApplicationController
   # POST /loginposts
   def create
     @loginpost.post.host = gethostbyaddr(request.remote_ip)
-    if params[:commit] == 'Preview'
+    if ! params[:preview].blank?
       # This is a preview, validate and show it
       @loginpost.valid?
       @post = @loginpost.post

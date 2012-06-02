@@ -33,6 +33,6 @@
       %td{:colspan => 2, :align => :center}
         =f.text_area 'body', :cols => 75, :rows => 12
 
-  = f.submit 'Preview'
+  = f.submit t('helpers.submit.posts.preview'), :default => true, :name => :preview
   = f.submit
 

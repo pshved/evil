@@ -54,7 +54,7 @@
         =f.text_area 'body', :tabindex => 2, :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('loginpost_body');"
     %tr
       %td{:colspan => 2, :align => :center}
-        = f.submit 'Preview', :tabindex => 4
+        = f.submit t('helpers.submit.posts.preview'), :tabindex => 4, :default => true, :name => :preview
         = f.submit :tabindex => 3
     %tr
       %td{:colspan => 2, :align => :center}

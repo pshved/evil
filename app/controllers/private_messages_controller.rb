@@ -45,10 +45,10 @@ class PrivateMessagesController < ApplicationController
   # POST /private_messages
   # POST /private_messages.json
   def create
-    if params[:commit] == 'Preview'
+    if ! params[:preview].blank?
       @private_message.valid?
       respond_to do |format|
-        flash[:notice] = 'This is a preview only!'
+        flash[:notice] = t('notice.preview')
         format.html { render action: "new" }
       end
     else

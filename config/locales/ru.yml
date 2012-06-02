@@ -165,10 +165,14 @@ ru:
     submit:
       posts:
         create: "Отправить сообщение"
+        preview: "Предпросмотр"
       loginpost:
         create: "Отправить сообщение"
+        preview: "Предпросмотр"
       user_session:
         create: "Войти"
+      private_message:
+        preview: "Предпросмотр"
   errors:
     credentials: "Неправильный логин/пароль"
     blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"
