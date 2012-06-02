@@ -10,6 +10,8 @@ class PresentationsController < ApplicationController
   filter_access_to :index, :attribute_check => false
   filter_access_to :edit_default, :attribute_check => false
 
+  before_filter :verify_get_csrf, :only => [:use, :clone, :make_default]
+
   # GET /presentations
   # GET /presentations.json
   def index
