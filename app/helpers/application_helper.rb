@@ -46,18 +46,18 @@ module ApplicationHelper
   end
 
   # GET CSRF protection
-  # Redefine logout link to protect from csrf
+  # Redefine logout link to protect from csrf.  Note / in front of the controllers: this is to make them work from within namespaces.
   def logout_path
-    url_for({:controller => :user_sessions, :action => :destroy}.merge get_csrf_token)
+    url_for({:controller => '/user_sessions', :action => :destroy}.merge get_csrf_token)
   end
 
   def use_presentation_path(p)
-    url_for({:controller => :presentations, :id => p.id, :action => :use}.merge get_csrf_token)
+    url_for({:controller => '/presentations', :id => p.id, :action => :use}.merge get_csrf_token)
   end
   def make_default_presentation_path(p)
-    url_for({:controller => :presentations, :id => p.id, :action => :make_default}.merge get_csrf_token)
+    url_for({:controller => '/presentations', :id => p.id, :action => :make_default}.merge get_csrf_token)
   end
   def clone_presentation_path(p)
-    url_for({:controller => :presentations, :id => p.id, :action => :clone}.merge get_csrf_token)
+    url_for({:controller => '/presentations', :id => p.id, :action => :clone}.merge get_csrf_token)
   end
 end
