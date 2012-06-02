@@ -44,4 +44,9 @@ module ApplicationHelper
   def ta(attrib,model,options = {})
     I18n.t("activerecord.attributes.#{model}.#{attrib}",{:defaults => "activemodel.attributes.#{model}.#{attrib}"}.merge(options))
   end
+
+  # Redefine logout link to protect from csrf
+  def logout_path
+    url_for({:controller => :user_sessions, :action => :destroy}.merge get_csrf_token)
+  end
 end
