@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120502190404) do
+ActiveRecord::Schema.define(:version => 20120602203015) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -112,6 +112,7 @@ ActiveRecord::Schema.define(:version => 20120502190404) do
   end
 
   add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"
+  add_index "presentations", ["cookie_key"], :name => "index_presentations_on_cookie_key"
   add_index "presentations", ["global"], :name => "index_presentations_on_global"
   add_index "presentations", ["name"], :name => "index_presentations_on_name"
   add_index "presentations", ["user_id", "name"], :name => "index_presentations_on_user_id_and_name"
