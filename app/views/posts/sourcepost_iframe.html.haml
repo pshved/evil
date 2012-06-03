@@ -3,7 +3,8 @@
     %meta{:content=>"text/html; charset=windows-1251", 'http-equiv'=>"Content-Type"}
     = stylesheet_link_tag    "application" 
     = javascript_include_tag "application"
-    = javascript_include_tag params[:controller]
+    = javascript_include_tag "posts"
+    = javascript_include_tag "sources"
   %body
     %form{ :action => @source.reply_to_post_url(@source_reply_to), :method => :post, :name => 'postform'}
       -# Now the form itself
@@ -43,5 +44,5 @@
             =text_area_tag 'body', '', :tabindex => 2, :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('body');"
         %tr
           %td{:colspan => 2, :align => :center}
-            = submit_tag t('helpers.submit.posts.preview'), :tabindex => 4, :default => true, :name => :preview
-            = submit_tag t('helpers.submit.loginpost.create'), :tabindex => 3, :name => 'post'
+            = submit_tag t('helpers.submit.posts.preview'), :tabindex => 4, :default => true, :name => :preview, :disabled => true
+            = submit_tag t('helpers.submit.loginpost.create'), :tabindex => 3, :name => 'post', :onclick => 'this.disabled=true'
