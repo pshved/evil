@@ -3,7 +3,7 @@
     %meta{:content=>"text/html; charset=windows-1251", 'http-equiv'=>"Content-Type"}
     = stylesheet_link_tag    "application" 
     = javascript_include_tag "application"
-    = javascript_include_tag params[:controller]
+    = javascript_include_tag "posts"
   %body
     %form{ :action => @source.reply_to_post_url(@source_reply_to), :method => :post, :name => 'postform'}
       -# Now the form itself
