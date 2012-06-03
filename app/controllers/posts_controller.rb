@@ -76,7 +76,10 @@ class PostsController < ApplicationController
       end
     else
       respond_to do |format|
-        if @post.update_attributes(params[:posts])
+        # Set the editor for the post
+        @post.assign_attributes(params[:posts])
+        @post.last_editor = current_user
+        if @post.save
           format.html { redirect_to @post, notice: t('notice.edited') }
           format.json { head :ok }
         else

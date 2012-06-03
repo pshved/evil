@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120602203936) do
+ActiveRecord::Schema.define(:version => 20120603210757) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -177,11 +177,13 @@ ActiveRecord::Schema.define(:version => 20120602203936) do
     t.text     "body"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "user_id"
   end
 
   add_index "text_items", ["text_container_id", "revision", "number"], :name => "k_rev_i_id", :unique => true
   add_index "text_items", ["text_container_id", "revision"], :name => "k_rev_id"
   add_index "text_items", ["text_container_id"], :name => "index_text_items_on_text_container_id"
+  add_index "text_items", ["user_id"], :name => "index_text_items_on_user_id"
 
   create_table "threads", :force => true do |t|
     t.integer  "head_id"

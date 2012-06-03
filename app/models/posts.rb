@@ -229,4 +229,12 @@ class Posts < ActiveRecord::Base
     text_container ? text_container.updated_at : updated_at
   end
 
+  def last_editor
+    ensure_container ? ensure_container.last_editor : nil
+  end
+
+  def last_editor=(e)
+    ensure_container.last_editor = e if ensure_container
+  end
+
 end
