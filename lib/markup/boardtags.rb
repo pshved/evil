@@ -182,12 +182,12 @@ module RegexpConvertNode
         $c.sign[:url] = true
       else
         # No more URLs left, returning
-        result += to_convert
+        result += h(to_convert)
         to_convert = ''
       end
     end
-    t = html_escape result
-    # The string is HTML-safe at this point.
+    # The string is already HTML-safe at this point -- see these h() calls to non-URL parts above
+    t = result
 
     # Find each conversion until it's exhausted
     TagConversions.each do |tcd|
