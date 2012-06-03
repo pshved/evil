@@ -17,6 +17,9 @@ class Posts < ActiveRecord::Base
   # This will be set if the post has been imported
   has_one :import, :foreign_key => 'post_id'
 
+  # Mass-assignment protection
+  attr_accessible :body, :title, :unreg_name, :host
+
   validates_presence_of :thread, :strict => true
   # Each post should have a parent except for the root ones
   # I had to rename "empty?" method and "empty" field on Posts to "empty_body", as it treated a post with an empty body as blank, and invalidated its kid
@@ -87,6 +90,10 @@ class Posts < ActiveRecord::Base
 
   def title
     ensure_container.body[0]
+  end
+
+  def filtered_title
+    text_container.filtered[0]
   end
 
   def body

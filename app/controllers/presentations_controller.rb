@@ -10,6 +10,8 @@ class PresentationsController < ApplicationController
   filter_access_to :index, :attribute_check => false
   filter_access_to :edit_default, :attribute_check => false
 
+  before_filter :verify_get_csrf, :only => [:use, :clone, :make_default]
+
   # GET /presentations
   # GET /presentations.json
   def index
@@ -118,11 +120,11 @@ class PresentationsController < ApplicationController
   def new_presentation_from_params
     if current_user
       # Create presentation for the user (if it's not a global, site-wide, special presentation
-      user_hash = (params[:presentation][:global].blank? || (params[:presentation][:global] == '0')) ? {:user => current_user} : {}
-      @presentation = Presentation.new(params[:presentation].merge(user_hash))
+      @presentation = Presentation.new(params[:presentation])
+      @presentation.user = current_user if (params[:presentation][:global].blank? || (params[:presentation][:global] == '0'))
     else
       # Create local presentation
-      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies)
+      @presentation = Presentation.new({:name => 'local'}.merge(params[:presentation])).record_into(cookies,request.remote_ip)
     end
   end
 

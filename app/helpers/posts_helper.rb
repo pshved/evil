@@ -85,22 +85,42 @@ module PostsHelper
   end
 
   # Casted after the tree is printed.  Changes the class of the span the current post's header is wrapped, so that it looks differently
-  def post_span_replace(post,tree_string)
-    post.nil? ? tree_string : tree_string.gsub(/<!--post:#{post.id}--><span class="post-oneline">/,%Q(<!--post:#{post.id}--><span class="this-post-oneline">))
+  def post_span_replace(tree_string,post,user = current_user)
+    user_login = user ? user.login : nil
+    # NOTE: I tried to use "provide" instead of "content_for" to avoid unnecessary concatenation, but it didn't work.  Instead, we check if the content has been supplied before printing it. (TODO: check if slow!)
+    # If we're not showing any particular post, do not add any styles
+    if post && !(content_for? :current_post_style)
+      provide :current_post_style, <<EOS
+span.css#{post.id} a {
+  font-weight: bold;
+  color: #000;
+  &:visited {}
+  &:hover   { color: #000; }
+}
+EOS
+    end
+
+    # Not only we check if the user login is supplied but also if we actually want to highlight it
+    if user_login && should_highlight[user_login] && !(content_for? :current_user_style)
+      # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
+      provide :current_user_style, <<EOS
+span.uid#{user_login} a {
+  font-weight: bold;
+  color: red;
+}
+EOS
+    end
+    tree_string
   end
 
   def fast_print_username(buf,post)
     # NOTE: keep this in sync with user_link in application_helper.rb!
 
     # Due to the speed concerns, we use user_login here instead of user.login, so we don't need to load users
-    # NOTE that the CSS classes should coincide with those in user_link function in app/helpers/application_helper.rb
     if this_login = post.user_login
       # Highlight message, if necessary
-      if should_highlight[this_login]
-        buf << %Q(<span class="user-self">)
-      else
-        buf << %Q(<span class="user-other">)
-      end
+      # See post_span_replace where the uid is used.
+      buf << %Q(<span class="user-other uid#{this_login}">)
       fast_user[buf,this_login]
       buf << %Q(</span>)
     else
@@ -117,8 +137,8 @@ module PostsHelper
     buf << %Q(<span class="post-deleted">) if post.deleted
 
     # Post title (link or plain, depending on whether it's the current post)
-    # Warning!  This comment with a post's ID is used to replace the span's class to match the post.  See post_span_replace function.
-    buf << %Q(<!--post:#{post.id}--><span class="post-oneline">)
+    # The css class with post.id is used to render the same thread regardless what post is current, making the thread browsing easier.  See post_span_replace for how it works.
+    buf << %Q(<!--post:#{post.id}--><span class="post-oneline css#{post.id}">)
     # This already prints to the buf!  Do not append, or your memory will blow!
     fast_link[buf,post]
     buf << %Q(</span>)
@@ -238,7 +258,7 @@ module PostsHelper
 
   def fast_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, view_opts = {})
     prepped = fast_generic_tree(buf,tree,start,info,tz,view_opts)
-    post_span_replace(@post,prepped)
+    post_span_replace(prepped,@post,current_user)
   end
 
   def fast_tree_presentation(buf,tree,start,info = {}, presentation = nil)
@@ -256,23 +276,24 @@ module PostsHelper
       fast_usual_tree_cache(thr,buf,start,presentation)
     end
     # Replace current post's class
-    post_span_replace(@post,prepped)
+    post_span_replace(prepped,@post,current_user)
   end
 
   def fast_usual_tree_cache(thr,buf,start,presentation)
     # The wat a thread is displayed depends on many factors.
     # - thread itself (identified by id and modification time);
-    # - the user itself (his or her name may be colored), identified by id *and* modification time (think altnames!).  This implies that its roles are already accounted for.
-    # - the user's presentation (identified by its id and mtime)
+    # - the user's presentation (identified by its id and mtime... for now.  Later)
+    # - the user's show/hide for this thread (currently induced by the presentation anyway).
     # - the current thread (this is fixed by a kludgy regexp).
     # - global configuration of the site (modification time of it);
+    # x the user itself (his or her name may be colored).  Instead, coloring is done via CSS.
     # x user's timezone (this is accounted for in the presentations)
-    # x what post we are showing (it's @post).  This will be replaces with a regexp-like kludge.
+    # x what post we are showing (it's @post).  This will be replaced via CSS.
     # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
     thread_key = key_of thr
     user_key = key_of(current_user,'guest')
     presentation_key = key_of presentation
-    cache_key = "tree-thread:#{thread_key}-user:#{user_key}-view:#{presentation_key}-global:#{config_mtime}-#{@show_all_posts}"
+    cache_key = "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-#{@show_all_posts}"
     logger.debug "Tree for key: '#{cache_key}'"
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do

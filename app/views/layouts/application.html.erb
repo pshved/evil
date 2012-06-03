@@ -9,6 +9,9 @@
   <% if %w(posts).include? params[:controller] %>
     <%= javascript_include_tag params[:controller] %>
   <% end %>
+  <!-- These inline styles are used to highlight your name and the current post efficiently. -->
+  <style type="text/css"><%= yield :current_post_style %></style>
+  <style type="text/css"><%= yield :current_user_style %></style>
   <%= csrf_meta_tags %>
 </head>
 <body>
@@ -80,6 +83,10 @@
   <div class="copyright">
     <%= t :copyright %>
     <%= link_to t(:here), 'http://dev.coldattic.info/projects/evil/' %>.
+    <br/>
+    <%= t :page_load_time_is %>
+    <%= page_load_time %>
+    <%= t :page_load_time_seconds %>
   </div>
 </div>
 </body>

@@ -1,4 +1,8 @@
 class UserSessionsController < ApplicationController
+  # CSRF protection: since logoff is a GET request, while it should be POST, we should authenticate a request via GET params, not just via cookies.
+  # Reuse persistence token for this.  See ApplicationController for the method.
+  before_filter :verify_get_csrf, :only => :destroy
+
   # GET /user_sessions
   # GET /user_sessions.json
   def index

@@ -4,6 +4,10 @@ class HiddenPostsUsers < ActiveRecord::Base
 
   belongs_to :hidden_post, :class_name => 'Posts', :foreign_key => 'posts_id', :conditions => %Q(action = 'hide')
 
+  # Mass-assignemnt "protection"
+  # NOTE: this model is not accessible directly
+  attr_accessible :user_id, :posts_id, :action
+
   def self.inverse(action)
     case action
     when :show

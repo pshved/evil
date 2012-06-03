@@ -10,6 +10,9 @@ class PrivateMessage < ActiveRecord::Base
   belongs_to :user
   has_many :replies, :foreign_key => 'reply_to_id', :class_name => 'PrivateMessage'
 
+  # Mass-assignment protection
+  # no DB fields to protect; see more below
+
   validates_presence_of :text_container
   validates_presence_of :sender_user
   # The message owner must exist
@@ -21,6 +24,7 @@ class PrivateMessage < ActiveRecord::Base
 
   # Form validation
   attr_accessor :recipient_user_login, :msg_body, :current_user, :reply_to_stamp
+  attr_accessible :recipient_user_login, :msg_body, :reply_to_stamp
 
   # For use in form
   validates_each :recipient_user_login, :on => :create do |record, attr, value|
@@ -53,7 +57,8 @@ class PrivateMessage < ActiveRecord::Base
       :msg_body => body,
       :reply_to_stamp => (reply_to ? reply_to.stamp : nil),
       :unread => set_unread,
-      :created_at => created_at})
+      :created_at => created_at},
+                         :without_protection => true)
   end
   after_create do
     unless skip_counterpart
