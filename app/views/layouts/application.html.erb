@@ -85,7 +85,7 @@
     <%= link_to t(:here), 'http://dev.coldattic.info/projects/evil/' %>.
     <br/>
     <%= t :page_load_time_is %>
-    <%= sprintf('%.3f', (Time.now.usec - @page_start_time).abs / 1000000.0) %>
+    <%= page_load_time %>
     <%= t :page_load_time_seconds %>
   </div>
 </div>

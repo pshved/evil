@@ -2,11 +2,14 @@ require 'autoload/utils'
 require 'activity_tracker'
 class ApplicationController < ActionController::Base
   protect_from_forgery
-  helper_method :current_user_session, :current_user
-
   # Page rendering time utils (must be at the beginning)
-  before_filter { @page_start_time = Time.now.usec }
+  before_filter { @page_start_time = Time.now.to_f }
+  helper_method :page_load_time
+  def page_load_time
+    sprintf('%.3f', (Time.now.to_f - @page_start_time))
+  end
 
+  helper_method :current_user_session, :current_user
   private
     def current_user_session
       return @current_user_session if defined?(@current_user_session)
