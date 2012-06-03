@@ -36,7 +36,10 @@
         -if @post.created_at != @post.edited_at
           %span.edited-at
             =ta(:last_edit,:post)
-            ="#{user_time @post.edited_at}."
+            ="#{user_time @post.edited_at}"
+            - if editor = @post.last_editor
+              =ta(:last_edit_by,:post)
+              -user_link editor
   %div.post-title
     != @post.filtered_title
   %div.post-body

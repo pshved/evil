@@ -68,10 +68,12 @@ class TextContainer < ActiveRecord::Base
 
     # If the new revisions are going to be saved, just do it in a concurrent manner
     if need_save
-      __add_revs(true,*texts)
+      # FIXME: Not sure if used... dead code?
+      __add_revs(true,nil,*texts)
     else
       # If the new revisions are not going to be saved, store them locally, and flush at save
       @unsaved_texts = texts.dup
+      @unsaved_author = nil
     end
   end
 
@@ -95,8 +97,9 @@ class TextContainer < ActiveRecord::Base
   before_save do
     if @unsaved_texts
       # Do not save: they'll be saved at save (this is a before_save callback!)
-      if __add_revs(false,*@unsaved_texts)
+      if __add_revs(false,@unsaved_author,*@unsaved_texts)
         @unsaved_texts = nil
+        @unsaved_author = nil
         true
       end
     else
@@ -107,14 +110,14 @@ class TextContainer < ActiveRecord::Base
 
   # A transaction that saves records
   protected
-  def __add_revs(need_save,*texts)
+  def __add_revs(need_save,user,*texts)
     # We need a safe way in case there'll be two concurrent updates; we should get revision numbers right
     r = false
     transaction do
       cur_rev = current_revision || 0
       new_rev = cur_rev + 1
       # Create kids
-      texts.each_with_index {|txt,i| text_items.new(:number => i, :body => txt, :revision => new_rev)}
+      texts.each_with_index {|txt,i| text_items.new(:number => i, :body => txt, :revision => new_rev, :user => user )}
       # Update revision
       self.current_revision = new_rev
       r = self.save if need_save
@@ -124,7 +127,20 @@ class TextContainer < ActiveRecord::Base
 
   # Override the fetching method for the unsaved records
   protected
+  def current_items
+    text_items.where(["revision = ?", current_revision]).order('number ASC')
+  end
   def _items
-    @unsaved_texts || text_items.where(["revision = ?", current_revision]).order('number ASC').map(&:body)
+    @unsaved_texts || current_items.map(&:body)
+  end
+
+  public
+  # Last editor of the container
+  def last_editor
+    @unsaved_author || current_items.first.user
+  end
+  def last_editor=(e)
+    raise "Set up TextContainer before mutation!" if arity.nil?
+    @unsaved_author = e
   end
 end

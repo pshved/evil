@@ -83,6 +83,7 @@ ru:
         latest: "Последние сообщения"
         header: "Сообщение"
         deleted: "УДАЛЕНО!"
+        last_edit_by: " пользователем "
         imported:
           source: "Импортировано "
           from: " с форума "
