@@ -7,7 +7,7 @@ class Importer
     u = User.find_by_login(name)
     unless u
       pwd = generate_random_string(13)
-      u = User.create(:login => name, :password => pwd, :password_confirmation => pwd, :email => "mail_#{generate_random_string(22)}@example.com")
+      u = User.create({:login => name, :password => pwd, :password_confirmation => pwd, :email => "mail_#{generate_random_string(22)}@example.com"}, :without_protection => true)
     end
     u
   end
