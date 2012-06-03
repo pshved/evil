@@ -3,8 +3,14 @@
   %div.threads
     = render :partial => 'subtree', :locals => {:post => @thread.head, :fast => true}
   -unless @post.deleted
-    %div
-      = render :partial => 'loginpost'
+    -if @source
+      %div
+        = render :partial => 'sourcepost'
+        = link_to t('reply_locally'), post_path(@post, :source => 'here')
+    -else
+      %div
+        = render :partial => 'loginpost'
+        = link_to t('reply_to_source'), post_path(@post)
   -else
     %div.hint
       =ta('noreply.deleted',:post)

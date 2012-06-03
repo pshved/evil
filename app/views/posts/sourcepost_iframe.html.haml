@@ -1,0 +1,47 @@
+%html
+  %head
+    %meta{:content=>"text/html; charset=windows-1251", 'http-equiv'=>"Content-Type"}
+    = stylesheet_link_tag    "application" 
+    = javascript_include_tag "application"
+    = javascript_include_tag params[:controller]
+  %body
+    %form{ :action => @source.reply_to_post_url(@source_reply_to), :method => :post, :name => 'postform'}
+      -# Now the form itself
+      %table{:border=>0, :cellspacing => 0, :cellpadding => 3, :align => 'center'}
+        -# Do not show "reply to" if we are creating a new thread
+        -if @source_reply_to
+          %tr
+            %td{:colspan => 2, :align => "center"}
+              %big
+                %a{:name => 'reply'}
+                  =label_tag t('activemodel.attributes.loginpost.reply_into')
+                  =link_to @source.name, @source.url
+                  =label_tag t('activemodel.attributes.loginpost.to_post')
+                  =link_to "\##{@import.back}", "#{sprintf @import.source.template, @import.back}"
+          %tr
+            %td{:colspan => 2}
+              %hr{:align => 'center', :width => '80%', :noshade => true}
+        %tr
+          %td{:align => 'left', :colspan => 2, :width => 600}
+            =t('external_credentials')
+            -#=link_to t('reply_locally'), '?source=here'
+        %tr
+          %td{:align => 'center'}=label_tag t('activemodel.attributes.loginpost.title')
+          %td
+            =text_field_tag 'subject', '', :size => 88, :tabindex => 1
+        %tr
+          %td{:colspan => 2, :class => 'toolbar', :align=>'center'}
+            - buttons = [%w(b i u q pic url h s sup sub strike), %w(color red pre center tex tub spoiler hr smile)]
+            - buttons.each do |row|
+              - row.each do |btn|
+                - make_button(btn)
+              %br/
+            = render :partial => 'posts/smiles'
+        %tr
+          %td{:colspan => 2, :align => :center}
+            -# Older browsers may not support getElementById... so KISS me!
+            =text_area_tag 'body', '', :tabindex => 2, :cols => 75, :rows => 12, :onfocus => "last = document.getElementById('body');"
+        %tr
+          %td{:colspan => 2, :align => :center}
+            = submit_tag t('helpers.submit.posts.preview'), :tabindex => 4, :default => true, :name => :preview
+            = submit_tag t('helpers.submit.loginpost.create'), :tabindex => 3, :name => 'post'

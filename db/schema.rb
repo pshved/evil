@@ -157,6 +157,7 @@ ActiveRecord::Schema.define(:version => 20120602203936) do
     t.string   "name"
     t.string   "template"
     t.datetime "synchronized_at"
+    t.string   "post_to"
   end
 
   add_index "sources", ["name"], :name => "index_sources_on_name"

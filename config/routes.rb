@@ -52,6 +52,7 @@ Zlo::Application.routes.draw do
   resources :sources, :only => [] do
     member do
       get 'read/:orig_id', :action => 'read_post'
+      get 'post_iframe/:orig_id', :action => 'iframe', :as => 'post_iframe'
     end
   end
 
