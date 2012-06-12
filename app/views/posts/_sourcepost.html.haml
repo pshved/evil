@@ -1,18 +1,4 @@
 -# the name of the form is used in post.js tag editor!  Do not change!
 %iframe{:src => post_iframe_source_path(@source,@source_reply_to), :seamless => true, :width => '100%', :height => 500, :frameborder => 0, :name => 'source_reply'}
 :javascript
-  var iframe_selector = 'iframe[name=source_reply]'
-  // At each frame load, we check if the frame designates a successful post.  If it does, then wait for it to be imported, ad redirect.
-  $(iframe_selector).load(function (e) {
-    href_elem = $(this).contents().find('p b a').first();
-    if (href_elem.length > 0){
-      var post_href = href_elem.attr('href');
-      var post_regexp = /\?read=/;
-      if (post_regexp.test(post_href)){
-        // There is a link that follows to a post at the source forum, get the post id
-        var post_id = post_href.replace(post_regexp,'');
-        // Redirect the post as soon as it's imported (TODO + ajax)
-        window.location.replace("/sources/x/read/"+post_id);
-      }
-    }
-  });
+  waitForSourcePost('source_reply','#{escape_javascript @source.name}');
