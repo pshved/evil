@@ -21,6 +21,11 @@ class Source < ActiveRecord::Base
     end
   end
 
+  def remove_instant!
+    self.instant = false
+    save
+  end
+
   def to_param
     name
   end

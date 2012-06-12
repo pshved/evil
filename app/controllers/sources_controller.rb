@@ -13,6 +13,15 @@ class SourcesController < ApplicationController
     render :file => 'posts/sourcepost_iframe', :layout => false
   end
 
+  def instant
+    @source.instant = true
+    if @source.save
+      render :text => 'OK'
+    else
+      render :text => 'FAIL'
+    end
+  end
+
   protected
   def find_source_by_id
     @source = Source.find_last_by_name(params[:id])

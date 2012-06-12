@@ -92,8 +92,9 @@ class DummyIntervalRequestor
     @child_thread = Thread.new do
       while true
         $log.debug "Run next_interval"
-        new_interval = next_interval
-        if new_interval && new_interval != @timeout
+        new_interval, restart = next_interval
+        if restart || (new_interval && new_interval != @timeout)
+          $log.info "Restart arrived!" if restart
           $log.debug "Will print next_interval: #{new_interval}"
           @timeout = new_interval
           @pipe_w_to.puts @timeout
@@ -110,7 +111,7 @@ class DummyIntervalRequestor
 
   def next_interval
     sleep DEFAULT_TIMEOUT
-    @timeout
+    return @timeout, false
   end
 
   def reconsider_timeout
@@ -461,14 +462,17 @@ class JSONIntervalRequestor < DummyIntervalRequestor
   end
 
   def next_interval
-    # Call json apii
+    # Call json api
     to = 2
+    restart = false
     begin
       $log.debug "Checking interval at #{@json_request_addr}"
       rsp = inf_retry {Net::HTTP.get_response(URI(@json_request_addr))}
       body = rsp.body
       $log.debug "Got response '#{body}'"
-      to = JSON(rsp.body)['timeout'].to_i
+      rsp_data = JSON(rsp.body)
+      to = rsp_data['timeout'].to_i
+      restart = rsp_data['now']
       $log.debug "Got timeout '#{to}'"
       (to < 5)? 5 : to
     rescue => e
@@ -477,7 +481,7 @@ class JSONIntervalRequestor < DummyIntervalRequestor
       retry
     end
     sleep 2
-    to
+    return to, restart
   end
 end
 

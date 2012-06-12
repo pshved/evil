@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120603210757) do
+ActiveRecord::Schema.define(:version => 20120612135726) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -158,6 +158,7 @@ ActiveRecord::Schema.define(:version => 20120603210757) do
     t.string   "template"
     t.datetime "synchronized_at"
     t.string   "post_to"
+    t.boolean  "instant"
   end
 
   add_index "sources", ["name"], :name => "index_sources_on_name"
