@@ -16,8 +16,11 @@
                 %a{:name => 'reply'}
                   =label_tag t('activemodel.attributes.loginpost.reply_into')
                   =link_to @source.name, @source.url
-                  =label_tag t('activemodel.attributes.loginpost.to_post')
-                  =link_to "\##{@import.back}", "#{sprintf @import.source.template, @import.back}"
+                  -if @import
+                    =label_tag t('activemodel.attributes.loginpost.to_post')
+                    =link_to "\##{@import.back}", "#{sprintf @import.source.template, @import.back}"
+                  -else
+                    =label_tag t('activemodel.attributes.loginpost.new_thread')
           %tr
             %td{:colspan => 2}
               %hr{:align => 'center', :width => '80%', :noshade => true}

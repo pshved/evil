@@ -67,6 +67,7 @@ ru:
         reply: "Ответить"
         reply_into: "Ответить в"
         to_post: "на пост"
+        new_thread: "создав новый тред"
         name: "Имя"
         autologin: "Залогиниться"
   activerecord:
