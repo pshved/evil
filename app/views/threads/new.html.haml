@@ -1,4 +1,8 @@
 %h1=ta(:create,:thread)
 %br
-=render :partial => 'posts/loginpost'
+-unless @source
+  =render :partial => 'posts/loginpost'
+-else
+  =render :partial => 'posts/sourcepost'
+
 

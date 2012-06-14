@@ -2,6 +2,8 @@ class Source < ActiveRecord::Base
   has_many :imports
   has_many :posts, :class_name => 'Posts', :through => :imports
 
+  has_many :heads, :class_name => 'Posts', :through => :imports, :foreign_key => 'post_id'
+
   # Mass-assignment protection
   attr_accessible :post_to, :name, :template, :url, :synchronized_at
 
@@ -19,6 +21,11 @@ class Source < ActiveRecord::Base
     else
       30.seconds
     end
+  end
+
+  def remove_instant!
+    self.instant = false
+    save
   end
 
   def to_param

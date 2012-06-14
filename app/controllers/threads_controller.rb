@@ -3,8 +3,14 @@ class ThreadsController < ApplicationController
 
   filter_access_to :new
   def new
-    @thread = Threads.new
-    @loginpost = Loginpost.new(:user => current_user)
+    if @source = Source.find_last_by_name(params[:src])
+      # We're creating a thread in another forum
+      @source_reply_to = 0
+    else
+      # We're creating a thread in this forum
+      @thread = Threads.new
+      @loginpost = Loginpost.new(:user => current_user)
+    end
   end
 
   def index

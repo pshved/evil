@@ -2,6 +2,7 @@ class Import < ActiveRecord::Base
   self.table_name = "imports"
 
   belongs_to :post, :class_name => 'Posts'
+  belongs_to :heads, :class_name => 'Posts', :conditions => {:parent_id => nil}, :foreign_key => 'post_id'
   belongs_to :source
 
   # Check that there's no two imported posts with the same ID (not strict because we may want to return a value to an importer)

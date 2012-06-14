@@ -13,7 +13,11 @@ Zlo::Application.routes.draw do
   # Protected with get_csrf_token
   match 'logout' => 'user_sessions#destroy', :as => 'logout'
 
-  resources :threads, :only => [:new]
+  resources :threads, :only => [:new] do
+    collection do
+      get 'new/to/:src' => 'threads#new', :as => 'foreign_new'
+    end
+  end
   resources :user_sessions
   # User IDs are permissive, they may contain a lot of various symbols... Thanks to http://devblog.avdi.org/2010/06/18/.
   resources :users, :constraints => { :id => /.*/ }
@@ -53,6 +57,8 @@ Zlo::Application.routes.draw do
     member do
       get 'read/:orig_id', :action => 'read_post'
       get 'post_iframe/:orig_id', :action => 'iframe', :as => 'post_iframe'
+      get 'instant', :action => 'instant'
+      get 'myreplyto/:orig_id', :action => 'my_reply_to', :as => 'my_reply_to'
     end
   end
 

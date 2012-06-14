@@ -73,7 +73,12 @@ class ApiController < ApplicationController
   def interval
     source = Source.where(:name => params[:source]).first
     if source
-      render :json => { :timeout => source.timeout }
+      resp = { :timeout => source.timeout }
+      if source.instant
+        resp[:now] = true
+        source.remove_instant!
+      end
+      render :json => resp
     else
       render :text => "ERROR: not found"
     end

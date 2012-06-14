@@ -3,6 +3,7 @@
 <head>
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
   <title><%= config_param(:site_title) %> <%= yield :title %></title>
+  <%= yield(:refresh_hdr).html_safe %>
   <%= stylesheet_link_tag    "application" %>
   <%= javascript_include_tag "application" %>
   <!-- include controller-specific javascript -->
@@ -18,8 +19,11 @@
 
 <div id="user-nav" class="header">
   <div class="menu">
-    <%= link_to_unless_current t("Home"), root_path  %>  |
+    <%= link_to t("Home"), root_path  %>  |
     <%= link_to_unless_current ta(:create,:thread), new_thread_path %>  |
+    <% Rails.cache.fetch('source_names'){Source.select(:name).map(&:name)}.each do |src| %>
+      <%= link_to_unless_current "#{ta(:create,:thread)} #{t(:to_source)} #{src}", foreign_new_threads_path(src) %>  |
+    <% end %>
     <% if current_user %>
       <%= link_to t("Log out"), logout_path  %> |
       <%= link_to_unless_current ta(:index_edit,:user), edit_user_path(current_user.to_param)  %> |
