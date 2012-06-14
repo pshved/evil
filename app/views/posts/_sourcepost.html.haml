@@ -1,4 +1,4 @@
 -# the name of the form is used in post.js tag editor!  Do not change!
 %iframe{:src => post_iframe_source_path(@source,@source_reply_to), :seamless => true, :width => '100%', :height => 500, :frameborder => 0, :name => 'source_reply'}
 :javascript
-  waitForSourcePost_Crippled('source_reply','#{escape_javascript my_reply_to_source_path(@source,@source_reply_to)}');
+  waitForSourcePost_Crippled('source_reply','#{escape_javascript my_reply_to_source_path(@source,@source_reply_to)}','#{escape_javascript instant_source_path(@source)}');
