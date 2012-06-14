@@ -28,3 +28,21 @@ function waitForSourcePost(iframe_name,source_name)
     }
   });
 }
+
+// a crippled version of post waiter that doesn't violate same origin policy
+function waitForSourcePost_Crippled(iframe_name,onload_redirect_url)
+{
+  var iframe_selector = 'iframe[name='+iframe_name+']';
+  var first_load = true;
+  // At each frame load, we check if the frame designates a successful post.  If it does, then wait for it to be imported, ad redirect.
+  $(iframe_selector).load(function (e) {
+    // Redirect the post as soon as it's imported (TODO + ajax)
+    if (! first_load){
+      var curtime = new Date;
+      // We do not send the current time because it may be not accurate.  See my_reply_to action in Sources controller for more description.
+      //setTimeout(function(){window.location.replace(onload_redirect_url + "?after=" + curtime.toUTCString());},4000);
+      setTimeout(function(){window.location.replace(onload_redirect_url);},4000);
+    }
+    first_load = false;
+  });
+}

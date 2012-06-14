@@ -3,6 +3,7 @@
 <head>
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
   <title><%= config_param(:site_title) %> <%= yield :title %></title>
+  <%= yield(:refresh_hdr).html_safe %>
   <%= stylesheet_link_tag    "application" %>
   <%= javascript_include_tag "application" %>
   <!-- include controller-specific javascript -->

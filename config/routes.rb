@@ -54,6 +54,7 @@ Zlo::Application.routes.draw do
       get 'read/:orig_id', :action => 'read_post'
       get 'post_iframe/:orig_id', :action => 'iframe', :as => 'post_iframe'
       get 'instant', :action => 'instant'
+      get 'myreplyto/:orig_id', :action => 'my_reply_to', :as => 'my_reply_to'
     end
   end
 
