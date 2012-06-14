@@ -30,7 +30,7 @@ function waitForSourcePost(iframe_name,source_name)
 }
 
 // a crippled version of post waiter that doesn't violate same origin policy
-function waitForSourcePost_Crippled(iframe_name,onload_redirect_url)
+function waitForSourcePost_Crippled(iframe_name, onload_redirect_url, instant_url)
 {
   var iframe_selector = 'iframe[name='+iframe_name+']';
   var first_load = true;
@@ -38,6 +38,8 @@ function waitForSourcePost_Crippled(iframe_name,onload_redirect_url)
   $(iframe_selector).load(function (e) {
     // Redirect the post as soon as it's imported (TODO + ajax)
     if (! first_load){
+      // Notify the downloader that we should download asap
+      $.get(instant_url);
       var curtime = new Date;
       // We do not send the current time because it may be not accurate.  See my_reply_to action in Sources controller for more description.
       //setTimeout(function(){window.location.replace(onload_redirect_url + "?after=" + curtime.toUTCString());},4000);
