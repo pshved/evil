@@ -27,7 +27,7 @@ class SourcesController < ApplicationController
     # Select the latest reply to the post
     # If we have a specific date, then we're just waiting.  Otherwise, we've been redirected here for the first time.
     # The reason why we need this step is because we can't send the time from javascript, as the user's time doesn't have to be accurate.  so we just take the current, and decrease some seconds from it.
-    @after = params[:after].blank? ? (Time.now - 5.seconds) : DateTime.parse(params[:after])
+    @after = params[:after].blank? ? (Time.now - 8.seconds) : DateTime.parse(params[:after])
     target = nil
     if @import
       target = @import.post.children
