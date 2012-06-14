@@ -73,6 +73,9 @@ class User < ActiveRecord::Base
   has_many :hide_actions, :class_name => 'HiddenPostsUsers'
   has_many :hidden_posts, :class_name => 'Posts', :through => :hide_actions
 
+  # User's posts
+  has_many :posts, :class_name => 'Posts'
+
   # Signature
   belongs_to :signature, :autosave => true, :class_name => 'TextContainer', :foreign_key => 'signature'
   validates_length_of :signature_body, :maximum => 333
