@@ -1,0 +1,10 @@
+<% content_for(:refresh_hdr){%Q(<meta http-equiv="Refresh" content="2; url=).html_safe + my_reply_to_source_path(@source,@source_reply_to, :after => @after.to_s).html_safe + '">'.html_safe} %>
+
+<%= t('source_is_not_ready') %>
+<% if @import %>
+  <%= link_to "\##{@import.back}", @import.post %>
+  (<%= link_to t('original'),"#{sprintf @import.source.template, @import.back}" %>).
+<% else %>
+  <%=link_to @source.name, @source.url %>
+<% end %>
+
