@@ -21,6 +21,9 @@
   <div class="menu">
     <%= link_to_unless_current t("Home"), root_path  %>  |
     <%= link_to_unless_current ta(:create,:thread), new_thread_path %>  |
+    <% Rails.cache.fetch('source_names'){Source.select(:name).map(&:name)}.each do |src| %>
+      <%= link_to_unless_current "#{ta(:create,:thread)} #{t(:to_source)} #{src}", new_thread_path(:src => src) %>  |
+    <% end %>
     <% if current_user %>
       <%= link_to t("Log out"), logout_path  %> |
       <%= link_to_unless_current ta(:index_edit,:user), edit_user_path(current_user.to_param)  %> |

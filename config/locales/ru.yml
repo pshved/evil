@@ -57,6 +57,7 @@ ru:
   reply_to_source: "написать сообщение на изначальный форум"
   source_is_not_ready: "Ваше сообщение ещё не импортировано с другого форума.  Через несколько секунд вы будете перенаправлены на загрузившуюся копию ответа на сообщение "
   original: оригинал
+  to_source: в
   # Some models are "activemodel" rather than "activerecord" models
   activemodel:
     models:
