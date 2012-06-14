@@ -19,7 +19,7 @@
 
 <div id="user-nav" class="header">
   <div class="menu">
-    <%= link_to_unless_current t("Home"), root_path  %>  |
+    <%= link_to t("Home"), root_path  %>  |
     <%= link_to_unless_current ta(:create,:thread), new_thread_path %>  |
     <% Rails.cache.fetch('source_names'){Source.select(:name).map(&:name)}.each do |src| %>
       <%= link_to_unless_current "#{ta(:create,:thread)} #{t(:to_source)} #{src}", foreign_new_threads_path(src) %>  |
