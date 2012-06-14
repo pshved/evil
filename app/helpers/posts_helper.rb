@@ -142,6 +142,11 @@ EOS
     # This already prints to the buf!  Do not append, or your memory will blow!
     fast_link[buf,post]
     buf << %Q(</span>)
+    # (url)/(pic) marks
+    post.marks.each do |mark|
+      buf << ' <span class="post-mark">(' << mark << ")</span>"
+    end
+    # Now (+)/(-) marks
     if post.empty_body?
       buf << ' (-)'
     else
@@ -149,10 +154,6 @@ EOS
         # Let's insert a JavaScript "+"!
         buf << %Q( <a class="postbody" id="sh#{post.id}" onclick="pbsh(#{post.id});" href="lol">(+)</a>)
       end
-    end
-    # (url)/(pic) marks
-    post.marks.each do |mark|
-      buf << ' <span class="post-mark">(' << mark << ")</span>"
     end
     # post clicks
     if post.clicks != 0 && post.clicks != '0'
