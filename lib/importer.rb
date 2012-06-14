@@ -101,7 +101,8 @@ class Importer
       Threads.where(:id => this_thread.id).update_all :created_at => created_at
       Threads.where(:id => this_thread.id).update_all :updated_at => updated_at
       # Unset the updated_at time of this post
-      Posts.where(:id => new_post.id).update_all :updated_at => new_post.created_at
+      # We have to avoid doing this, because the updated_at column is now tracking the time the post was imported.  It is used in update redirection heuristics, see my_reply_to action.
+      # Posts.where(:id => new_post.id).update_all :updated_at => new_post.created_at
 
       # Return the new post
       new_post
