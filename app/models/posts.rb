@@ -41,6 +41,12 @@ class Posts < ActiveRecord::Base
   extend PostValidators
   validates_post_attrs
 
+  # Update thread's last post time at posting
+  after_save do
+    thread.posted_to_at = [created_at, thread.posted_to_at].compact.max
+    thread.save
+  end
+
   # String statuses for enum/str db crunching
   ST_OPEN = 'open'
   ST_CLOSED = 'closed'

@@ -68,6 +68,9 @@
     </div>
     <div class="right">
       <%= render :partial => 'activities/stats' %>
+      <%= t('threads.order_by.title') %>:
+      <%= link_to_unless(current_page?(root_path) && (params[:thread_order] != 'update'), t('threads.order_by.created_at'), root_path())%>
+      <%= link_to_unless(current_page?(root_path) && (params[:thread_order] == 'update'), t('threads.order_by.updated_at'), root_path(:thread_order => :update))%>
     </div>
     <div style="clear: both; height: 0px; overflow: hidden;">
       <br>

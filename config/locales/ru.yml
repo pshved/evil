@@ -58,6 +58,11 @@ ru:
   source_is_not_ready: "Ваше сообщение ещё не импортировано с другого форума.  Через несколько секунд вы будете перенаправлены на загрузившуюся копию ответа на сообщение "
   original: оригинал
   to_source: в
+  threads:
+    order_by:
+      title: Сортировать
+      created_at: По созданию
+      updated_at: По последнему
   # Some models are "activemodel" rather than "activerecord" models
   activemodel:
     models:

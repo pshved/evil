@@ -168,12 +168,20 @@ class ApplicationController < ActionController::Base
     # Try to see if this page for this user is already cached
     # (see fast_tree_cache in PostsHelper for explanation of the cache key)
     cpres = current_presentation
-    cache_key = "thread-list.page:#{params[:page]}-sortby:time-user:#{key_of(current_user,'guest')}-view:#{key_of(cpres,'guest')}-global:#{config_mtime}"
+    # A mockup of thread sorting options
+    sort_threads = (params[:thread_order] || 'create').to_sym
+    cache_key = "thread-list.page:#{params[:page]}-sortby:#{sort_threads}-user:#{key_of(current_user,'guest')}-view:#{key_of(cpres,'guest')}-global:#{config_mtime}"
     # If a threads cache is invalidated, then re-fetch it
     load_threads = proc do
       logger.info "Rebuilding threads for #{cache_key}"
       # Set up a "Global" view setting, so that the newly created threads comply to it
-      threads = Threads.order("created_at DESC").page(params[:page])
+      threads = Threads
+      if sort_threads == :create
+        threads = threads.order("created_at DESC")
+      else
+        threads = threads.order("posted_to_at DESC")
+      end
+      threads = threads.page(params[:page])
       thread_page_size = current_presentation.threadpage_size
       threads = threads.per(thread_page_size)
       # Now convert them to cached entities
