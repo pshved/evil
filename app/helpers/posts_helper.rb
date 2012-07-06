@@ -226,7 +226,7 @@ EOS
 
       # Do not show (+++) if we don't show a usual (+), since it's not going to work anyway
       if view_opts[:plus] && (info[start.id] || {})[:has_nonempty_body]
-        buf << %Q( <a class="subthreadbody" href="#">(+++)</a>)
+        buf << %Q( <a id="exp#{start.id}" class="subthreadbody action" href="#">+++</a>)
       end
 
       # Show if post is hidden, and display the toggle
