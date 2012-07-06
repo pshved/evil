@@ -173,4 +173,102 @@ class Threads < ActiveRecord::Base
 
     return r_subtree, r_hides
   end
+
+  #### THREAD LISTING CACHING FUNCTIONALITY ###
+  # A proxy class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all information to have them rendered.
+  class CachedThread
+    attr_accessor :presentation, :id, :updated_at, :settings_for
+    # Given a "normal" thread, initialize
+    def initialize(thread)
+      self.id = thread.id
+      self.updated_at = thread.updated_at
+    end
+
+    attr_accessor :parent_index, :parent
+    # Get the HTML for this thread from cache.  The thread_renderer is a proc object that renders a thread if it's not found in cache.  This is used to render _all_ threads on the page!
+    # If +force_reload+ is set, it forces to query the cache for each thread separately, and update those that are too old.  Most threads, however, will remain cached.
+    def cached_html(thread_renderer,force_reload = false)
+      parent.get_rendered(parent_index,thread_renderer,force_reload)
+    end
+
+    # If we are trying to access a missing method, we just forward it to the "read" thread
+    def method_missing(sym,*args)
+      # You'll need it to see what things to build into the cached thread
+      puts "DEBUG: CachedThread method_missing #{sym}"
+      real_thread.send(sym,*args)
+    end
+
+    private
+    # Load the real thread, and convey the presentation to it
+    def real_thread
+      return @real_thread if @real_thread
+      @real_thread = Threads.find(id)
+      @real_thread.presentation = self.presentation
+      @real_thread.settings_for = self.settings_for
+      @real_thread
+    end
+  end
+
+  class CachedThreadArray < Array
+    # Fake the thread object
+
+    # These accessors are responsible for faking a paginatable object.  See Kaminari's paginate method to see what we're to fake
+    attr_accessor :current_page, :num_pages, :limit_value
+
+    # This is an accessor to the thr
+    attr_accessor :cache_key, :index_validator
+
+    # Create the object.  Index_validator should be inserted manually!
+    def initialize(array,cache_key,cp,np,lv)
+      super(array.length)
+      self.current_page = cp
+      self.num_pages = np
+      self.limit_value = lv
+      array.each_with_index {|o,i| self[i]=o}
+      # Convey the index in the array to items
+      notify_children
+      # Save the cache key for threads preloading
+      self.cache_key = cache_key
+    end
+
+    private
+    def notify_children
+      # Convey the index in the array to items
+      self.each_with_index {|cached_thread,i| cached_thread.parent_index = i; cached_thread.parent = self}
+    end
+
+    public
+    def preloaded
+      ! self.rendered_threads.nil?
+    end
+    # Preload the layout of the threads to the cache.  The +renderer+ is a proc that takes a thread and returns HTML for it.
+    def preload(renderer, force_reload = false)
+      if force_reload
+        @rendered_threads = self.map {|cached_thread| renderer[cached_thread]}
+        # Save the updated thread selection to the cache
+        Rails.cache.write("#{cache_key}-html", @rendered_threads, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME)
+        index_validator[] if index_validator
+      else
+        @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
+          r = self.map {|cached_thread| renderer[cached_thread]}
+          index_validator[] if index_validator
+          r
+        end
+      end
+    end
+
+    def get_rendered(i,thread_renderer,force_reload = false)
+      preload(thread_renderer,force_reload)
+      @rendered_threads[i]
+    end
+
+    # Since Rails 3.1 freezes the objects returned by cache, we have to unfreeze them.  This unfreezes the array items by duplicating them.  Returns self.
+    def and_unfreeze_kids
+      self.map! &:dup
+      # Now the unfrozen kids point to the old, frozen parent.  Re-notify them.
+      notify_children
+      self
+    end
+  end
+
 end
