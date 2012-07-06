@@ -93,3 +93,62 @@ jQuery(function($) {
     return false;
   });
 });
+
+/* Show/hide via Javascript */
+var hidden_opposite = { 'show' : 'hide', 'hide': 'show', true: 'show', false: 'hide' };
+// Translations
+var hidden_str = { true : 'Show subtree', false: 'Hide subtree' };
+// Initialize translations
+function init_showhide(show_str, hide_str)
+{
+  hidden_str = { true : show_str, false: hide_str};
+}
+var shst_request = {};
+// An event for a click
+function showhide_subthread(post_id, do_hide, actor)
+{
+  actor.removeClass('show').removeClass('hide');
+  // Fire a jsonp call
+  shst_request[post_id] = $.ajax({
+    url: "/p/"+post_id+'/toggle_showhide.js',
+    dataType: 'jsonp',
+    complete: function() { shst_request[post_id] = null }
+  });
+}
+
+function replace_subthread_with(post_id, contents)
+{
+  ps = '#p'+post_id;
+  // The contents of the post--or a not if it's hidden
+  result_elem = $(contents).find('#p'+post_id).next();
+  // We infer if the post is now hidden from that HTML
+  // We would've needed the "select-root" trick, but we wrapped our stuff carefully
+  hidden = result_elem.hasClass('hidden-bar');
+  actor = $(ps).find('a.subthread').first();
+  actor.html(hidden_str[hidden]);
+  actor.addClass(hidden_opposite[hidden]);
+  actor.removeClass('inprogress');
+  // the "wrap-parent" trick is to get outer html
+  $(ps).next().replaceWith(result_elem.wrap('<a>').parent().html());
+  rebind_subthread_showhides($(ps).next());
+}
+
+// Binds events to show/hide subthread nodes in the current object
+function rebind_subthread_showhides(jq)
+{
+  jq.bind('click',function (event) {
+    var $target = $(event.target);
+    var post_id = $target.parent().attr('id').replace(/^p/,'');
+    $target.addClass('inprogress');
+
+    do_hide = $target.hasClass('hide');
+    showhide_subthread(post_id,do_hide,$target);
+    return false;
+  })
+}
+
+jQuery(function($) {
+  /* Add "show only" custom event*/
+  rebind_subthread_showhides($('a.subthread'));
+});
+

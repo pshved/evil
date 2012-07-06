@@ -1,0 +1,8 @@
+<%
+  buf = ''
+  # HTML comes escaped out of our renderer, we don't need this since we pass it via JS
+  thread_html = fast_tree_cache(@thread,buf,nil,current_presentation).html_safe
+
+  # NOTE the additional <body> tag.  This is to easen the selection of the node that otherwise would've been root in the returned HTML.
+%>
+replace_subthread_with(<%= @post.id %>, '<div> <%= j thread_html %> </div>');

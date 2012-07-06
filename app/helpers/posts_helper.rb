@@ -62,18 +62,26 @@ module PostsHelper
     return @_post_fast_hide if @_post_fast_hide
     # Render a test link with placeholders
     magic = 47382929372 # Beware! should not be equal to a post id!
-    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic), :class => 'action'
+    magic_class = 'MAGIC_ANOTHER_ACTION'
+    pl = link_to 'TITLE_PH', toggle_showhide_post_path(magic), :class => "action subthread #{magic_class}"
 
     # We abuse that, in HTML, link address is before the text.
-    md = /^(.*)#{magic}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
+    md = /^(.*)#{magic}(.*)#{magic_class}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
     md1 = md[1]
     md2 = md[2]
     md3 = md[3]
+    md4 = md[4]
 
     iftrue, iffalse = yield
 
     # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
-    @_post_fast_hide = proc {|buf,p,should_hide| buf << md1 << p.id.to_s << md2 << (should_hide ? iftrue : iffalse) << md3}
+    @_post_fast_hide = proc do |buf,p,should_hide|
+      buf <<
+        md1 << p.id.to_s <<
+        # Reverse this: should_hide means if we "should hide the subthread"
+        md2 << (should_hide ? 'show' : 'hide') <<
+        md3 << (should_hide ? iftrue : iffalse) << md4
+    end
 
   end
 

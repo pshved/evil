@@ -6,7 +6,7 @@ class PostsController < ApplicationController
     :expires_in => UNREG_VIEW_CACHE_TIME, :race_condition_ttl => UNREG_VIEW_CACHE_UPDATE_TIME
 
   before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
-  before_filter :find_thread, :only => [:edit, :update, :show, :remove]
+  before_filter :find_thread, :only => [:edit, :update, :show, :remove, :toggle_showhide]
   before_filter :init_loginpost, :only => [:edit, :update]
 
   # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
@@ -103,9 +103,17 @@ class PostsController < ApplicationController
 
   def toggle_showhide
     @post.toggle_showhide(current_user,current_presentation)
-    @post.save
-    # TODO: add Ajax here.  For now, redirects to the post at the index page
-    redirect_to root_path(:anchor => @post.id)
+    @post.touch
+    # NOTE: This has loaded post's thread (since hides may be induced by thread structure).  We should reload post if we're going to render it at _this_ request.
+    respond_to do |format|
+      format.html { redirect_to root_path(:anchor => @post.id) }
+      format.js do
+        # Toggling showhide changed thread structure; reload
+        find_post
+        find_thread
+        # now render
+      end
+    end
   end
 
   def latest
