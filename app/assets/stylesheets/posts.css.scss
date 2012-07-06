@@ -42,11 +42,16 @@ span.user-unreg {
 }
 
 /* Posts hidde/show button */
+/* NOTE: due to lack of specificity that it's a.action, a.inprogress overrides the color */
 .post-header .action {
-  color: #900000;
+  color: #666;
+  text-decoration: none;
   &:visited {
-    color: #900000;
+    color: #666;
+    text-decoration: none;
   }
+  &:before { content: "("; }
+  &:after { content: ")"; }
 }
 
 /* Post body hide/show link */
@@ -58,7 +63,10 @@ span.user-unreg {
   }
 }
 
-.post-header a.inprogress {
+/* NOTE: due to lack of specificity that it's a.action, a.inprogress overrides the color */
+div.post-header a.inprogress {
+  color: #000;
+  &:visited { color: #000; }
   font-weight: bold;
 }
 
@@ -73,11 +81,8 @@ span.user-unreg {
   padding-left: 5px;
 }
 
-.post-header a.subthreadbody {
-  color: #900000;
-  &:visited {
-    color: #900000;
-  };
+.post-header .subthreadbody {
+  /* empty */
 }
 
 /* Posts hidden/closed information bar */
