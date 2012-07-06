@@ -37,6 +37,8 @@ span.user-unreg {
   text-decoration: none;
   font-size: 133%;
   font-weight: bold;
+  /* Do not make unregs black, as it distracts the reader */
+  color: #507055;
 }
 
 /* Posts hidde/show button */
