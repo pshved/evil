@@ -62,38 +62,6 @@ function stop_expansion_progress_on(elem_id)
   }
 }
 
-jQuery(function($) {
-  /* Add "show only" custom event*/
-  $('a.postbody').bind('showbody',function (event, trigger_id) {
-    var $target = $(event.target);
-    var post_id = $target.attr('id').replace(/^sh/,'');
-    pbsh_maker(post_id, true, trigger_id);
-  });
-
-  /* Call that show-only event via special links */
-  $('a.subthreadbody').click(function (event){
-    // We are to trigger "expand" events at all proper children of this post.  This selector should get the div that wraps all children of this post.  We start from <a> link which is in header which is in the div we are looking for.
-    var start_from = $(this).parent().parent();
-    // Show that this is in progress, and initialize the progress counter
-    $(this).addClass('inprogress');
-    trigger_id = $(this).attr('id');
-    expand_progresses[trigger_id] = start_from.find('a.postbody').size();
-    // Launch expansion
-    start_from.find('a.postbody').addClass('inprogress');
-    start_from.find('a.postbody').trigger('showbody',trigger_id);
-  });
-});
-
-jQuery(function($) {
-  /* This blocks default event (following the link) on all (+) links.  Used to prevent from junping to the top of the page.  It does stack with the inline onclick. */
-  $('a.postbody').click(function (e) {
-    return false;
-  });
-  $('a.subthreadbody').click(function (e) {
-    return false;
-  });
-});
-
 /* Show/hide via Javascript */
 var hidden_opposite = { 'show' : 'hide', 'hide': 'show', true: 'show', false: 'hide' };
 // Translations
@@ -130,25 +98,54 @@ function replace_subthread_with(post_id, contents)
   actor.removeClass('inprogress');
   // the "wrap-parent" trick is to get outer html
   $(ps).next().replaceWith(result_elem.wrap('<a>').parent().html());
-  rebind_subthread_showhides($(ps).next());
+  rebind_subthread_showhides($(ps).next().find('a'));
 }
 
 // Binds events to show/hide subthread nodes in the current object
 function rebind_subthread_showhides(jq)
 {
-  jq.bind('click',function (event) {
+  jq.filter('a.subthread').bind('click',function (event) {
     var $target = $(event.target);
     var post_id = $target.parent().attr('id').replace(/^p/,'');
     $target.addClass('inprogress');
 
     do_hide = $target.hasClass('hide');
     showhide_subthread(post_id,do_hide,$target);
+    // Block the click
     return false;
-  })
+  });
+  /* Add "show only" custom event*/
+  jq.filter('a.postbody').bind('showbody',function (event, trigger_id) {
+    var $target = $(event.target);
+    var post_id = $target.attr('id').replace(/^sh/,'');
+    pbsh_maker(post_id, true, trigger_id);
+    // Block the click
+    return false;
+  });
+
+  /* This blocks default event (following the link) on all (+) links.  Used to prevent from junping to the top of the page.  It does stack with the inline onclick. */
+  jq.filter('a.postbody').click(function (e) {
+    return false;
+  });
+
+  /* Call that show-only event via special links */
+  jq.filter('a.subthreadbody').click(function (event){
+    // We are to trigger "expand" events at all proper children of this post.  This selector should get the div that wraps all children of this post.  We start from <a> link which is in header which is in the div we are looking for.
+    var start_from = $(this).parent().parent();
+    // Show that this is in progress, and initialize the progress counter
+    $(this).addClass('inprogress');
+    trigger_id = $(this).attr('id');
+    expand_progresses[trigger_id] = start_from.find('a.postbody').size();
+    // Launch expansion
+    start_from.find('a.postbody').addClass('inprogress');
+    start_from.find('a.postbody').trigger('showbody',trigger_id);
+    // Block the click
+    return false;
+  });
 }
 
 jQuery(function($) {
-  /* Add "show only" custom event*/
-  rebind_subthread_showhides($('a.subthread'));
+  /* Moved to a separate function due to ajax subtree showhides */
+  rebind_subthread_showhides($('a'));
 });
 
