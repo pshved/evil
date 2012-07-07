@@ -25,8 +25,10 @@ class Threads < ActiveRecord::Base
   # Index optimization
   # Fast posts fetcher only stores titles.  The parameter is the ID of the user.
   def faster_posts(settings_for = self.settings_for)
-    FasterPost.sql_posts(settings_for ? settings_for.id : nil).where(['thread_id = ?', id])
+    @preloaded_posts || FasterPost.sql_posts(settings_for ? settings_for.id : nil).where(['thread_id = ?', id])
   end
+  # You may also preload posts for this thread externally, say, via a cached thread (see below)
+  attr_accessor :preloaded_posts
 
   # Faster subtree getters
   # Builds a hash of post id => children
@@ -181,10 +183,14 @@ class Threads < ActiveRecord::Base
     # If we are trying to access a missing method, we just forward it to the "read" thread
     def method_missing(sym,*args)
       # You'll need it to see what things to build into the cached thread
-      puts "DEBUG: CachedThread method_missing #{sym}"
+      #puts "DEBUG: CachedThread method_missing #{sym}"
       real_thread.send(sym,*args)
     end
 
+    # Allow other entities (such as CachedThreadArray) convey the real thread here
+    def real_thread=(thr)
+      @real_thread = thr
+    end
     private
     # Load the real thread, and convey the presentation to it
     def real_thread
@@ -229,14 +235,17 @@ class Threads < ActiveRecord::Base
       ! self.rendered_threads.nil?
     end
     # Preload the layout of the threads to the cache.  The +renderer+ is a proc that takes a thread and returns HTML for it.
+    # We assume that calling a renderer for a thread will load it from DB.  This assumption allows us to get all threads at the first call to the renderer
     def preload(renderer, force_reload = false)
       if force_reload
+        preload_all_threads_sql
         @rendered_threads = self.map {|cached_thread| renderer[cached_thread]}
         # Save the updated thread selection to the cache
         Rails.cache.write("#{cache_key}-html", @rendered_threads, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME)
         index_validator[] if index_validator
       else
         @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
+          preload_all_threads_sql
           r = self.map {|cached_thread| renderer[cached_thread]}
           index_validator[] if index_validator
           r
@@ -244,6 +253,21 @@ class Threads < ActiveRecord::Base
       end
     end
 
+    # To be used by controller: since we're now able to preload all threads in one SQL, we need the user to fetch settings for
+    attr_accessor :settings_for
+    private
+    # Make "faster_posts" for all threads in this array preloaded
+    def preload_all_threads_sql
+      return @preload_all_threads_sql if @preload_all_threads_sql
+      # Fetch hashes of thread and post objects
+      @preloaded_all_threads = Threads.where(:id => self.map(&:id)).group_by {|t| t.id}
+      @preloaded_all_posts = FasterPost.sql_posts(@settings_for ? @settings_for.id : nil).where(:thread_id => self.map(&:id)).group_by{|p| p.thread_id}
+      # Put this into threads
+      self.each.map {|thr| thr.real_thread = @preloaded_all_threads[thr.id][0]}
+      self.each.map {|thr| thr.preloaded_posts = @preloaded_all_posts[thr.id]}
+    end
+
+    public
     def get_rendered(i,thread_renderer,force_reload = false)
       preload(thread_renderer,force_reload)
       @rendered_threads[i]

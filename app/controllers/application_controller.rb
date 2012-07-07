@@ -102,6 +102,7 @@ class ApplicationController < ActionController::Base
       @threads = load_threads[]
     end
     # Assign presentation information to threads, so the model now knows how to display them
+    @threads.settings_for = current_user
     @threads.each {|t| t.presentation = cpres}
     @threads.each {|t| t.settings_for = current_user}
 
