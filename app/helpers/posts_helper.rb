@@ -168,8 +168,19 @@ EOS
     fast_link[buf,post]
     buf << %Q(</span>)
     # (url)/(pic) marks
-    post.marks.each do |mark|
-      buf << ' <span class="post-mark">(' << mark << ")</span>"
+    marks = post.marks.map(&:to_s)
+    # If the title contains url, add it to the "url" mark
+    url_link = nil
+    unless post.follow.blank?
+      url_link = post.follow
+      marks |= ['url']
+    end
+    marks.each do |mark|
+      if url_link && mark == 'url'
+        buf << ' <span class="post-mark">(<a href="' << url_link << '">' << mark << '</a>)</span>'
+      else
+        buf << ' <span class="post-mark">(' << mark << ")</span>"
+      end
     end
     # Now (+)/(-) marks
     if post.empty_body?

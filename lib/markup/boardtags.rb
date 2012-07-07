@@ -164,6 +164,15 @@ class DefaultParseContext
 end
 
 module RegexpConvertNode
+  # Matches an URL in a string, the url not being a part of a boardtag.  Returns matchdata
+  def match_url_in(string)
+    # The regexp should detect URLs with ports, and do not include the trailing punctuation in 'http://ya.ru.' or 'http://ya.ru/url/.'
+    # The beginning and the end contain lookahead assumptions to rule out converting links that are inside URL tags.
+    # Match:      not-tag     protocol           // path                         country     ( port(if any), the rest, last should be an alnum) if any
+    /(?<!\[url=|\[pic\]|\[tub.)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&\@:!]*[a-z0-9_\-\/#\@:!])?(?!\])/im.match(string)
+  end
+  module_function :match_url_in
+
   include ERB::Util
   def to_body
     # The HTML-escaping will be performed inside the HTML-conversion loop, so that we properly convert links with ampersands.
@@ -172,10 +181,7 @@ module RegexpConvertNode
     result = ''
     to_convert = t
     while not to_convert.empty?
-      # The regexp should detect URLs with ports, and do not include the trailing punctuation in 'http://ya.ru.' or 'http://ya.ru/url/.'
-      # The beginning and the end contain lookahead assumptions to rule out converting links that are inside URL tags.
-      # Match:  not-tag     protocol           // path                         country     ( port(if any), the rest, last should be an alnum) if any
-      if md = (/(?<!\[url=|\[pic\]|\[tub.)(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}((:[0-9]{1,5})?[a-z0-9_\-\.%\/?#=&\@:!]*[a-z0-9_\-\/#\@:!])?(?!\])/im.match(to_convert))
+      if md = match_url_in(to_convert)
         result << h(md.pre_match) << %Q(<a href="#{md[0].html_safe}">#{h md[0]}</a>)
         to_convert = md.post_match
         # Set post's attribute.  Do not forget to sync with [url] tag callback!

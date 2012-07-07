@@ -1,5 +1,6 @@
 require 'markup/boardtags'
 require 'markup/html_marks'
+require 'cgi'
 class TextContainer < ActiveRecord::Base
   has_many :text_items, :autosave => true
 
@@ -49,6 +50,15 @@ class TextContainer < ActiveRecord::Base
       r << filter_item_cached(txt,i,context)
     end
     r
+  end
+
+  def unescaped
+    case filter
+    when :html
+      _items.map {|i| CGI.unescapeHTML(i)}
+    else
+      _items
+    end
   end
 
   def add_revision(*texts)
