@@ -39,7 +39,7 @@ Read the wiki at http://dev.coldattic.info/projects/evil/wiki
 
 The code that collects forum tree information resides in app/models/threads.rb.  The model class contains a fast, raw-SQL way of fetching posts from a thread, and a faster way of fetching a list of threads for the index.
 
-If you're adding a new field to posts (for optimization purposes, for instance), be sure to add it to raw SQL in threads model, AND faster_posts model.  See 239aa4eaf commit for an example.
+If you're adding a new field to posts (for optimization purposes, for instance), be sure to add it to raw SQL in faster_posts model (see sql_posts method).  See 239aa4eaf commit for an example of adding new fields.
 
 The layout of the posts tree is in app/helpers/posts_helper.rb.  It contains raw HTML prints.  The reason why is eplained in my blog post http://coldattic.info/shvedsky/pro/blogs/a-foo-walks-into-a-bar/posts/75. WARNING!  When you change something in the post_helper, and want to see the changes but nothing happens after you reload a page, either turn off the cache completely, or erase the cache folder (rm -rf tmp/cache/).
 

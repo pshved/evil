@@ -11,6 +11,8 @@ class FasterPost < ActiveRecord::Base
     @@ch = Posts.columns_hash
   end
 
+  set_table_name :posts
+
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
@@ -96,20 +98,28 @@ class FasterPost < ActiveRecord::Base
     end
   end
 
-  # TODO: make it DRY with Threads model!
+  def self.sql_posts(hidden_user_id = nil)
+    FasterPost.
+      joins('JOIN text_containers on posts.text_container_id = text_containers.id').
+      joins('JOIN text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)').
+      joins('LEFT JOIN users on posts.user_id = users.id').
+      joins('LEFT JOIN clicks on clicks.post_id = posts.id').
+      joins("LEFT JOIN hidden_posts_users on hidden_posts_users.user_id = #{hidden_user_id} AND hidden_posts_users.posts_id = posts.id").
+      select('posts.id, posts.parent_id, posts.thread_id').
+      select('text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp').
+      select('text_items.body as title').where('text_items.number = 0').
+      select('posts.empty_body, posts.follow, posts.marks, posts.unreg_name, posts.host, posts.created_at').
+      select('users.login as user_login').
+      select('clicks.clicks, hidden_posts_users.action as hide_action').
+      select('deleted')
+  end
+
   def self.latest(length,settings_for,load_deleted = true)
-    FasterPost.find_by_sql(["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.follow, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.action as hide_action, body_items.body as body, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp,
-      deleted
-    from posts
-    join text_containers on posts.text_container_id = text_containers.id
-    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
-    join text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)
-    left join users on posts.user_id = users.id
-    left join clicks on clicks.post_id = posts.id
-    left join hidden_posts_users on hidden_posts_users.user_id = #{settings_for ? settings_for.id : 'NULL'} and hidden_posts_users.posts_id = posts.id
-    where text_items.number = 0 and body_items.number = 1
-      and ((not deleted) or ?)
-    order by posts.created_at desc limit ?", load_deleted, length])
+    sql_posts(settings_for ? settings_for.id : nil).
+      joins('JOIN text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)').where('body_items.number = 1').
+      where(['(not deleted) or ?', load_deleted]).
+      order('posts.created_at desc').
+      first(length)
   end
 
 
