@@ -24,21 +24,8 @@ class Threads < ActiveRecord::Base
 
   # Index optimization
   # Fast posts fetcher only stores titles.  The parameter is the ID of the user.
-  # TODO: return relation rather than records!
   def faster_posts(settings_for = self.settings_for)
-    FasterPost.find_by_sql ["select posts.id, text_items.body as title, posts.created_at, posts.empty_body, posts.follow, posts.parent_id, posts.marks, posts.unreg_name, users.login as user_login, posts.host, clicks.clicks, hidden_posts_users.action as hide_action, text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp,
-      deleted
-    from posts
-    join text_containers on posts.text_container_id = text_containers.id
-    join text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)
-    left join users on posts.user_id = users.id
-    left join clicks on clicks.post_id = posts.id
-    left join hidden_posts_users on hidden_posts_users.user_id = ? and hidden_posts_users.posts_id = posts.id
-    where text_items.number = 0
-      and thread_id = ?",
-      settings_for ? settings_for.id : nil,
-      id,
-    ]
+    FasterPost.sql_posts(settings_for ? settings_for.id : nil).where(['thread_id = ?', id])
   end
 
   # Faster subtree getters
