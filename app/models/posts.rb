@@ -62,6 +62,7 @@ class Posts < ActiveRecord::Base
   # a hook that updates marks (after the post has been edited or created)
   before_save :renew_marks
   before_save :renew_emptiness
+  before_save :renew_link
   class PostParseContext < DefaultParseContext
   end
   def renew_marks
@@ -76,6 +77,17 @@ class Posts < ActiveRecord::Base
   # Update whether the post is empty (needed for optimization)
   def renew_emptiness
     self.empty_body = body.strip.blank?
+    true
+  end
+
+  # Update "header-link", a link that is contained in the header
+  def renew_link
+    # Check if the header contains a link
+    # When we import posts from HTML source, we need an unescaped title, since the url may contain ampersands.
+    if md = RegexpConvertNode.match_url_in(ensure_container.unescaped[0])
+      self.follow = md[0]
+    end
+    # Return true as this is used as a before_safe
     true
   end
 
