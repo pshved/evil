@@ -39,6 +39,11 @@ class User < ActiveRecord::Base
     find_by_login(p)
   end
 
+  # Id for CSS username highlighting
+  def to_css_id
+    id
+  end
+
   # Roles
   has_and_belongs_to_many :roles
   # required by auth plugin

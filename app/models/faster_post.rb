@@ -16,7 +16,7 @@ class FasterPost < ActiveRecord::Base
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
-  %w(title unreg_name user_login empty_body parent_id created_at hide_action body body_filter cache_timestamp follow).each {|m| send :define_method, m.to_sym do
+  %w(title unreg_name user_login author_id empty_body parent_id created_at hide_action body body_filter cache_timestamp follow).each {|m| send :define_method, m.to_sym do
     read_attribute_before_type_cast(m)
   end}
 
@@ -24,6 +24,10 @@ class FasterPost < ActiveRecord::Base
     ats.each do |k,v|
       send("#{k}=",v)
     end
+  end
+
+  def cssid
+    author_id
   end
 
   def empty_body?
@@ -110,6 +114,7 @@ class FasterPost < ActiveRecord::Base
       select('text_items.body as title').where('text_items.number = 0').
       select('posts.empty_body, posts.follow, posts.marks, posts.unreg_name, posts.host, posts.created_at').
       select('users.login as user_login').
+      select('users.id as author_id').
       select('clicks.clicks, hidden_posts_users.action as hide_action').
       select('deleted')
   end
