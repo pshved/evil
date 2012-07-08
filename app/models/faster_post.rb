@@ -104,7 +104,7 @@ class FasterPost < ActiveRecord::Base
       joins('JOIN text_items on (text_items.text_container_id = text_containers.id) and (text_items.revision = text_containers.current_revision)').
       joins('LEFT JOIN users on posts.user_id = users.id').
       joins('LEFT JOIN clicks on clicks.post_id = posts.id').
-      joins("LEFT JOIN hidden_posts_users on hidden_posts_users.user_id = #{hidden_user_id} AND hidden_posts_users.posts_id = posts.id").
+      joins("LEFT JOIN hidden_posts_users on hidden_posts_users.user_id = #{hidden_user_id || 'NULL'} AND hidden_posts_users.posts_id = posts.id").
       select('posts.id, posts.parent_id, posts.thread_id').
       select('text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp').
       select('text_items.body as title').where('text_items.number = 0').
