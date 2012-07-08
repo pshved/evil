@@ -23,7 +23,7 @@
   <div class="menu">
     <%= link_to t("Home"), root_path  %>  |
     <%= link_to_unless_current ta(:create,:thread), new_thread_path %>  |
-    <% Rails.cache.fetch('source_names'){Source.select(:name).map(&:name)}.each do |src| %>
+    <% Rails.cache.fetch('source_names', :expires_in => CONFG_CACHE_TIME){Source.select(:name).map(&:name)}.each do |src| %>
       <%= link_to_unless_current "#{ta(:create,:thread)} #{t(:to_source)} #{src}", foreign_new_threads_path(src) %>  |
     <% end %>
     <% if current_user %>
@@ -55,7 +55,12 @@
 
   <div class="info">
     <div class="left">
-      <%= render :partial => 'user_sessions/login_bar' %>
+      <% # At least, we try to cache it for non-unregs %>
+      <% if current_user %>
+        <%= render :partial => 'user_sessions/login_bar' %>
+      <% else %>
+        <%= Rails.cache.fetch('unreg-userlogin', :expires_in => CONFG_CACHE_TIME) {render :partial => 'user_sessions/login_bar'} %>
+      <% end %>
       <% if @threads %>
         <div class="pager">
           <%= "#{t(:Showing, :threads => @threads.count).humanize}."%>

@@ -190,15 +190,16 @@ class Threads < ActiveRecord::Base
     # Allow other entities (such as CachedThreadArray) convey the real thread here
     def real_thread=(thr)
       @real_thread = thr
+      # We should also send the settings proxied by the current thread to the new one
+      @real_thread.presentation = self.presentation
+      @real_thread.settings_for = self.settings_for
+      @real_thread
     end
     private
     # Load the real thread, and convey the presentation to it
     def real_thread
       return @real_thread if @real_thread
-      @real_thread = Threads.find(id)
-      @real_thread.presentation = self.presentation
-      @real_thread.settings_for = self.settings_for
-      @real_thread
+      self.real_thread = Threads.find(id)
     end
   end
 
