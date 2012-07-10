@@ -1,0 +1,25 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>User:</b>
+  <%= @pazuzu.user %>
+</p>
+
+<p>
+  <b>Bastard:</b>
+  <%= @pazuzu.bastard %>
+</p>
+
+<p>
+  <b>Unreg name:</b>
+  <%= @pazuzu.unreg_name %>
+</p>
+
+<p>
+  <b>Host:</b>
+  <%= @pazuzu.host %>
+</p>
+
+
+<%= link_to 'Edit', edit_pazuzu_path(@pazuzu) %> |
+<%= link_to 'Back', pazuzus_path %>

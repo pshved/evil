@@ -1,0 +1,29 @@
+= form_for([@user,@pazuzu]) do |f|
+  =error_messages_for @pazuzu.errors, :pazuzu
+  %table
+    %tr
+      %th
+        Ban_by
+      %th
+        Value
+    %tr
+      %td
+        = f.check_box :use_bastard
+        = f.label :bastard
+      %td
+        = f.text_field :bastard_name
+    %tr
+      %td
+        = f.check_box :use_host
+        = f.label :host
+      %td
+        = f.text_field :host
+    %tr
+      %td
+        = f.check_box :use_unreg_name
+        = f.label :unreg_name
+      %td
+        = f.text_field :unreg_name
+  %div.actions
+    = f.submit
+

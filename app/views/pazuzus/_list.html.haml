@@ -1,0 +1,18 @@
+-if @pazuzus && !@pazuzus.empty?
+  %table
+    %tr
+      %th User
+      %th Host
+      %th action
+    -@pazuzus.each do |p|
+      %tr
+        %td
+          - user_link(p.bastard, p.unreg_name)
+        %td
+          = p.host
+        %td
+          (
+          =link_to_unless_current ta(:edit,:pazuzu), edit_user_pazuzu_path(@user,p)
+          =", "
+          = link_to t('Destroy'), [@user,p], confirm: 'Are you sure?', method: :delete
+          )

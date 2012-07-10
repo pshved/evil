@@ -54,6 +54,12 @@ authorization do
     # Show/hide posts
     has_permission_on :posts, :to => :toggle_showhide
 
+    # Pazuzus are aready tied to the current_user as an owner, so there's no need to check attributes
+    has_permission_on :pazuzus, :to => [:index, :new]
+    has_permission_on :pazuzus, :to => [:create, :update, :delete], :join_by => :and do
+      if_attribute :user => is { user }
+    end
+
     # Read information about moderation actions
     has_permission_on :moderation_actions, :to => :list
 
