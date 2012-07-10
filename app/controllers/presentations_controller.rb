@@ -12,6 +12,8 @@ class PresentationsController < ApplicationController
 
   before_filter :verify_get_csrf, :only => [:use, :clone, :make_default]
 
+  before_filter :load_supplement, :only => [:new, :index, :edit]
+
   # GET /presentations
   # GET /presentations.json
   def index
@@ -130,5 +132,11 @@ class PresentationsController < ApplicationController
 
   def new_presentation
     @presentation = Presentation.new(:user => current_user)
+  end
+
+  def load_supplement
+    @user = current_user
+    @pazuzus = @user.pazuzus
+    @hidden_posts = @user.hidden_posts
   end
 end
