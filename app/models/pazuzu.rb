@@ -1,5 +1,6 @@
 class Pazuzu < ActiveRecord::Base
-  belongs_to :user
+  # We should reload all threads after pazuzing somebody; this is handled via touching the user.
+  belongs_to :user, :touch => true
   belongs_to :bastard, :class_name => 'User'
 
   validate do |ban|
