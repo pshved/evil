@@ -20,7 +20,9 @@ Zlo::Application.routes.draw do
   end
   resources :user_sessions
   # User IDs are permissive, they may contain a lot of various symbols... Thanks to http://devblog.avdi.org/2010/06/18/.
-  resources :users, :constraints => { :id => /.*/ }
+  resources :users, :constraints => { :id => /.*/ } do
+    resources :pazuzus
+  end
   resources :posts, :path => 'p' do
     member do
       get :toggle_showhide, :remove

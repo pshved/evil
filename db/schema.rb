@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120707171339) do
+ActiveRecord::Schema.define(:version => 20120710183911) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -72,6 +72,19 @@ ActiveRecord::Schema.define(:version => 20120707171339) do
 
   add_index "moderation_actions", ["post_id"], :name => "index_moderation_actions_on_post_id"
   add_index "moderation_actions", ["user_id"], :name => "index_moderation_actions_on_user_id"
+
+  create_table "pazuzus", :force => true do |t|
+    t.integer  "user_id"
+    t.integer  "bastard_id"
+    t.string   "unreg_name"
+    t.string   "host"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "pazuzus", ["bastard_id"], :name => "index_pazuzus_on_bastard_id"
+  add_index "pazuzus", ["user_id", "bastard_id", "unreg_name", "host"], :name => "index_pazuzus_on_user_id_and_bastard_id_and_unreg_name_and_host", :unique => true
+  add_index "pazuzus", ["user_id"], :name => "index_pazuzus_on_user_id"
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"

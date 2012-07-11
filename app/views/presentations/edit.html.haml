@@ -5,8 +5,10 @@
 = render 'form'
 -if current_user
   %div.hiddenthreads
-    =ta(:manually_hidden,:presentation)
+    %h3=ta(:manually_hidden,:presentation)
     %ul
-      - current_user.hidden_posts.each do |p|
+      - @hidden_posts.each do |p|
         %li= link_to p.title, p
-
+  %div.pazuzus
+    %h3=ta(:index,:pazuzu)
+    = render :partial => 'pazuzus/list'

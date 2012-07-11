@@ -1,6 +1,7 @@
 -# coding: utf-8
 -# To improve performance, you must supply thread to this partial
 - thr = @thread || thread
+- return unless thr && thr.fast_head
 - if defined?(fast) && fast
   - buf = ''
   -# 'start' post is nil, which means we display the whole thread.  We save a DB request by not fetching it!
