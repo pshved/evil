@@ -22,7 +22,6 @@ class Pazuzu < ActiveRecord::Base
   end
 
   before_save do
-    debugger
     self.bastard = User.find_by_login self.bastard_name
   end
 
