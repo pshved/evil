@@ -30,6 +30,7 @@ ru:
   follow: follow
   Destroy: удалить
   cant_ban_self: Нельзя забанить себя!
+  cant_ban_twice: уже был забанен
   cant_ban_nobody: Укажите, кого именно забанить!
   cant_find: не найден
   criterion: критерий
@@ -192,6 +193,8 @@ ru:
         new: "Запазузить"
         edit: "исправить"
         username: "Пользователь"
+        user: "Пользователь"
+        already_exists: "Такой пользователь уже запазузен.  Вы можете сделать сокрытие строже, сняв отметку с некоторых параметров."
   authlogic:
     attributes:
       user_session:

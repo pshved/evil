@@ -1,5 +1,8 @@
 = form_for([@user,@pazuzu]) do |f|
   =error_messages_for @pazuzu.errors, :pazuzu
+  -# NOTE: this is not at the post to prevent loading all pazuzus at each post request.  This would take a DB request, which is mostly unnecessary.
+  -if @user.pazuzus.any? {|p| p.equals @pazuzu}
+    %p.warning=ta(:already_exists,:pazuzu)
   %table
     %tr
       %th
