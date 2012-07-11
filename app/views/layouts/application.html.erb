@@ -78,6 +78,15 @@
       <%= t('threads.order_by.title') %>:
       <%= link_to_unless(current_page?(root_path) && (params[:thread_order] != 'update'), t('threads.order_by.created_at'), root_path())%>
       <%= link_to_unless(current_page?(root_path) && (params[:thread_order] == 'update'), t('threads.order_by.updated_at'), root_path(:thread_order => :update))%>
+      <% if current_user %>
+        |
+        <%=ta(:show,:pazuzu)+':'%>
+        <% if params[:nopazuzu].blank? %>
+          <%=link_to(ta(:mkoff,'pazuzu'), url_for(params.merge :nopazuzu => 'y'))%>
+        <% else %>
+          <%=link_to(ta(:mkon,'pazuzu'), url_for(params.except :nopazuzu))%>
+        <% end %>
+      <% end %>
     </div>
     <div style="clear: both; height: 0px; overflow: hidden;">
       <br>

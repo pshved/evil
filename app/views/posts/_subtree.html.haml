@@ -5,7 +5,7 @@
 - if defined?(fast) && fast
   - buf = ''
   -# 'start' post is nil, which means we display the whole thread.  We save a DB request by not fetching it!
-  != fast_tree_cache(thr,buf,nil,current_presentation)
+  != fast_tree_cache(thr,buf,nil,thr.presentation || current_presentation)
 -else
   -if post
     = render :partial => 'posts/header_line', :locals => {:post => post, :thr => thr}

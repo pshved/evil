@@ -14,7 +14,7 @@ class Pazuzu < ActiveRecord::Base
   end
 
   validates_presence_of :user
-  validates_uniqueness_of :user_id, :scope => [:user_id, :host, :unreg_name], :message => 'has already banned this bastard'
+  validates_uniqueness_of :user_id, :scope => [:user_id, :host, :unreg_name], :message => I18n.t('cant_ban_twice')
 
 
   attr_accessor :use_bastard, :use_host, :use_unreg_name
@@ -67,5 +67,13 @@ class Pazuzu < ActiveRecord::Base
       ( bastard.nil? ? false : post.author_id == bastard.id ) ||
       ( unreg_name.blank? ? false : post.unreg_name == unreg_name ) ||
     false
+  end
+
+  def equals other_pazuzu
+    def nml(x)
+      x.blank? ? nil : x
+    end
+    [ nml(other_pazuzu.bastard), nml(other_pazuzu.host), nml(other_pazuzu.unreg_name) ] ==
+      [ nml(self.bastard), nml(self.host), nml(self.unreg_name) ]
   end
 end
