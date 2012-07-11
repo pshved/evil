@@ -25,4 +25,16 @@ class Pazuzu < ActiveRecord::Base
     debugger
     self.bastard = User.find_by_login self.bastard_name
   end
+
+
+  # Check if this rule actually bans the post given
+  def bans(post)
+    return false unless post
+
+    false ||
+      ( host.blank? ? false : post.host == host) ||
+      ( bastard.nil? ? false : post.author_id == bastard.id ) ||
+      ( unreg_name.blank? ? false : post.unreg_name == unreg_name ) ||
+    false
+  end
 end

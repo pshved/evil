@@ -62,7 +62,7 @@ class Threads < ActiveRecord::Base
   # NOTE: it fetches the whole thread into fast cache!
   def fast_head
     ensure_subtree_fast_cache
-    @cached_subtree_fast[nil][0]
+    (@cached_subtree_fast[nil] || [])[0]
   end
 
   protected
@@ -79,6 +79,37 @@ class Threads < ActiveRecord::Base
 
     # compute raw id tree
     idtree = ordered.inject({}) {|acc,kv| acc[kv[0]] = kv[1].map &:id ; acc}
+
+    # Remove items hidden from the tree, according to the user's settings.
+    # This removes the posts that are deleted, and the posts from pazuzued users (banned for this current user)
+    banned_users = settings_for ? settings_for.pazuzus : []
+    # This function returns a hash of post ids that should be removed from the view.
+    def remove_unnecessary(node,tree,idmap,banned_users)
+      return {} unless node
+      kids = tree[node] || []
+
+      # Get all removed posts in the subthread
+      removed_sub = kids.inject([]) {|acc, kid| acc + remove_unnecessary(kid,tree,idmap,banned_users)}
+      # Get the remainig kids
+      remaining_kids = kids - removed_sub
+
+      # Check if this post is banned
+      post_invis = banned_users.inject(false) {|acc, bu| acc || bu.bans(idmap[node])}
+      removed_sub << node if post_invis && remaining_kids.empty?
+
+      removed_sub
+    end
+
+    to_remove = remove_unnecessary(idtree[nil][0],idtree,idmap,banned_users)
+    idtree = idtree.inject({}) {|acc, kv| acc[kv[0]] = (kv[1] || []) - to_remove; acc}
+    # Now get back the tree that maps ids to arrays of the actual posts, not their IDs
+    r_subtree = idtree.inject({}) do |acc, kv|
+      new_value = (kv[1] || []).map{|i| idmap[i]}.compact
+      acc[kv[0]] = new_value unless new_value.empty?
+      acc
+    end
+
+    # NOTE: at this point, we have formed the data to handle.  The rest is actually related to the "view" part, and might be decoupled in the future.
 
     # Compute thread information.  Keys are IDs, values are hashes with the following info:
     # { :latest => post, # the latest post in the subthread of the node

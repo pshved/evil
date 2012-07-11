@@ -276,7 +276,7 @@ EOS
         return buf
       end
     end
-    kids = tree[start.id]
+    kids = start ? tree[start.id] : nil
     return buf unless kids
     # If this node is smoothed, do not insert a new level of the list, just continue the parent's.
     smoothed = (info[start.id] || {})[:smoothed]

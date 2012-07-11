@@ -2,6 +2,7 @@
 <ul class="threads">
   <% current_presentation_cache = current_presentation %>
   <% @threads.each do |t| %>
+    <% next unless t && t.fast_head %>
     <% if defined?(fast) && fast
       # we do not always need to fetch the head if we're using a fast index %>
       <li class="<%=cycle('odd','even')%>">
