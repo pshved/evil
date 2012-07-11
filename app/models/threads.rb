@@ -100,7 +100,12 @@ class Threads < ActiveRecord::Base
       removed_sub
     end
 
-    to_remove = remove_unnecessary(idtree[nil][0],idtree,idmap,banned_users)
+    # Apply override of pazuzued users here
+    banned_users_for_remove = settings_for.nopazuzu ? [] : banned_users 
+
+    # Select posts to remove
+    to_remove = remove_unnecessary(idtree[nil][0],idtree,idmap,banned_users_for_remove)
+
     idtree = idtree.inject({}) {|acc, kv| acc[kv[0]] = (kv[1] || []) - to_remove; acc}
     # Now get back the tree that maps ids to arrays of the actual posts, not their IDs
     r_subtree = idtree.inject({}) do |acc, kv|
@@ -188,6 +193,7 @@ class Threads < ActiveRecord::Base
       r
     end
     # Do the walk
+    # (we apply "banned_users" here regardless of whether we hide them)
     walk(idtree[nil][0],idtree,idmap,thread_info,threshold,value,smooth_threshold,banned_users)
 
     # For backward compatibility, let's return hides

@@ -70,13 +70,13 @@ span.inquote
 
 .info .left {
   float: left;
-  width: 60%;
+  width: 50%;
 }
 
 .info .right {
   float: right;
   text-align: right;
-  width: 30%;
+  width: 50%;
 }
 
 /* Notifications bar */

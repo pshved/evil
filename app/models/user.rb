@@ -82,6 +82,9 @@ class User < ActiveRecord::Base
   # (user hiding preferences are named after pazuzu, who was first to create a user script to hide certain users from being showed to you personally)
   has_many :pazuzus
 
+  # HACK!  Convey that we're not using pazuzus!
+  attr_accessor :nopazuzu
+
   # User's posts
   has_many :posts, :class_name => 'Posts'
 
