@@ -4,6 +4,7 @@ class Pazuzu < ActiveRecord::Base
   belongs_to :bastard, :class_name => 'User'
 
   validate do |ban|
+    # Something should be specified
     if ban.bastard.blank? && ban.unreg_name.blank? && ban.host.blank?
       errors.add(:base, "Internal error: try banning again!")
     end
@@ -21,8 +22,15 @@ class Pazuzu < ActiveRecord::Base
     @bastard_name || (bastard.blank? ? nil : bastard.login)
   end
 
-  before_save do
+  before_validation do
     self.bastard = User.find_by_login self.bastard_name
+  end
+
+  validate do |ban|
+    # You can't ban self!
+    if !ban.user.blank? && ban.bastard == ban.user
+      errors.add(:base, I18n.t('cant_ban_self'))
+    end
   end
 
 

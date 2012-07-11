@@ -28,6 +28,8 @@ ru:
   here: здесь
   Page: Страница
   follow: follow
+  Destroy: Удалить
+  cant_ban_self: Нельзя забанить себя!
   activity:
     hosts: хосты
     clicks: хиты
