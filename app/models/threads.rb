@@ -132,7 +132,7 @@ class Threads < ActiveRecord::Base
     #   :height => height of the subtree
     #   :size => number of nodes in the subtree
     #   :has_nonempty_body => true, Whether the subthread (or the post itself) contains a post with a nonempty body
-    def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,depth = 0,is_an_only_child = false)
+    def walk(node,tree,idmap,thread_info,threshold,value,smooth_threshold,banned_users = [],depth = 0,is_an_only_child = false)
       depth += 1
       return {:height => 0, :size => 0} unless node
 
@@ -143,7 +143,7 @@ class Threads < ActiveRecord::Base
 
       # 1. Collect information from children
       kids = tree[node] || []
-      kids_info = kids.map {|child| walk(child,tree,idmap,thread_info,threshold,value,smooth_threshold,depth,kids.length == 1)}
+      kids_info = kids.map {|child| walk(child,tree,idmap,thread_info,threshold,value,smooth_threshold,banned_users,depth,kids.length == 1)}
       # Generalize the information
       r = {}
       r[:height] = ( kids_info.map{|ki| ki[:height]}.max || 0)
@@ -164,6 +164,7 @@ class Threads < ActiveRecord::Base
       # Sum the size
       size = kids_info.inject(1) {|acc,ki| acc + (ki[:size] || 0)}
       has_nonempty_body = !idmap[node].empty_body? || any_kids_nonempty
+      pazuzued = banned_users.inject(false) {|acc, bu| acc || bu.bans(idmap[node])}
 
       thread_info[node] = {
         :latest => idmap[r[:latest_id]],
@@ -171,6 +172,7 @@ class Threads < ActiveRecord::Base
         :smoothed => smoothed,
         :size => size,
         :has_nonempty_body => has_nonempty_body,
+        :pazuzued => pazuzued,
       }
 
       # 3. Prepare the return value for the parent
@@ -186,7 +188,7 @@ class Threads < ActiveRecord::Base
       r
     end
     # Do the walk
-    walk(idtree[nil][0],idtree,idmap,thread_info,threshold,value,smooth_threshold)
+    walk(idtree[nil][0],idtree,idmap,thread_info,threshold,value,smooth_threshold,banned_users)
 
     # For backward compatibility, let's return hides
     r_hides = thread_info

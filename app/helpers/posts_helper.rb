@@ -257,13 +257,14 @@ EOS
   def fast_generic_tree(buf,tree,start,info = {}, tz = DEFAULT_TZ, view_opts = {})
     # If start is nil, then we're printing the index, and skip the post itself.
     if start
-      buf << %Q(<div class="post-header" id="p#{start.id}">)
+      this_info = info[start.id] || {}
+      buf << %Q(<div class="post-header#{this_info[:pazuzued] ? ' pazuzued' : ''}" id="p#{start.id}">)
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
 
       # Do not show (+++) if we don't show a usual (+), since it's not going to work anyway
-      if view_opts[:plus] && (info[start.id] || {})[:has_nonempty_body]
+      if view_opts[:plus] && this_info[:has_nonempty_body]
         buf << %Q( <a id="exp#{start.id}" class="subthreadbody action" href="#">+++</a>)
       end
 
@@ -272,7 +273,7 @@ EOS
       buf << %Q(</div>)
       unless post_shown || @show_all_posts
         # Show that the post is hidden, and the info about the subthread
-        fast_hidden_bar[buf,start,(info[start.id] || {}),tz]
+        fast_hidden_bar[buf,start,this_info,tz]
         return buf
       end
     end
