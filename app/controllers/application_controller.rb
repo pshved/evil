@@ -104,8 +104,10 @@ class ApplicationController < ActionController::Base
     # Assign presentation information to threads, so the model now knows how to display them
     @threads.settings_for = current_user
     # HACK HACK HACK!  Move this to presentation-like layer!
-    @threads.settings_for.nopazuzu = !params[:nopazuzu].blank?
-    cpres.updated_at = Time.now if !params[:nopazuzu].blank?
+    if current_user
+      @threads.settings_for.nopazuzu = !params[:nopazuzu].blank? if current_user
+      cpres.updated_at = Time.now if !params[:nopazuzu].blank?
+    end
     # END of hack
     @threads.each {|t| t.presentation = cpres}
     @threads.each {|t| t.settings_for = current_user}

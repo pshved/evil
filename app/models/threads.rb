@@ -101,7 +101,7 @@ class Threads < ActiveRecord::Base
     end
 
     # Apply override of pazuzued users here
-    banned_users_for_remove = settings_for.nopazuzu ? [] : banned_users 
+    banned_users_for_remove = (settings_for && settings_for.nopazuzu) ? [] : banned_users
 
     # Select posts to remove
     to_remove = remove_unnecessary(idtree[nil][0],idtree,idmap,banned_users_for_remove)

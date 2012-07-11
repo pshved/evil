@@ -161,8 +161,10 @@ class PostsController < ApplicationController
     @thread.presentation = current_presentation
     @thread.settings_for = current_user
     # HACK HACK HACK!  Move this to presentation-like layer!
-    @thread.settings_for.nopazuzu = !params[:nopazuzu].blank?
-    @thread.presentation.updated_at = Time.now if !params[:nopazuzu].blank?
+    if current_user
+      @thread.settings_for.nopazuzu = !params[:nopazuzu].blank?
+      @thread.presentation.updated_at = Time.now if !params[:nopazuzu].blank?
+    end
     # END of hack
   end
   def init_loginpost
