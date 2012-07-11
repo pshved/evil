@@ -326,14 +326,14 @@ EOS
     # - the user's show/hide for this thread (currently induced by the presentation anyway).
     # - the current thread (this is fixed by a kludgy regexp).
     # - global configuration of the site (modification time of it);
-    # x the user itself (his or her name may be colored).  Instead, coloring is done via CSS.
+    # - the user itself (as a tracker for its pazuzus)
     # x user's timezone (this is accounted for in the presentations)
     # x what post we are showing (it's @post).  This will be replaced via CSS.
     # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
     thread_key = key_of thr
     user_key = key_of(current_user,'guest')
     presentation_key = key_of presentation
-    cache_key = "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-#{@show_all_posts}"
+    cache_key = "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-user:#{user_key}-#{@show_all_posts}"
     logger.debug "Tree for key: '#{cache_key}'"
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
