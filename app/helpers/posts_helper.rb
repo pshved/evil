@@ -163,7 +163,7 @@ EOS
 
     # Post title (link or plain, depending on whether it's the current post)
     # The css class with post.id is used to render the same thread regardless what post is current, making the thread browsing easier.  See post_span_replace for how it works.
-    buf << %Q(<!--post:#{post.id}--><span class="post-oneline css#{post.id}">)
+    buf << %Q(<span class="post-oneline css#{post.id}">)
     # This already prints to the buf!  Do not append, or your memory will blow!
     fast_link[buf,post]
     buf << %Q(</span>)
