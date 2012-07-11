@@ -4,9 +4,12 @@ class Pazuzu < ActiveRecord::Base
   belongs_to :bastard, :class_name => 'User'
 
   validate do |ban|
+    # Check if bastard was specified but not found
+    if ban.bastard.blank? && !ban.bastard_name.blank?
+      errors.add(:bastard_name, I18n.t('cant_find'))
     # Something should be specified
-    if ban.bastard.blank? && ban.unreg_name.blank? && ban.host.blank?
-      errors.add(:base, "Internal error: try banning again!")
+    elsif ban.bastard.blank? && ban.unreg_name.blank? && ban.host.blank?
+      errors.add(:base, I18n.t('cant_ban_nobody'))
     end
   end
 
@@ -17,6 +20,27 @@ class Pazuzu < ActiveRecord::Base
   attr_accessor :use_bastard, :use_host, :use_unreg_name
   attr_accessor :bastard_name
   attr_accessible :bastard, :host, :unreg_name, :bastard_name, :use_bastard, :use_host, :use_unreg_name
+
+  # Apply use_* forward
+  before_validation do
+    self.bastard = nil if use_bastard == '0'
+    self.unreg_name = nil if use_unreg_name == '0'
+    self.host = nil if use_host == '0'
+    true
+  end
+
+  #...and backwards
+  def init_use
+    if persisted?
+      @use_bastard = !self.bastard.blank?
+      @use_host = !self.host.blank?
+      @use_unreg_name = !self.unreg_name.blank?
+    else
+      @use_bastard = self.unreg_name.blank?
+      @use_host = !self.unreg_name.blank?
+      @use_unreg_name = !self.unreg_name.blank?
+    end
+  end
 
   def bastard_name
     @bastard_name || (bastard.blank? ? nil : bastard.login)

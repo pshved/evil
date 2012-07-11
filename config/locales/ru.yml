@@ -28,8 +28,13 @@ ru:
   here: здесь
   Page: Страница
   follow: follow
-  Destroy: Удалить
+  Destroy: удалить
   cant_ban_self: Нельзя забанить себя!
+  cant_ban_nobody: Укажите, кого именно забанить!
+  cant_find: не найден
+  criterion: критерий
+  value: значение
+  action: действие
   activity:
     hosts: хосты
     clicks: хиты
@@ -55,6 +60,9 @@ ru:
       cantedit:  Невозможно удалить сообщение.  Попробуйте его отредактировать.
     private_message:
       sent:  Личное сообщение отправлено
+    pazuzu:
+      created: Пользователь запазузен
+      edited: Параметры сокрытия изменены
   external_credentials: "Чтобы отправить сообщение на другой форум, вы должны быть уже авторизованы на нём.  Чтобы вернуться сюда, вам нужно будет нажать «Назад» после отправки сообщения и подождать 30 секунд."
   reply_locally: "просто ответить на этой же доске"
   reply_to_source: "написать сообщение на изначальный форум"
@@ -88,6 +96,7 @@ ru:
       user: "пользователь"
       user_session: "сессия"
       private_message: "личное сообщение"
+      pazuzu: "сокрытие"
     attributes:
       post:
         title: "заголовок"
@@ -172,6 +181,17 @@ ru:
         is: "Активность "
         during: "за последние"
         minutes: "минут"
+      pazuzu:
+        create: "Запазузить"
+        bastard: "Пользователя"
+        bastard_name: "Пользователь"
+        bastard_name: "Пользователь"
+        unreg_name: "Анрега с именем"
+        host: "Хост"
+        index: "Скрытые пользователи"
+        new: "Запазузить"
+        edit: "исправить"
+        username: "Пользователь"
   authlogic:
     attributes:
       user_session:
@@ -191,6 +211,8 @@ ru:
         create: "Войти"
       private_message:
         preview: "Предпросмотр"
+      pazuzu:
+        create: "Скрывать"
   errors:
     credentials: "Неправильный логин/пароль"
     blank_password: "не может быть пустым, поскольку %{login} уже зарегистрирован"

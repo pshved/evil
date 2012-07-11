@@ -8,6 +8,8 @@ class PazuzusController < ApplicationController
   filter_access_to :create, :new, :show, :delete, :attribute_check => true
   filter_access_to :index, :attribute_check => false
 
+  before_filter :checkboxes_for_pazuzu, :only => [:new, :edit]
+
   # GET /pazuzus
   # GET /pazuzus.json
   def index
@@ -33,9 +35,6 @@ class PazuzusController < ApplicationController
   # GET /pazuzus/new
   # GET /pazuzus/new.json
   def new
-    @pazuzu.use_bastard = @pazuzu.unreg_name.blank?
-    @pazuzu.use_host = !@pazuzu.unreg_name.blank?
-    @pazuzu.use_unreg_name = !@pazuzu.unreg_name.blank?
     respond_to do |format|
       format.html # new.html.erb
       format.json { render json: @pazuzu }
@@ -44,7 +43,6 @@ class PazuzusController < ApplicationController
 
   # GET /pazuzus/1/edit
   def edit
-    @pazuzu = Pazuzu.find(params[:id])
   end
 
   # POST /pazuzus
@@ -52,7 +50,7 @@ class PazuzusController < ApplicationController
   def create
     respond_to do |format|
       if @pazuzu.save
-        format.html { redirect_to edit_user_pazuzu_path(@user, @pazuzu), notice: 'Pazuzu was successfully created.' }
+        format.html { redirect_to edit_user_pazuzu_path(@user, @pazuzu), notice: t('notice.pazuzu.created') }
         format.json { render json: @pazuzu, status: :created, location: @pazuzu }
       else
         format.html { render action: "new" }
@@ -68,7 +66,7 @@ class PazuzusController < ApplicationController
 
     respond_to do |format|
       if @pazuzu.update_attributes(params[:pazuzu])
-        format.html { redirect_to @pazuzu, notice: 'Pazuzu was successfully updated.' }
+        format.html { redirect_to user_pazuzus_url(@user), notice: t('notice.pazuzu.edited') }
         format.json { head :ok }
       else
         format.html { render action: "edit" }
@@ -105,6 +103,10 @@ class PazuzusController < ApplicationController
 
   def new_pazuzu
     @pazuzu = Pazuzu.new({:user => current_user, :bastard_name => params['bastard'], :host => params['post_host'], :unreg_name => params['unreg_name']}, :without_protection => true)
+  end
+
+  def checkboxes_for_pazuzu
+    @pazuzu.init_use if @pazuzu
   end
 
   def find_user

@@ -13,7 +13,7 @@
         -# Pazuzuing
         - if permitted_to? :new, :pazuzus
           -#Note that :host is a reserved key!
-          = link_to t('pazuzu'), new_user_pazuzu_path(current_user, :bastard => @post.user, :unreg_name => @post.unreg_name, :post_host => @post.host)
+          = link_to ta(:create,'pazuzu'), new_user_pazuzu_path(current_user, :bastard => @post.user, :unreg_name => @post.unreg_name, :post_host => @post.host)
         -# Moderation
         - if permitted_to? :remove, @post
           = link_to t('moderation.spam.button'), remove_post_path(@post), :confirm => t('moderation.spam.confirm')

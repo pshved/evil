@@ -1,9 +1,9 @@
 -if @pazuzus && !@pazuzus.empty?
   %table
     %tr
-      %th User
-      %th Host
-      %th action
+      %th=ta(:username,:pazuzu)
+      %th=ta(:host,:pazuzu)
+      %th=t(:action)
     -@pazuzus.each do |p|
       %tr
         %td
