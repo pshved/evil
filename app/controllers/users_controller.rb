@@ -1,13 +1,12 @@
 class UsersController < ApplicationController
   before_filter :find_user, :only => [:show, :update, :edit, :destroy]
+  before_filter :load_users, :only => [:index]
 
   filter_resource_access
 
   # GET /users
   # GET /users.json
   def index
-    @users = User.all
-
     respond_to do |format|
       format.html # index.html.erb
       format.json { render json: @users }
@@ -61,6 +60,8 @@ class UsersController < ApplicationController
   # PUT /users/1
   # PUT /users/1.json
   def update
+    # TODO: fix permission to declauth check
+    @user.suppress_current_password_check = true if current_user.role_symbols.include? :admin
     respond_to do |format|
       if @user.demo
         format.html { redirect_to @user, notice: %Q(You can not edit a demonstration user's settings) }
@@ -90,8 +91,12 @@ class UsersController < ApplicationController
   protected
   def find_user
     # We do not use 'self' to avoid problems with declarative auth
-    @user = User.from_param(params[:id])
+    @user = User.from_param(params[:id]) unless params[:id].blank?
   end
   # Alias for filter_resource_access: it expects "load_user" method rather than find_user.
   alias_method :load_user, :find_user
+
+  def load_users
+    @users = User.all
+  end
 end
