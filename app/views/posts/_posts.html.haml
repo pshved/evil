@@ -1,4 +1,4 @@
-- content_for(:title) {": #{@post.filtered_title}"}
+- content_for(:title) {": #{@post.htmlsafe_title}".html_safe}
 %div#mainpost
   %div.post-intro
     %div.tools
