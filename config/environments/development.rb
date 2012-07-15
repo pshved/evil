@@ -28,4 +28,7 @@ Zlo::Application.configure do
   # Expands the lines which load the assets
   # For now, I don't need this
   #config.assets.debug = true
+
+  # Turn off caching at all (useful for development purposes)
+  config.cache_store = :no_cache
 end

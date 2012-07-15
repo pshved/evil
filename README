@@ -41,7 +41,7 @@ The code that collects forum tree information resides in app/models/threads.rb. 
 
 If you're adding a new field to posts (for optimization purposes, for instance), be sure to add it to raw SQL in faster_posts model (see sql_posts method).  See 239aa4eaf commit for an example of adding new fields.
 
-The layout of the posts tree is in app/helpers/posts_helper.rb.  It contains raw HTML prints.  The reason why is eplained in my blog post http://coldattic.info/shvedsky/pro/blogs/a-foo-walks-into-a-bar/posts/75. WARNING!  When you change something in the post_helper, and want to see the changes but nothing happens after you reload a page, either turn off the cache completely, or erase the cache folder (rm -rf tmp/cache/).
+The layout of the posts tree is in app/helpers/posts_helper.rb.  It contains raw HTML prints.  The reason why is eplained in my blog post http://coldattic.info/shvedsky/pro/blogs/a-foo-walks-into-a-bar/posts/75. WARNING!  When you change something in the post_helper, and want to see the changes but nothing happens after you reload a page, either turn off the cache completely (uncomment the relevant lines in config/environments/development.rb), or erase the cache folder (rm -rf tmp/cache/).  I turned off caching in development by default.
 
 "Wide caches" for tracking post clicks, activity, and access to external message sources are initialized in app/controllers/application_controller.rb.  The implementation of the wide cache itself is located at lib/activity_tracker.rb.  More on wide caches you may find in my blog post: http://coldattic.info/shvedsky/pro/blogs/a-foo-walks-into-a-bar/posts/77
 
