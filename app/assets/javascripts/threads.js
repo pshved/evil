@@ -87,18 +87,44 @@ function showhide_subthread(post_id, do_hide, actor)
 function replace_subthread_with(post_id, contents)
 {
   ps = '#p'+post_id;
-  // The contents of the post--or a not if it's hidden
-  result_elem = $(contents).find('#p'+post_id).next();
+  // This won't let us find the correct destination element, but will find the "hidden bar," if any.
+  maybe_hidden_bar = $(contents).find('#p'+post_id).next();
   // We infer if the post is now hidden from that HTML
   // We would've needed the "select-root" trick, but we wrapped our stuff carefully
-  hidden = result_elem.hasClass('hidden-bar');
+  hidden = maybe_hidden_bar.hasClass('hidden-bar');
   actor = $(ps).find('a.subthread').first();
   actor.html(hidden_str[hidden]);
   actor.addClass(hidden_opposite[hidden]);
   actor.removeClass('inprogress');
-  // the "wrap-parent" trick is to get outer html
-  $(ps).next().replaceWith(result_elem.wrap('<a>').parent().html());
-  rebind_subthread_showhides($(ps).next().find('a'));
+
+  // The tree transformation works in two stages.  First, we remove everything that looks like children or a notification that they're hidden.  Then, we determine the relative position of the target div to the source in the new thread, and insert the target properly into this document.
+
+  // First stage: remove everything that looks like children
+  source = $('div'+ps);
+  // This removes hidden mark and <ul> with children.
+  source.next().remove();
+  // This removes the next child (and all subsequent siblings) if it finds out that the next child contains 'sm' class (to distinguish benween a sibling and a smoothed child).
+  // The trick to remove the parent and all subsequent siblings comes from http://stackoverflow.com/questions/8087371
+  if (source.parent().next().children('.sm').length != 0){
+    source.parent().nextAll().remove();
+  }
+
+  // Now find the target element(s) and show them at once
+  // Determine if the target element is the immediate sibling of the new source one
+  source_new = $(contents).find('div'+ps);
+  immediate_new = source_new.next();
+  if (immediate_new.length == 0){
+    // It's not the sibling: show smoothed thread
+    source_new.parent().nextAll().insertAfter(source.parent());
+    // it's important to only rebind the new elements, to avoid repetition
+    rebind_subthread_showhides(source.parent().nextAll().find('a'));
+  }else{
+    // It's the sibling: just append
+    // the "wrap-parent" trick is to get outer html
+    source.after(immediate_new.wrap('<a>').parent().html());
+    // it's important to only rebind the new elements, to avoid repetition
+    rebind_subthread_showhides(source.next().find('a'));
+  }
 }
 
 // Binds events to show/hide subthread nodes in the current object
