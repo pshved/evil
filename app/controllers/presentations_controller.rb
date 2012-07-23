@@ -12,7 +12,7 @@ class PresentationsController < ApplicationController
 
   before_filter :verify_get_csrf, :only => [:use, :clone, :make_default]
 
-  before_filter :load_supplement, :only => [:new, :index, :edit]
+  before_filter :load_supplement, :only => [:new, :index, :edit, :update, :create]
 
   # GET /presentations
   # GET /presentations.json

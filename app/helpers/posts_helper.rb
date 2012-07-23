@@ -258,7 +258,10 @@ EOS
     # If start is nil, then we're printing the index, and skip the post itself.
     if start
       this_info = info[start.id] || {}
-      buf << %Q(<div class="post-header#{this_info[:pazuzued] ? ' pazuzued' : ''}" id="p#{start.id}">)
+      pcl = 'post-header'
+      pcl << ' pazuzued' if this_info[:pazuzued]
+      pcl << ' sm' if view_opts[:smoothed]
+      buf << %Q(<div class="#{pcl}" id="p#{start.id}">)
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
