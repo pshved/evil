@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120710183911) do
+ActiveRecord::Schema.define(:version => 20120903210309) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -102,6 +102,7 @@ ActiveRecord::Schema.define(:version => 20120710183911) do
     t.string   "follow"
   end
 
+  add_index "posts", ["created_at"], :name => "index_posts_on_created_at"
   add_index "posts", ["parent_id"], :name => "index_posts_on_parent_id"
   add_index "posts", ["text_container_id"], :name => "index_posts_on_text_container_id"
   add_index "posts", ["thread_id"], :name => "index_posts_on_thread_id"

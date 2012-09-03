@@ -311,33 +311,15 @@ EOS
 
   # Returns the cached HTML for the tree of the "thr" thread.  Accounts for @post.
   def fast_tree_cache(thr,buf,start,presentation)
-    # This is not nice: we are using "respond_to?" instead of polymorphism: CachedThread objects do respond, and usual threads do not.  TODO: refactor this to a polymorphic call.
-    prepped = if thr.respond_to? :cached_html
-      # This block is what should render a single thread.  We should specify it here to adhere to MVC.
-      thr.cached_html(proc{|cached_thread| fast_usual_tree_cache(cached_thread,'',nil,cached_thread.presentation)},invalidated_index_pages?)
-    else
-      fast_usual_tree_cache(thr,buf,start,presentation)
-    end
+    # Either we have already fetched the thread from cache, or we're to load it
+    prepped = thr.cached_html || fast_usual_tree_cache(thr,buf,start,presentation)
     # Replace current post's class
     post_span_replace(prepped,@post,current_user)
   end
 
   def fast_usual_tree_cache(thr,buf,start,presentation)
-    # The wat a thread is displayed depends on many factors.
-    # - thread itself (identified by id and modification time);
-    # - the user's presentation (identified by its id and mtime... for now.  Later)
-    # - the user's show/hide for this thread (currently induced by the presentation anyway).
-    # - the current thread (this is fixed by a kludgy regexp).
-    # - global configuration of the site (modification time of it);
-    # - the user itself (as a tracker for its pazuzus)
-    # x user's timezone (this is accounted for in the presentations)
-    # x what post we are showing (it's @post).  This will be replaced via CSS.
-    # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
-    thread_key = key_of thr
-    user_key = key_of(current_user,'guest')
-    presentation_key = key_of presentation
-    cache_key = "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-user:#{user_key}-#{@show_all_posts}"
-    logger.debug "Tree for key: '#{cache_key}'"
+    # All cache key options are moved to controller's thread_cache_key
+    cache_key = thr.cache_key || thread_cache_key(thr,presentation)
     # Get the prepared thread to incur the current post into it
     prepped = Rails.cache.fetch(cache_key, :expires_in => THREAD_CACHE_TIME) do
       logger.debug "Tree for key: '#{cache_key}' miss!"

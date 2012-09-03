@@ -136,7 +136,7 @@ class PresentationsController < ApplicationController
 
   def load_supplement
     @user = current_user
-    @pazuzus = @user.pazuzus
-    @hidden_posts = @user.hidden_posts
+    @pazuzus = @user ? @user.pazuzus : []
+    @hidden_posts = @user ? @user.hidden_posts : []
   end
 end
