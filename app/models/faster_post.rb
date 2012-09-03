@@ -119,12 +119,18 @@ class FasterPost < ActiveRecord::Base
       select('deleted')
   end
 
-  def self.latest(length,settings_for,load_deleted = true)
-    sql_posts(settings_for ? settings_for.id : nil).
-      joins('JOIN text_items as body_items on (body_items.text_container_id = text_containers.id) and (body_items.revision = text_containers.current_revision)').where('body_items.number = 1').
+  def self.latest(length,settings_for,load_deleted = true,bodies = false)
+    la = sql_posts(settings_for ? settings_for.id : nil).
       where(['(not deleted) or ?', load_deleted]).
-      order('posts.created_at desc').
-      first(length)
+      order('posts.created_at desc')
+
+    if bodies
+      la = la.
+        joins('JOIN text_items as bodies on (bodies.text_container_id = text_containers.id) and (bodies.revision = text_containers.current_revision) and (bodies.number = 1)').
+        select('bodies.body as body')
+    end
+
+    la.first(length)
   end
 
 

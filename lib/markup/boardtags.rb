@@ -260,12 +260,11 @@ module BoardtagsFilter
     # Update parsing context
     $c = context
     # Re-parse grammar
-    #p @@parser.parse(text)
-    tree = @@parser.parse text
+    tree = @@parser.parse text rescue "ERROR HAPPENED"
     if tree
       tree.send method
     else
-      puts @@parser.failure_reason
+      puts @@parser.failure_reason rescue puts("TERMINAL FAILURE")
       nil
     end
   end

@@ -120,11 +120,15 @@ class PostsController < ApplicationController
     # Get threads for the latest
     length = params[:number].blank? ? POST_FEED_LENGTH : params[:number].to_i
     # This fetches bodies as well, but they're rendered only at the view
+    # RSS needs bodies, so fetch them in this case as well
     @posts = FasterPost.latest(length,current_user,permitted_to?(:see_deleted,:posts))
 
     respond_to do |format|
-      format.html # latest.html.erb
-      format.rss { render :layout => false }
+      format.html { @posts = FasterPost.latest(length,current_user,permitted_to?(:see_deleted,:posts)) }
+      format.rss do
+        @posts = FasterPost.latest(length,current_user,permitted_to?(:see_deleted,:posts),true)
+        render :layout => false
+      end
     end
   end
 
