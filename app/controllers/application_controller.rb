@@ -83,6 +83,7 @@ class ApplicationController < ActionController::Base
     presentation_key = key_of presentation
     "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-user:#{user_key}-#{@show_all_posts}"
   end
+  helper_method :thread_cache_key
 
   # Threads controller action sub.  Used to display threads on the main page
   # The job of this function is to fill the @threads array with indexes (TODO), and to preload the contents of these threads from cache.
@@ -131,7 +132,7 @@ class ApplicationController < ActionController::Base
     @threads.each {|t| t.settings_for = current_user}
 
     # Rails doesn't cache proc objects, so re-initialize it
-    @threads.index_validator = proc{ clear_index_invalidation }
+    clear_index_invalidation
 
     # Select the thread contents from cache.  Cache hits will give us exactly the views that should be rendered.  Cache misses will indicate the therads that should be reloaded.
     # Result: hash thread_id => rendered thread/nil.

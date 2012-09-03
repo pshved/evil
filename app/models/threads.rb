@@ -205,7 +205,7 @@ class Threads < ActiveRecord::Base
   #### SINGLE THREAD CACHING FUNCTIONALITY ###
   # Under some circumstances, the thread can already have its HTML source code cached.  It will be used in the view.
   public
-  attr_accessor :cached_html
+  attr_accessor :cached_html, :cache_key
   
   #### THREAD LISTING CACHING FUNCTIONALITY ###
   # A proxy class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all information to have them rendered.
@@ -218,12 +218,9 @@ class Threads < ActiveRecord::Base
     end
 
     attr_accessor :parent_index, :parent
-    # Get the HTML for this thread from cache.  The thread_renderer is a proc object that renders a thread if it's not found in cache.  This is used to render _all_ threads on the page!
-    # If +force_reload+ is set, it forces to query the cache for each thread separately, and update those that are too old.  Most threads, however, will remain cached.
-    attr_accessor :cached_html
-    def cached_html_compat(thread_renderer,force_reload = false)
-      parent.get_rendered(parent_index,thread_renderer,force_reload)
-    end
+
+    # Store rendered HTML and cache key here
+    attr_accessor :cached_html, :cache_key
 
     # If we are trying to access a missing method, we just forward it to the "read" thread
     def method_missing(sym,*args)
@@ -255,7 +252,7 @@ class Threads < ActiveRecord::Base
     attr_accessor :current_page, :num_pages, :limit_value
 
     # This is an accessor to the thr
-    attr_accessor :cache_key, :index_validator
+    attr_accessor :cache_key
 
     # Create the object.  Index_validator should be inserted manually!
     def initialize(array,cache_key,cp,np,lv)
@@ -277,28 +274,6 @@ class Threads < ActiveRecord::Base
     end
 
     public
-    def preloaded
-      ! self.rendered_threads.nil?
-    end
-    # Preload the layout of the threads to the cache.  The +renderer+ is a proc that takes a thread and returns HTML for it.
-    # We assume that calling a renderer for a thread will load it from DB.  This assumption allows us to get all threads at the first call to the renderer
-    def preload(renderer, force_reload = false)
-      if force_reload
-        preload_all_threads_sql
-        @rendered_threads = self.map {|cached_thread| renderer[cached_thread]}
-        # Save the updated thread selection to the cache
-        Rails.cache.write("#{cache_key}-html", @rendered_threads, :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME)
-        index_validator[] if index_validator
-      else
-        @rendered_threads ||= Rails.cache.fetch("#{cache_key}-html", :expires_in => INDEX_CACHE_TIME, :race_condition_ttl => INDEX_CACHE_UPDATE_TIME) do
-          preload_all_threads_sql
-          r = self.map {|cached_thread| renderer[cached_thread]}
-          index_validator[] if index_validator
-          r
-        end
-      end
-    end
-
     # To be used by controller: since we're now able to preload all threads in one SQL, we need the user to fetch settings for
     attr_accessor :settings_for
     # Make "faster_posts" for all threads in this array preloaded
@@ -316,11 +291,6 @@ class Threads < ActiveRecord::Base
       # Put this into threads
       self.each.map {|thr| thr.real_thread = @preloaded_all_threads[thr.id][0]}
       self.each.map {|thr| thr.preloaded_posts = @preloaded_all_posts[thr.id] if @preloaded_all_posts[thr.id]}
-    end
-
-    def get_rendered(i,thread_renderer,force_reload = false)
-      preload(thread_renderer,force_reload)
-      @rendered_threads[i]
     end
 
     # Since Rails 3.1 freezes the objects returned by cache, we have to unfreeze them.  This unfreezes the array items by duplicating them.  Returns self.
