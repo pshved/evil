@@ -66,6 +66,24 @@ class ApplicationController < ActionController::Base
   end
   helper_method :key_of
 
+  # Returns cache key for a thread object thr.  Gets necessary information from the environment
+  def thread_cache_key(thr,presentation)
+    # The wat a thread is displayed depends on many factors.
+    # - thread itself (identified by id and modification time);
+    # - the user's presentation (identified by its id and mtime... for now.  Later)
+    # - the user's show/hide for this thread (currently induced by the presentation anyway).
+    # - the current thread (this is fixed by a kludgy regexp).
+    # - global configuration of the site (modification time of it);
+    # - the user itself (as a tracker for its pazuzus)
+    # x user's timezone (this is accounted for in the presentations)
+    # x what post we are showing (it's @post).  This will be replaced via CSS.
+    # TODO: Later, these rules may be replaced with whether the user has touched the thread, but it's fast enough now
+    thread_key = key_of thr
+    user_key = key_of(current_user,'guest')
+    presentation_key = key_of presentation
+    "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-user:#{user_key}-#{@show_all_posts}"
+  end
+
   # Threads controller action sub.  Used to display threads on the main page
   # The job of this function is to fill the @threads array with indexes (TODO), and to preload the contents of these threads from cache.
   def prepare_threads
@@ -114,6 +132,19 @@ class ApplicationController < ActionController::Base
 
     # Rails doesn't cache proc objects, so re-initialize it
     @threads.index_validator = proc{ clear_index_invalidation }
+
+    # Select the thread contents from cache.  Cache hits will give us exactly the views that should be rendered.  Cache misses will indicate the therads that should be reloaded.
+    # Result: hash thread_id => rendered thread/nil.
+    @threads.each {|t| t.cached_html = Rails.cache.read(thread_cache_key(t,cpres), :expires_in => THREAD_CACHE_TIME)}
+
+    # Select threads that can't be fetched from cache
+    non_cached_threads = []
+    @threads.each{|t| non_cached_threads << t.id unless t.cached_html}
+
+    puts "Threads not cached = #{non_cached_threads.length}"
+
+    # Load all the relevant threads
+    @threads.preload_all_threads_sql
 
     # We do not set up parent, so the login post is new.
     @loginpost = Loginpost.new(:user => current_user)

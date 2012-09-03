@@ -311,13 +311,8 @@ EOS
 
   # Returns the cached HTML for the tree of the "thr" thread.  Accounts for @post.
   def fast_tree_cache(thr,buf,start,presentation)
-    # This is not nice: we are using "respond_to?" instead of polymorphism: CachedThread objects do respond, and usual threads do not.  TODO: refactor this to a polymorphic call.
-    prepped = if thr.respond_to? :cached_html
-      # This block is what should render a single thread.  We should specify it here to adhere to MVC.
-      thr.cached_html(proc{|cached_thread| fast_usual_tree_cache(cached_thread,'',nil,cached_thread.presentation)},invalidated_index_pages?)
-    else
-      fast_usual_tree_cache(thr,buf,start,presentation)
-    end
+    # Either we have already fetched the thread from cache, or we're to load it
+    prepped = thr.cached_html || fast_usual_tree_cache(thr,buf,start,presentation)
     # Replace current post's class
     post_span_replace(prepped,@post,current_user)
   end

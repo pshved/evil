@@ -202,6 +202,11 @@ class Threads < ActiveRecord::Base
     return r_subtree, r_hides
   end
 
+  #### SINGLE THREAD CACHING FUNCTIONALITY ###
+  # Under some circumstances, the thread can already have its HTML source code cached.  It will be used in the view.
+  public
+  attr_accessor :cached_html
+  
   #### THREAD LISTING CACHING FUNCTIONALITY ###
   # A proxy class that presents a cached thread.  @threads may return either them or real threads.  Cached threads access the ThreadCache object where they get all information to have them rendered.
   class CachedThread
@@ -215,7 +220,8 @@ class Threads < ActiveRecord::Base
     attr_accessor :parent_index, :parent
     # Get the HTML for this thread from cache.  The thread_renderer is a proc object that renders a thread if it's not found in cache.  This is used to render _all_ threads on the page!
     # If +force_reload+ is set, it forces to query the cache for each thread separately, and update those that are too old.  Most threads, however, will remain cached.
-    def cached_html(thread_renderer,force_reload = false)
+    attr_accessor :cached_html
+    def cached_html_compat(thread_renderer,force_reload = false)
       parent.get_rendered(parent_index,thread_renderer,force_reload)
     end
 
@@ -295,19 +301,23 @@ class Threads < ActiveRecord::Base
 
     # To be used by controller: since we're now able to preload all threads in one SQL, we need the user to fetch settings for
     attr_accessor :settings_for
-    private
     # Make "faster_posts" for all threads in this array preloaded
     def preload_all_threads_sql
       return @preload_all_threads_sql if @preload_all_threads_sql
       # Fetch hashes of thread and post objects
       @preloaded_all_threads = Threads.where(:id => self.map(&:id)).group_by {|t| t.id}
-      @preloaded_all_posts = FasterPost.sql_posts(@settings_for ? @settings_for.id : nil).where(:thread_id => self.map(&:id)).group_by{|p| p.thread_id}
+      # Preload only not cached threads
+      not_cached = self.reject{|t| t.cached_html }.map(&:id)
+      @preloaded_all_posts = unless not_cached.empty?
+        FasterPost.sql_posts(@settings_for ? @settings_for.id : nil).where(:thread_id => not_cached).group_by{|p| p.thread_id}
+      else
+        {}
+      end
       # Put this into threads
       self.each.map {|thr| thr.real_thread = @preloaded_all_threads[thr.id][0]}
-      self.each.map {|thr| thr.preloaded_posts = @preloaded_all_posts[thr.id]}
+      self.each.map {|thr| thr.preloaded_posts = @preloaded_all_posts[thr.id] if @preloaded_all_posts[thr.id]}
     end
 
-    public
     def get_rendered(i,thread_renderer,force_reload = false)
       preload(thread_renderer,force_reload)
       @rendered_threads[i]
