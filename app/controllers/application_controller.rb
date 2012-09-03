@@ -81,7 +81,7 @@ class ApplicationController < ActionController::Base
     thread_key = key_of thr
     user_key = key_of(current_user,'guest')
     presentation_key = key_of presentation
-    "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-user:#{user_key}-#{@show_all_posts}"
+    "tree-thread:#{thread_key}-view:#{presentation_key}-global:#{config_mtime}-user:#{user_key}-#{@show_all_posts}-#{@nopazuzu}"
   end
   helper_method :thread_cache_key
 
@@ -122,10 +122,10 @@ class ApplicationController < ActionController::Base
     end
     # Assign presentation information to threads, so the model now knows how to display them
     @threads.settings_for = current_user
-    # HACK HACK HACK!  Move this to presentation-like layer!
+    # HACK HACK HACK!  This is used to convey this to thread layout builder.  Accounted for in cache separately
     if current_user
-      @threads.settings_for.nopazuzu = !params[:nopazuzu].blank? if current_user
-      cpres.updated_at = Time.now if !params[:nopazuzu].blank?
+      @nopazuzu = !params[:nopazuzu].blank?
+      @threads.settings_for.nopazuzu = @nopazuzu if current_user
     end
     # END of hack
     @threads.each {|t| t.presentation = cpres}
