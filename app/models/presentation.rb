@@ -4,7 +4,7 @@ class Presentation < ActiveRecord::Base
   composed_of :tz, :class_name => 'TZInfo::Timezone', :mapping => %w(time_zone time_zone)
 
   # Mass-assignment protection
-  attr_accessible :name, :global, :time_zone, :threadpage_size, :highlight_self, :hide_signatures, :smooth_threshold, :plus, :autowrap_thread_threshold, :autowrap_thread_value
+  attr_accessible :name, :global, :time_zone, :threadpage_size, :highlight_self, :hide_signatures, :smooth_threshold, :plus, :autowrap_thread_threshold, :autowrap_thread_value, :normal_order
 
   validates_uniqueness_of :name, :scope => :user_id, :unless => proc {|p| p.user.nil?}
   validates_uniqueness_of :cookie_key, :unless => proc {|p| p.cookie_key.nil?}
@@ -22,6 +22,7 @@ class Presentation < ActiveRecord::Base
                      :hide_signatures => false,
                      :smooth_threshold => 10,
                      :plus => true,
+                     :normal_order => true,
                      # Updated_at is very important for caching.  It serves as a cache key for all guest users.
                      # The default presentation may change either at server restart or when admin adjusts the configuration.  We account for both, whichever happens last.
                      # We use "compact" since the first value may be nil if there's no presentations yet.

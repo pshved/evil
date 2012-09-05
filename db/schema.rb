@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120903210309) do
+ActiveRecord::Schema.define(:version => 20120905190420) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -125,6 +125,7 @@ ActiveRecord::Schema.define(:version => 20120903210309) do
     t.integer  "smooth_threshold",          :default => 10
     t.boolean  "plus",                      :default => false
     t.string   "requested_by"
+    t.boolean  "normal_order",              :default => false
   end
 
   add_index "presentations", ["accessed_at"], :name => "index_presentations_on_accessed_at"
