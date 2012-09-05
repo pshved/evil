@@ -73,7 +73,8 @@ class Threads < ActiveRecord::Base
     # Build id => children mapping, and order it as in threads
     ordered = posts_assoc.group_by &:parent_value
     ordered.each do |parent_id,children|
-      children.sort_by!(&:created_at).reverse!
+      children.sort_by!(&:created_at)
+      children.reverse! if presentation.normal_order.blank?
     end
     r_subtree = ordered
 
