@@ -85,6 +85,33 @@ module PostsHelper
 
   end
 
+  # We both cache links, and translations, as translating the same string thousands of times takes .05 sec.  The accompanying block should return a pair of values, iftrue and iffalse.
+  def fast_liked
+    return @_post_fast_liked if @_post_fast_liked
+    # Render a test link with placeholders
+    magic = 47382929372 # Beware! should not be equal to a post id!
+    magic_class = 'MAGIC_ANOTHER_ACTION'
+    pl = link_to 'TITLE_PH', toggle_like_post_path(magic), :class => "like action #{magic_class}"
+
+    # We abuse that, in HTML, link address is before the text.
+    md = /^(.*)#{magic}(.*)#{magic_class}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
+    md1 = md[1]
+    md2 = md[2]
+    md3 = md[3]
+    md4 = md[4]
+
+    iftrue, iffalse = yield
+
+    # Note to_s near "id"!  Otherwise, ActiveRecord (or Ruby) will convert it to ASCII instead of UTF-8
+    @_post_fast_liked = proc do |buf,p,should_liked|
+      buf <<
+        md1 << p.id.to_s <<
+        # Reverse this: should_liked means if we "should liked the subthread"
+        md2 << (should_liked ? 'like' : 'dislike') <<
+        md3 << (should_liked ? iftrue : iffalse) << md4
+    end
+
+  end
   def unless_deleted(post)
     # Cache user's permission to view deleted posts
     if @_can_see_deleted.nil?
@@ -195,8 +222,15 @@ EOS
     end
     # post clicks
     if post.clicks != 0 && post.clicks != '0'
-      buf << ' <span class="post-clicks">(' << post.clicks.to_s  << ")</span>"
+      buf << ' <span class="post-clicks">('
+      if post.rating != 0 && post.rating != '0'
+        # FIXME: style
+        buf << '<b>' << post.rating.to_s << '</b>'
+        buf << '/'
+      end
+      buf << post.clicks.to_s << ")</span>"
     end
+
     buf << ' - '
     fast_print_username(buf,post)
     buf << " (#{post.host}) "
@@ -265,6 +299,16 @@ EOS
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
+
+      # Likes
+      # FIXME: likes
+      flp = fast_liked {[t("Like"),t("Unlike")]}
+      if start.score == 0
+        buf << %Q( <a id="like#{start.id}" class="like action" href="#">Like</a>)
+      else
+        buf << %Q( <a id="like#{start.id}" class="like action" href="#">Unlike</a>)
+      end
+
 
       # Do not show (+++) if we don't show a usual (+), since it's not going to work anyway
       if view_opts[:plus] && this_info[:has_nonempty_body]

@@ -75,6 +75,7 @@ ru:
       title: Сортировать
       created_at: По созданию
       updated_at: По последнему
+      likes: По рейтингу
   # Some models are "activemodel" rather than "activerecord" models
   activemodel:
     models:

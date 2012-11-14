@@ -101,6 +101,8 @@ class ApplicationController < ActionController::Base
       threads = Threads
       if sort_threads == :create
         threads = threads.order("created_at DESC")
+      elsif sort_threads == :like
+        threads = threads.order("likescore DESC")
       else
         threads = threads.order("posted_to_at DESC")
       end

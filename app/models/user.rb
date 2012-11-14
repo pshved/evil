@@ -79,6 +79,9 @@ class User < ActiveRecord::Base
   #Hidden posts
   has_many :hide_actions, :class_name => 'HiddenPostsUsers'
   has_many :hidden_posts, :class_name => 'Posts', :through => :hide_actions
+  # Likes
+  has_many :likes, :class_name => 'LikeUser'
+  has_many :liked_posts, :class_name => 'Posts', :through => :likes
 
   # Pazuzus
   # (user hiding preferences are named after pazuzu, who was first to create a user script to hide certain users from being showed to you personally)

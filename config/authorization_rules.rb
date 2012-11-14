@@ -53,6 +53,8 @@ authorization do
 
     # Show/hide posts
     has_permission_on :posts, :to => :toggle_showhide
+    # Like!
+    has_permission_on :posts, :to => :toggle_like
 
     # Pazuzus are aready tied to the current_user as an owner, so there's no need to check attributes
     has_permission_on :pazuzus, :to => [:index, :new]

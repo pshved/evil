@@ -76,8 +76,9 @@
     <div class="right">
       <%= render :partial => 'activities/stats' %>
       <%= t('threads.order_by.title') %>:
-      <%= link_to_unless(current_page?(root_path) && (params[:thread_order] != 'update'), t('threads.order_by.created_at'), root_path())%>
+      <%= link_to_unless(current_page?(root_path) && (params[:thread_order].blank?), t('threads.order_by.created_at'), root_path())%>
       <%= link_to_unless(current_page?(root_path) && (params[:thread_order] == 'update'), t('threads.order_by.updated_at'), root_path(:thread_order => :update))%>
+      <%= link_to_unless(current_page?(root_path) && (params[:thread_order] == 'like'), t('threads.order_by.likes'), root_path(:thread_order => :like))%>
       <% if current_user %>
         |
         <%=ta(:show,:pazuzu)+':'%>

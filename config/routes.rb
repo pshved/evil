@@ -25,7 +25,7 @@ Zlo::Application.routes.draw do
   end
   resources :posts, :path => 'p' do
     member do
-      get :toggle_showhide, :remove
+      get :toggle_showhide, :remove, :toggle_like
     end
     collection do
       get :latest

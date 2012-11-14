@@ -17,6 +17,9 @@ class Posts < ActiveRecord::Base
   # This will be set if the post has been imported
   has_one :import, :foreign_key => 'post_id'
 
+  # Likes
+  has_many :likes, :class_name => 'LikeUser'
+
   # Mass-assignment protection
   attr_accessible :body, :title, :unreg_name, :host
 
@@ -44,6 +47,8 @@ class Posts < ActiveRecord::Base
   # Update thread's last post time at posting
   after_save do
     thread.posted_to_at = [created_at, thread.posted_to_at].compact.max
+    # TODO
+    #thread.update_likes(true)
     thread.save
   end
 
@@ -188,6 +193,21 @@ class Posts < ActiveRecord::Base
     end
   end
 
+  def toggle_like(user)
+    # We should check if the user hides the thread with his or her settings
+    if like_assoc = user.likes.where(['posts_id = ?',self.id]).first
+      # Do not destroy; we'll resave posts
+      like_assoc.delete
+    else
+      # If it's a new like, do also a click
+      LikeUser.create(:user_id => user.id, :posts_id => self.id, :score => 1)
+      Click.replay([[self.id, Click.clicker(user)]])
+    end
+  end
+
+  def like(user,score = 1)
+  end
+
   # Editing posts and revisions
   def title=(title)
     ensure_container[0] = title
@@ -253,6 +273,12 @@ class Posts < ActiveRecord::Base
 
   def last_editor=(e)
     ensure_container.last_editor = e if ensure_container
+  end
+
+  # Likes
+  def quick_update_likes
+    self.update_attributes!({:rating => self.likes.count}, :without_protection => true)
+    thread.quick_update_likes
   end
 
 end
