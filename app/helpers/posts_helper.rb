@@ -231,15 +231,6 @@ EOS
       buf << post.clicks.to_s << ")</span>"
     end
 
-    # Likes
-    # FIXME: likes
-    flp = fast_liked {[t("Like"),t("Unlike")]}
-    if post.score == 0
-      buf << %Q( <a id="like#{post.id}" class="like action" href="#">Like</a>)
-    else
-      buf << %Q( <a id="like#{post.id}" class="like action" href="#">Unlike</a>)
-    end
-
     buf << ' - '
     fast_print_username(buf,post)
     buf << " (#{post.host}) "
@@ -308,6 +299,16 @@ EOS
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
+
+      # Likes
+      # FIXME: likes
+      flp = fast_liked {[t("Like"),t("Unlike")]}
+      if start.score == 0
+        buf << %Q( <a id="like#{start.id}" class="like action" href="#">Like</a>)
+      else
+        buf << %Q( <a id="like#{start.id}" class="like action" href="#">Unlike</a>)
+      end
+
 
       # Do not show (+++) if we don't show a usual (+), since it's not going to work anyway
       if view_opts[:plus] && this_info[:has_nonempty_body]
