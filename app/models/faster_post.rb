@@ -16,7 +16,7 @@ class FasterPost < ActiveRecord::Base
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
-  %w(title unreg_name user_login author_id empty_body parent_id created_at hide_action body body_filter cache_timestamp follow rating).each {|m| send :define_method, m.to_sym do
+  %w(title unreg_name user_login author_id empty_body parent_id created_at hide_action body body_filter cache_timestamp follow rating score).each {|m| send :define_method, m.to_sym do
     read_attribute_before_type_cast(m)
   end}
 
@@ -87,6 +87,11 @@ class FasterPost < ActiveRecord::Base
     raw.blank? ? 0 : raw
   end
 
+  def score
+    raw = read_attribute_before_type_cast('score')
+    raw.blank? ? 0 : raw
+  end
+
   # Override inspect, as ActiveRecord's inspect wants fields, and we do not have them.
   def inspect
     Object.instance_method(:inspect).bind(self).call
@@ -114,6 +119,7 @@ class FasterPost < ActiveRecord::Base
       joins('LEFT JOIN users on posts.user_id = users.id').
       joins('LEFT JOIN clicks on clicks.post_id = posts.id').
       joins("LEFT JOIN hidden_posts_users on hidden_posts_users.user_id = #{hidden_user_id || 'NULL'} AND hidden_posts_users.posts_id = posts.id").
+      joins("LEFT JOIN like_users on like_users.user_id = #{hidden_user_id || 'NULL'} AND like_users.posts_id = posts.id").
       select('posts.id, posts.parent_id, posts.thread_id').
       select('text_containers.filter as body_filter, text_containers.updated_at as cache_timestamp').
       select('text_items.body as title').where('text_items.number = 0').
@@ -122,6 +128,7 @@ class FasterPost < ActiveRecord::Base
       select('users.id as author_id').
       select('clicks.clicks, hidden_posts_users.action as hide_action').
       select('rating').
+      select('like_users.score as score').
       select('deleted')
   end
 

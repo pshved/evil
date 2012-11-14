@@ -91,7 +91,7 @@ module PostsHelper
     # Render a test link with placeholders
     magic = 47382929372 # Beware! should not be equal to a post id!
     magic_class = 'MAGIC_ANOTHER_ACTION'
-    pl = link_to 'TITLE_PH', toggle_like_post_path(magic), :class => "action like #{magic_class}"
+    pl = link_to 'TITLE_PH', toggle_like_post_path(magic), :class => "like action #{magic_class}"
 
     # We abuse that, in HTML, link address is before the text.
     md = /^(.*)#{magic}(.*)#{magic_class}(.*)TITLE_PH(.*)$/u.match(pl) or raise "WTF!  how come a link became #{pl} ???"
@@ -224,10 +224,22 @@ EOS
     if post.clicks != 0 && post.clicks != '0'
       buf << ' <span class="post-clicks">('
       if post.rating != 0 && post.rating != '0'
-        buf << post.rating.to_s << "/"
+        # FIXME: style
+        buf << '<b>' << post.rating.to_s << '</b>'
+        buf << '/'
       end
       buf << post.clicks.to_s << ")</span>"
     end
+
+    # Likes
+    # FIXME: likes
+    flp = fast_liked {[t("Like"),t("Unlike")]}
+    if post.score == 0
+      buf << %Q( <a id="like#{post.id}" class="like action" href="#">Like</a>)
+    else
+      buf << %Q( <a id="like#{post.id}" class="like action" href="#">Unlike</a>)
+    end
+
     buf << ' - '
     fast_print_username(buf,post)
     buf << " (#{post.host}) "
@@ -296,9 +308,6 @@ EOS
       # Since the thread is wrapped into <div>, we should place the up-marker to the same line.
       buf << "^ " if view_opts[:smoothed]
       unless_deleted(start){fast_print(start,tz,buf,view_opts)}
-
-      # Likes
-      buf << %Q( <a id="like#{start.id}" class="like action" href="#">Like</a>)
 
       # Do not show (+++) if we don't show a usual (+), since it's not going to work anyway
       if view_opts[:plus] && this_info[:has_nonempty_body]

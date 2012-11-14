@@ -91,7 +91,7 @@ function replace_postline_with(post_id, contents)
 
   source = $('div'+ps);
   source.html(post_header_line.html());
-  rebind_subthread_showhides(source.parent().find('a'));
+  rebind_subthread_showhides(source.find('a'));
 }
 
 function replace_subthread_with(post_id, contents)
@@ -185,7 +185,7 @@ function rebind_subthread_showhides(jq)
     var post_id = $target.parent().attr('id').replace(/^p/,'');
     $target.addClass('inprogress');
 
-    $target.removeClass('show').removeClass('hide');
+    $target.removeClass('like').removeClass('unlike');
     // Fire a jsonp call
     shst_request[post_id] = $.ajax({
       url: "/p/"+post_id+'/toggle_like.js',
