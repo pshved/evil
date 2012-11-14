@@ -5,7 +5,7 @@ class Threads < ActiveRecord::Base
   # Update likes
   def quick_update_likes
     # TODO: flexible
-    self.update_attributes!({:likescore => self.created_at + 10.minutes * self.posts.sum('rating')}, :without_protection => true)
+    self.update_attributes!({:likescore => self.created_at + 31.minutes * self.posts.sum('rating')}, :without_protection => true)
   end
   # TODO: hook into `touch`, and make it affect likescore
 
