@@ -2,6 +2,13 @@ class Threads < ActiveRecord::Base
   belongs_to :head, :class_name => 'Posts', :autosave => true
   has_many :posts, :class_name => 'Posts', :foreign_key => 'thread_id'
 
+  # Update likes
+  def quick_update_likes
+    # TODO: flexible
+    self.update_attributes!({:likescore => self.created_at + 10.minutes * self.posts.sum('rating')}, :without_protection => true)
+  end
+  # TODO: hook into `touch`, and make it affect likescore
+
   # Builds a hash of post id => children
   def build_subtree
     ensure_subtree_cache

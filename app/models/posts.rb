@@ -47,6 +47,8 @@ class Posts < ActiveRecord::Base
   # Update thread's last post time at posting
   after_save do
     thread.posted_to_at = [created_at, thread.posted_to_at].compact.max
+    # TODO
+    #thread.update_likes(true)
     thread.save
   end
 
@@ -274,9 +276,9 @@ class Posts < ActiveRecord::Base
   end
 
   # Likes
-  before_save do
-    self.rating = self.likes.count
-    true
+  def quick_update_likes
+    self.update_attributes!({:rating => self.likes.count}, :without_protection => true)
+    thread.quick_update_likes
   end
 
 end

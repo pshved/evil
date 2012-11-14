@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121114065726) do
+ActiveRecord::Schema.define(:version => 20121114084417) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -219,10 +219,12 @@ ActiveRecord::Schema.define(:version => 20121114065726) do
     t.datetime "updated_at"
     t.datetime "created_at"
     t.datetime "posted_to_at"
+    t.datetime "likescore"
   end
 
   add_index "threads", ["created_at"], :name => "index_threads_on_created_at"
   add_index "threads", ["head_id"], :name => "index_threads_on_head_id"
+  add_index "threads", ["likescore"], :name => "index_threads_on_likescore"
   add_index "threads", ["posted_to_at"], :name => "index_threads_on_posted_to_at"
 
   create_table "user_sessions", :force => true do |t|

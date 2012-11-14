@@ -119,7 +119,7 @@ class PostsController < ApplicationController
   def toggle_like
     @post.toggle_like(current_user)
     # Do heavier update than just touch.
-    @post.save
+    @post.quick_update_likes
     # NOTE: This has loaded post's thread (since hides may be induced by thread structure).  We should reload post if we're going to render it at _this_ request.
     respond_to do |format|
       format.html { redirect_to root_path(:anchor => @post.id) }
