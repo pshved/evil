@@ -16,6 +16,7 @@ class Source < ActiveRecord::Base
   # If the source was accessed during the latest 5 minutes, the timeout is 30 seconds.  Otherwise, it's 10 minutes.
   # For x-board, this is confirmed by http://x.mipt.cc/?read=18911
   def timeout
+    synchronized_at ||= Time.now
     if Time.now - synchronized_at > 5.minutes
       10.minutes
     else
