@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120905190420) do
+ActiveRecord::Schema.define(:version => 20121114065726) do
 
   create_table "activities", :force => true do |t|
     t.string   "host"
@@ -62,6 +62,17 @@ ActiveRecord::Schema.define(:version => 20120905190420) do
   add_index "imports", ["source_id", "reply_to"], :name => "index_imports_on_source_id_and_reply_to"
   add_index "imports", ["source_id"], :name => "index_imports_on_source_id"
 
+  create_table "like_users", :force => true do |t|
+    t.integer  "user_id"
+    t.integer  "posts_id"
+    t.integer  "score"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "like_users", ["posts_id"], :name => "index_like_users_on_posts_id"
+  add_index "like_users", ["user_id"], :name => "index_like_users_on_user_id"
+
   create_table "moderation_actions", :force => true do |t|
     t.integer  "post_id"
     t.integer  "user_id"
@@ -100,6 +111,7 @@ ActiveRecord::Schema.define(:version => 20120905190420) do
     t.boolean  "empty_body"
     t.boolean  "deleted",           :default => false
     t.string   "follow"
+    t.integer  "rating"
   end
 
   add_index "posts", ["created_at"], :name => "index_posts_on_created_at"

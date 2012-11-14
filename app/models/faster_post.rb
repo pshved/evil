@@ -16,7 +16,7 @@ class FasterPost < ActiveRecord::Base
   # Optimizations
   # unless we read raw attributes, we spend too much time looking for them in association caches, etc.
   # This made the rendering 30% faster.
-  %w(title unreg_name user_login author_id empty_body parent_id created_at hide_action body body_filter cache_timestamp follow).each {|m| send :define_method, m.to_sym do
+  %w(title unreg_name user_login author_id empty_body parent_id created_at hide_action body body_filter cache_timestamp follow rating).each {|m| send :define_method, m.to_sym do
     read_attribute_before_type_cast(m)
   end}
 
@@ -82,6 +82,11 @@ class FasterPost < ActiveRecord::Base
     raw.blank? ? 0 : raw
   end
 
+  def rating
+    raw = read_attribute_before_type_cast('rating')
+    raw.blank? ? 0 : raw
+  end
+
   # Override inspect, as ActiveRecord's inspect wants fields, and we do not have them.
   def inspect
     Object.instance_method(:inspect).bind(self).call
@@ -116,6 +121,7 @@ class FasterPost < ActiveRecord::Base
       select('users.login as user_login').
       select('users.id as author_id').
       select('clicks.clicks, hidden_posts_users.action as hide_action').
+      select('rating').
       select('deleted')
   end
 

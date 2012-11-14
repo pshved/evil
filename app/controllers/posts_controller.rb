@@ -5,8 +5,8 @@ class PostsController < ApplicationController
   caches_action :show, :unless => proc {current_user}, :cache_path => proc {"post_#{params[:id]}"},
     :expires_in => UNREG_VIEW_CACHE_TIME, :race_condition_ttl => UNREG_VIEW_CACHE_UPDATE_TIME
 
-  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove]
-  before_filter :find_thread, :only => [:edit, :update, :show, :remove, :toggle_showhide]
+  before_filter :find_post, :only => [:edit, :update, :show, :destroy, :toggle_showhide, :remove, :toggle_like]
+  before_filter :find_thread, :only => [:edit, :update, :show, :remove, :toggle_showhide, :toggle_like]
   before_filter :init_loginpost, :only => [:edit, :update]
 
   # Trick authorization by supplying a "fake" @posts to make it skip loagind the object
@@ -104,6 +104,22 @@ class PostsController < ApplicationController
   def toggle_showhide
     @post.toggle_showhide(current_user,current_presentation)
     @post.touch
+    # NOTE: This has loaded post's thread (since hides may be induced by thread structure).  We should reload post if we're going to render it at _this_ request.
+    respond_to do |format|
+      format.html { redirect_to root_path(:anchor => @post.id) }
+      format.js do
+        # Toggling showhide changed thread structure; reload
+        find_post
+        find_thread
+        # now render
+      end
+    end
+  end
+
+  def toggle_like
+    @post.toggle_like(current_user)
+    # Do heavier update than just touch.
+    @post.save
     # NOTE: This has loaded post's thread (since hides may be induced by thread structure).  We should reload post if we're going to render it at _this_ request.
     respond_to do |format|
       format.html { redirect_to root_path(:anchor => @post.id) }

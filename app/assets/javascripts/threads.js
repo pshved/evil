@@ -84,6 +84,16 @@ function showhide_subthread(post_id, do_hide, actor)
   });
 }
 
+function replace_postline_with(post_id, contents)
+{
+  ps = '#p'+post_id;
+  post_header_line = $(contents).find('#p'+post_id)
+
+  source = $('div'+ps);
+  source.html(post_header_line.html());
+  rebind_subthread_showhides(source.parent().find('a'));
+}
+
 function replace_subthread_with(post_id, contents)
 {
   ps = '#p'+post_id;
@@ -165,6 +175,23 @@ function rebind_subthread_showhides(jq)
     // Launch expansion
     start_from.find('a.postbody').addClass('inprogress');
     start_from.find('a.postbody').trigger('showbody',trigger_id);
+    // Block the click
+    return false;
+  });
+
+  /* Call that show-only event via special links */
+  jq.filter('a.like').bind('click',function (event) {
+    var $target = $(event.target);
+    var post_id = $target.parent().attr('id').replace(/^p/,'');
+    $target.addClass('inprogress');
+
+    $target.removeClass('show').removeClass('hide');
+    // Fire a jsonp call
+    shst_request[post_id] = $.ajax({
+      url: "/p/"+post_id+'/toggle_like.js',
+      dataType: 'jsonp',
+      complete: function() { shst_request[post_id] = null }
+    });
     // Block the click
     return false;
   });
