@@ -9,6 +9,11 @@ class Threads < ActiveRecord::Base
   end
   # TODO: hook into `touch`, and make it affect likescore
 
+  # If we don't do this, threads won't appear when sorted by likes.
+  before_save do
+    self.likescore ||= self.created_at
+  end
+
   # Builds a hash of post id => children
   def build_subtree
     ensure_subtree_cache
