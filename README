@@ -33,7 +33,7 @@ memcached (production)
 
 == How to launch the application
 
-Read the wiki at http://dev.coldattic.info/projects/evil/wiki
+Read INSTALL.md
 
 == Important pieces of code
 
